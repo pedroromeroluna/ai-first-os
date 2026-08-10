@@ -4,6 +4,12 @@
 #
 # Uso: close-session.sh --brain DIR --org SLUG --material ARCHIVO
 #                       [--session-org SLUG] [--load-context]
+#      close-session.sh --brain DIR --root --material ARCHIVO
+#
+# Con `--root` distribuye a los canónicos de la raíz (spec 018) en vez de a los de una organización:
+# `backlog.md`, `decisions.md`, `learnings.md` y `initiatives/<nombre>.md`, todos en la raíz del
+# brain. `--org` y `--root` son excluyentes, y la raíz no exige `--session-org` ni `--load-context` —
+# su identidad (`operator.md`) ya está cargada en cualquier sesión.
 #
 # Formato del material — una clave por línea, `clave: valor`.
 #
@@ -50,6 +56,7 @@ nl="${nl%x}"
 
 brain=""
 org=""
+root=0
 material=""
 session_org=""
 load_context=0
@@ -58,6 +65,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --brain) brain="${2:-}"; shift 2 ;;
     --org) org="${2:-}"; shift 2 ;;
+    --root) root=1; shift ;;
     --material) material="${2:-}"; shift 2 ;;
     --session-org) session_org="${2:-}"; shift 2 ;;
     --load-context) load_context=1; shift ;;
@@ -66,13 +74,17 @@ while [ $# -gt 0 ]; do
 done
 
 [ -n "$brain" ] || os_die "falta --brain"
-[ -n "$org" ] || os_die "falta --org"
+if [ "$root" = "1" ]; then
+  [ -z "$org" ] || os_die "--root y --org son excluyentes"
+else
+  [ -n "$org" ] || os_die "falta --org o --root"
+fi
 [ -n "$material" ] || os_die "falta --material"
 [ -d "$brain" ] || os_die "no existe el brain: $brain"
 [ -f "$material" ] || os_die "no existe el material de la sesión: $material"
 brain=$(cd "$brain" && pwd)
 
-if ! os_org_existe "$brain" "$org"; then
+if [ "$root" = "0" ] && ! os_org_existe "$brain" "$org"; then
   printf 'la organización "%s" no existe. Las que hay:\n' "$org" >&2
   slugs=$(os_org_slugs "$brain")
   if [ -n "$slugs" ]; then
@@ -85,26 +97,40 @@ fi
 
 # Escribir en un nodo cuyo `context` no está cargado exige cargarlo primero o negarse. El cierre
 # escribe en los canónicos del nodo: es la escritura más cara de mandar al lugar equivocado.
-ctx="orgs/$org/context.md"
-res="orgs/$org/resolver.md"
-if [ "$session_org" != "$org" ]; then
-  if [ "$load_context" = "0" ]; then
-    printf 'escritura cross-nodo: la sesión está parada en "%s" y el cierre escribe en "%s".\n' \
-      "${session_org:-(ningún ámbito declarado)}" "$org" >&2
-    printf 'no se escribió nada. Cargá primero %s y %s, y repetí con --load-context.\n' \
-      "$ctx" "$res" >&2
-    exit 3
-  fi
-  printf 'context cargado antes de escribir en "%s":\n' "$org"
-  for f in "$ctx" "$res"; do
-    if [ -f "$brain/$f" ]; then
-      printf -- '--- %s\n' "$f"
-      cat "$brain/$f"
-    else
-      printf -- '--- %s: no está — se cierra degradado y se dice\n' "$f"
+#
+# La raíz no tiene este candado: su identidad (`operator.md`) está cargada en cualquier sesión, a
+# cualquier ámbito — no hay `context` cross-nodo que custodiar.
+#
+# `orgprefix` es la única diferencia de ruta entre los dos ámbitos: "orgs/<slug>/" para una
+# organización, vacío para la raíz. Todo lo que sigue arma sus rutas con este prefijo en vez de
+# repetir el condicional en cada canónico.
+if [ "$root" = "1" ]; then
+  orgprefix=""
+  ambito_nombre="raíz"
+else
+  orgprefix="orgs/$org/"
+  ambito_nombre="$org"
+  ctx="${orgprefix}context.md"
+  res="${orgprefix}resolver.md"
+  if [ "$session_org" != "$org" ]; then
+    if [ "$load_context" = "0" ]; then
+      printf 'escritura cross-nodo: la sesión está parada en "%s" y el cierre escribe en "%s".\n' \
+        "${session_org:-(ningún ámbito declarado)}" "$org" >&2
+      printf 'no se escribió nada. Cargá primero %s y %s, y repetí con --load-context.\n' \
+        "$ctx" "$res" >&2
+      exit 3
     fi
-  done
-  printf -- '---\n\n'
+    printf 'context cargado antes de escribir en "%s":\n' "$org"
+    for f in "$ctx" "$res"; do
+      if [ -f "$brain/$f" ]; then
+        printf -- '--- %s\n' "$f"
+        cat "$brain/$f"
+      else
+        printf -- '--- %s: no está — se cierra degradado y se dice\n' "$f"
+      fi
+    done
+    printf -- '---\n\n'
+  fi
 fi
 
 hoy=$(date +%Y-%m-%d)
@@ -129,23 +155,25 @@ declarar_glob() {
 
 # ---------------------------------------------------------------- los canónicos del nodo
 # Un archivo que solo guarda contenido nace con su primer dato. `decisions` y `learnings` son dos de
-# las cinco preguntas del nodo: en un nodo carpeta, cada una es su archivo.
+# las cinco preguntas del nodo: en un nodo carpeta, cada una es su archivo. Con `--root` son dos de
+# las cuatro preguntas propias de la raíz (spec 018) — mismo formato, sin `orgs/<slug>/` adelante.
 nace_canonico() {
   # nace_canonico ARCHIVO TITULO SUBTITULO
-  local file="$brain/orgs/$org/$1"
+  local file="$brain/${orgprefix}$1" glob
   [ -f "$file" ] && return 0
   {
     printf '# %s\n\n' "$2"
     printf '%s\n\n' "$3"
   } > "$file"
-  push_capturado "orgs/$org/$1 nació con su primer dato"
-  declarar_glob "orgs/*/$1"
+  push_capturado "${orgprefix}$1 nació con su primer dato"
+  if [ "$root" = "1" ]; then glob="$1"; else glob="orgs/*/$1"; fi
+  declarar_glob "$glob"
   return 0
 }
 
 escribir_decision() {
   # escribir_decision TITULO QUE PORQUE REEMPLAZA INVALIDARIA
-  local file="$brain/orgs/$org/decisions.md"
+  local file="$brain/${orgprefix}decisions.md"
   nace_canonico "decisions.md" "Decisiones" \
     "Registro append-only. Nunca se corrige: si una decisión cambia, se agrega otra que la reemplaza y la nombra."
   {
@@ -156,12 +184,12 @@ escribir_decision() {
     [ -n "$4" ] && printf '**Reemplaza a**: %s\n\n' "$4"
     [ -n "$5" ] && printf '**La invalidaría**: %s\n\n' "$5"
   } >> "$file"
-  push_capturado "decisión → orgs/$org/decisions.md: $1"
+  push_capturado "decisión → ${orgprefix}decisions.md: $1"
 }
 
 escribir_learning() {
   # escribir_learning TITULO CUERPO STATUS
-  local file="$brain/orgs/$org/learnings.md"
+  local file="$brain/${orgprefix}learnings.md"
   nace_canonico "learnings.md" "Aprendizajes" \
     "Vivo: se actualiza o se borra. Lo que se intentó y no cerró queda con status: provisional, para que nadie lo reintente sin saberlo."
   {
@@ -173,9 +201,9 @@ escribir_learning() {
     printf '%s\n\n' "$2"
   } >> "$file"
   if [ "$3" = "provisional" ]; then
-    push_capturado "intento sin conclusión → orgs/$org/learnings.md (status: provisional): $1"
+    push_capturado "intento sin conclusión → ${orgprefix}learnings.md (status: provisional): $1"
   else
-    push_capturado "aprendizaje → orgs/$org/learnings.md: $1"
+    push_capturado "aprendizaje → ${orgprefix}learnings.md: $1"
   fi
 }
 
@@ -261,8 +289,13 @@ CAMPOS
       fi
       if [ -z "$texto" ]; then push_no_capturado "pendiente sin texto"; continue; fi
       # Archivar una tarea suelta ya es `capture`: el cierre la llama en vez de repetir su escritura.
-      salida=$("$here/capture.sh" --brain "$brain" --org "$org" --session-org "$org" \
-               --text "$texto" 2>&1)
+      # La raíz no manda `--session-org`: capture.sh nunca la pide para su propio ámbito.
+      if [ "$root" = "1" ]; then
+        salida=$("$here/capture.sh" --brain "$brain" --root --text "$texto" 2>&1)
+      else
+        salida=$("$here/capture.sh" --brain "$brain" --org "$org" --session-org "$org" \
+                 --text "$texto" 2>&1)
+      fi
       rc=$?
       if [ "$rc" = "0" ]; then
         detalle=$(os_trim "$(printf '%s\n' "$salida" | grep 'backlog.md — ' | head -1)")
@@ -289,7 +322,7 @@ CAMPOS
         push_no_capturado "espera sin iniciativa o sin valor: $value"
         continue
       fi
-      cabeza="orgs/$org/initiatives/$ini.md"
+      cabeza="${orgprefix}initiatives/$ini.md"
       if [ ! -f "$brain/$cabeza" ]; then
         push_no_capturado "espera no escrita: no existe $cabeza"
         continue
@@ -345,8 +378,14 @@ cerrar_registro
 # así que no cuenta como tarea en ningún conteo.
 if [ -n "$puntero" ]; then
   nacio=0
-  os_backlog_asegurar "$brain" "$org" || nacio=1
-  backlog="$brain/orgs/$org/backlog.md"
+  if [ "$root" = "1" ]; then
+    os_root_backlog_asegurar "$brain" || nacio=1
+    glob="backlog.md"
+  else
+    os_backlog_asegurar "$brain" "$org" || nacio=1
+    glob="orgs/*/backlog.md"
+  fi
+  backlog="$brain/${orgprefix}backlog.md"
   tmp="$backlog.os-tmp"
   : > "$tmp"
   while IFS= read -r line || [ -n "$line" ]; do
@@ -357,12 +396,12 @@ if [ -n "$puntero" ]; then
   done < "$backlog"
   mv "$tmp" "$backlog"
   printf 'retomar: %s (%s)\n' "$puntero" "$hoy" >> "$backlog"
-  [ "$nacio" = "1" ] && push_capturado "orgs/$org/backlog.md nació con este dato"
-  declarar_glob "orgs/*/backlog.md"
+  [ "$nacio" = "1" ] && push_capturado "${orgprefix}backlog.md nació con este dato"
+  declarar_glob "$glob"
 fi
 
 # ---------------------------------------------------------------- el veredicto
-printf 'Cierre de sesión — %s\n\n' "$org"
+printf 'Cierre de sesión — %s\n\n' "$ambito_nombre"
 
 printf 'Capturado\n'
 if [ -z "$capturado" ]; then
@@ -383,14 +422,14 @@ if [ -z "$candidatas" ]; then
   printf '  ninguna escritura necesitó decidir fuera del resolver\n'
 else
   printf '%s' "$candidatas"
-  printf '  la escribe el operador en orgs/%s/resolver.md con un sí — no se escribe sola\n' "$org"
+  printf '  la escribe el operador en %sresolver.md con un sí — no se escribe sola\n' "$orgprefix"
 fi
 
 printf '\nPara retomar\n'
 if [ -z "$puntero" ]; then
   printf '  sin puntero de reanudación: la próxima sesión arranca sin por dónde seguir\n'
 else
-  printf '  retomar: %s (%s) — escrito en orgs/%s/backlog.md\n' "$puntero" "$hoy" "$org"
+  printf '  retomar: %s (%s) — escrito en %sbacklog.md\n' "$puntero" "$hoy" "$orgprefix"
 fi
 
 t_fin=$(os_now_ms)

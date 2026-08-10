@@ -49,6 +49,17 @@ os_append() {
   fi
 }
 
+# os_append_kv ACUMULADO CLAVE ITEM -> acumulado con `clave: item` en su línea. El registro de la
+# voz queda con el mismo vocabulario que la entrevista lo trajo — nunca se renderiza a prosa — para
+# que quede greppeable como lo que es: un dato, no una sección narrada.
+os_append_kv() {
+  if [ -z "$1" ]; then
+    printf '%s: %s' "$2" "$3"
+  else
+    printf '%s%s%s: %s' "$1" "$nl" "$2" "$3"
+  fi
+}
+
 while IFS= read -r line || [ -n "$line" ]; do
   case "$line" in
     ''|'#'*) continue ;;
@@ -58,7 +69,7 @@ while IFS= read -r line || [ -n "$line" ]; do
   case "$key" in
     name) name="$value" ;;
     profile) profile=$(os_append "$profile" "$value") ;;
-    voice) voice=$(os_append "$voice" "$value") ;;
+    voice) voice=$(os_append_kv "$voice" "voice" "$value") ;;
     reply) reply=$(os_append "$reply" "$value") ;;
     org) orgs="$orgs$value$nl" ;;
     *) os_die "clave desconocida en las respuestas: $key" ;;
@@ -74,7 +85,7 @@ mkdir -p "$brain"
 # que el operador haya escrito encima, y eso es pérdida silenciosa. Agregar organizaciones a un
 # brain que ya existe es trabajo de new-org.
 existing=""
-for f in operator.md resolver.md tree.md; do
+for f in operator.md voice.md resolver.md tree.md; do
   if [ -e "$brain/$f" ]; then
     existing="$existing $f"
   fi
@@ -83,14 +94,18 @@ if [ -n "$existing" ]; then
   os_die "el brain ya tiene:$existing — el bootstrap no los reescribe. Para sumar una organización, new-org."
 fi
 
+# Una identidad, dos archivos: operator.md contesta quién es y cómo se le contesta; voice.md, cómo
+# escribe. La voz sale de operator.md desde la spec 018 — nunca las dos cosas a la vez, o la misma
+# frase termina viviendo en dos lugares.
 os_render "$templates/operator.md" \
-  "NAME=$name" "PROFILE=$profile" "VOICE=$voice" "REPLY=$reply" > "$brain/operator.md"
+  "NAME=$name" "PROFILE=$profile" "REPLY=$reply" > "$brain/operator.md"
+os_render "$templates/voice.md" "NAME=$name" "VOICE=$voice" > "$brain/voice.md"
 os_render "$templates/root-resolver.md" > "$brain/resolver.md"
 os_render "$templates/tree.md" > "$brain/tree.md"
 
 os_check_identity_cap "$brain/operator.md"
 
-printf 'operator.md · resolver.md · tree.md\n'
+printf 'operator.md · voice.md · resolver.md · tree.md\n'
 
 # Lo que la entrevista no trajo se declara. Un hueco silencioso es un hueco que nadie completa.
 vacias=""

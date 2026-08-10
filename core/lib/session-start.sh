@@ -1,19 +1,27 @@
 #!/usr/bin/env bash
-# Barrido de arranque de sesión sobre una organización. Interno: no es invocable — lo dispara el
-# contrato de sesión (core/CLAUDE.md) antes de que el modelo conteste el primer mensaje.
+# Barrido de arranque de sesión sobre un ámbito: una organización, o la raíz (el trabajo propio del
+# operador, spec 018). Interno: no es invocable — lo dispara el contrato de sesión (core/CLAUDE.md)
+# antes de que el modelo conteste el primer mensaje.
 #
 # Uso: session-start.sh --brain DIR --org SLUG [--mounts ARCHIVO]
+#      session-start.sh --brain DIR --root      [--mounts ARCHIVO]
+#
+# `--org` y `--root` son excluyentes. `--root` es un flag aparte y no un valor reservado de `--org`:
+# un valor de texto siempre puede colisionar con lo que un operador nombre a una organización; un
+# flag distinto, nunca.
 #
 # Lee el frontmatter de cada cabeza y los archivos que se cargan siempre. Nunca abre el cuerpo de
 # una iniciativa: al `---` de cierre deja de leer. El recorrido son los globs de `tree.md` más las
-# cabezas de esta organización que vivan en un montaje: la tabla del entorno se lee sola desde la
-# raíz del brain y `--mounts` es override.
+# cabezas de este ámbito que vivan en un montaje: la tabla del entorno se lee sola desde la raíz del
+# brain y `--mounts` es override.
 #
-# La salida son cuatro secciones fijas, siempre las cuatro, con vacío explícito, y una última línea
-# con el conteo de nodos y el tiempo. Cada sección tiene tope propio y declara lo que no entró: con
-# 12 o con 40 iniciativas la salida mide lo mismo.
+# La salida son las mismas cuatro secciones fijas, siempre las cuatro, con vacío explícito, y una
+# última línea con el conteo de nodos y el tiempo — con `--org` o con `--root` es el mismo formato.
+# Cada sección tiene tope propio y declara lo que no entró: con 12 o con 40 iniciativas la salida
+# mide lo mismo.
 #
-# Exit: 0 siempre que la organización exista — un chequeo avisa y no bloquea. 2 si no existe.
+# Exit: 0 siempre que el ámbito exista — un chequeo avisa y no bloquea. 2 si la organización no
+# existe.
 #
 # Sin `set -e` a propósito: un chequeo que falla no puede abortar el arranque de una sesión.
 
@@ -40,17 +48,23 @@ sep="$OS_SEP"
 brain=""
 org=""
 mounts=""
+root=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --brain) brain="${2:-}"; shift 2 ;;
     --org) org="${2:-}"; shift 2 ;;
+    --root) root=1; shift ;;
     --mounts) mounts="${2:-}"; shift 2 ;;
     *) os_die "argumento desconocido: $1" ;;
   esac
 done
 
 [ -n "$brain" ] || os_die "falta --brain"
-[ -n "$org" ] || os_die "falta --org"
+if [ "$root" = "1" ]; then
+  [ -z "$org" ] || os_die "--root y --org son excluyentes"
+else
+  [ -n "$org" ] || os_die "falta --org o --root"
+fi
 [ -d "$brain" ] || os_die "no existe el brain: $brain"
 brain=$(cd "$brain" && pwd)
 
@@ -60,23 +74,27 @@ brain=$(cd "$brain" && pwd)
 # pasa y después no matchea contra el slug `acme`, y `--org ../..` sale del árbol. Las dos formas
 # devolvían las cuatro secciones vacías con exit 0 — un barrido vacío que se lee como un brain vacío.
 # El script no adivina el ámbito: lista lo que hay y devuelve el control. La skill pregunta con eso.
-org_existe=0
-org_slugs=""
-while IFS= read -r slug || [ -n "$slug" ]; do
-  [ -n "$slug" ] || continue
-  org_slugs="$org_slugs  $slug$nl"
-  if [ "$slug" = "$org" ]; then org_existe=1; fi
-done <<SLUGS
+#
+# La raíz no tiene este chequeo: siempre existe, así que `--root` nunca puede fallar por ámbito.
+if [ "$root" = "0" ]; then
+  org_existe=0
+  org_slugs=""
+  while IFS= read -r slug || [ -n "$slug" ]; do
+    [ -n "$slug" ] || continue
+    org_slugs="$org_slugs  $slug$nl"
+    if [ "$slug" = "$org" ]; then org_existe=1; fi
+  done <<SLUGS
 $(os_org_slugs "$brain")
 SLUGS
-if [ "$org_existe" = "0" ]; then
-  printf 'la organización "%s" no existe. Las que hay:\n' "$org" >&2
-  if [ -n "$org_slugs" ]; then
-    printf '%s' "$org_slugs" >&2
-  else
-    printf '  (ninguna)\n' >&2
+  if [ "$org_existe" = "0" ]; then
+    printf 'la organización "%s" no existe. Las que hay:\n' "$org" >&2
+    if [ -n "$org_slugs" ]; then
+      printf '%s' "$org_slugs" >&2
+    else
+      printf '  (ninguna)\n' >&2
+    fi
+    exit 2
   fi
-  exit 2
 fi
 
 # ---------------------------------------------------------------- acumuladores
@@ -204,22 +222,32 @@ contar_filas_resolver() {
   printf '%s' "$n"
 }
 
-ctx="$brain/orgs/$org/context.md"
-res_org="$brain/orgs/$org/resolver.md"
+# La raíz no tiene `context.md` propio: su identidad es `operator.md`, que ya se cuenta abajo, y su
+# resolver es el de la raíz (`resolver.md`), sin el `orgs/<slug>/resolver.md` de una organización.
+if [ "$root" = "1" ]; then
+  if [ -f "$brain/resolver.md" ]; then marcar_leido; fi
+  filas=$(contar_filas_resolver "$brain/resolver.md")
+else
+  ctx="$brain/orgs/$org/context.md"
+  res_org="$brain/orgs/$org/resolver.md"
 
-if [ -f "$ctx" ]; then marcar_leido; else push_chequeo "falta orgs/$org/context.md"; fi
-if [ -f "$res_org" ]; then marcar_leido; else push_chequeo "falta orgs/$org/resolver.md"; fi
-if [ -f "$brain/resolver.md" ]; then marcar_leido; fi
+  if [ -f "$ctx" ]; then marcar_leido; else push_chequeo "falta orgs/$org/context.md"; fi
+  if [ -f "$res_org" ]; then marcar_leido; else push_chequeo "falta orgs/$org/resolver.md"; fi
+  if [ -f "$brain/resolver.md" ]; then marcar_leido; fi
 
-ident=$(contar_lineas "$ctx")
-filas=$(contar_filas_resolver "$res_org")
-diagnostico="identidad $ident/$OS_IDENTITY_CAP · resolver $filas filas"
+  ident=$(contar_lineas "$ctx")
+  filas=$(contar_filas_resolver "$res_org")
+  diagnostico="identidad $ident/$OS_IDENTITY_CAP · resolver $filas filas"
 
-if [ "$ident" -gt "$OS_IDENTITY_CAP" ]; then
-  push_espera "orgs/$org/context.md — $diagnostico · resumir la historia o partir a context/"
+  if [ "$ident" -gt "$OS_IDENTITY_CAP" ]; then
+    push_espera "orgs/$org/context.md — $diagnostico · resumir la historia o partir a context/"
+  fi
 fi
 
 ident_op=$(contar_lineas "$brain/operator.md")
+if [ "$root" = "1" ]; then
+  diagnostico="identidad $ident_op/$OS_IDENTITY_CAP · resolver $filas filas"
+fi
 if [ "$ident_op" -gt "$OS_IDENTITY_CAP" ]; then
   push_espera "operator.md — identidad $ident_op/$OS_IDENTITY_CAP · resumir la historia o partir a context/"
 fi
@@ -232,18 +260,24 @@ fi
 # La búsqueda del oficio es una sola (`os_buscar_oficio` en common.sh): la mitad negativa —el aviso
 # de acá abajo— y la positiva —la línea `rol activo:` al final de la salida (spec 009)— leen del
 # mismo lugar, para no tener dos copias del mismo recorrido.
-fm_read "$ctx"
-if [ -n "$fm_roto" ]; then
-  push_chequeo "orgs/$org/context.md: $fm_roto — el rol no se activa"
-fi
-role="$fm_role"
+#
+# La raíz no activa rol: el operador no es una posición (fuera de alcance de la spec 018), y no tiene
+# `context.md` con `role:` que leer.
+role=""
 rol_ruta=""
-if [ -n "$role" ]; then
-  if rol_ruta=$(os_buscar_oficio "$brain" "$role"); then
-    :
-  else
-    rol_ruta=""
-    push_chequeo "capacidad no instalada: rol de posición \"$role\""
+if [ "$root" = "0" ]; then
+  fm_read "$ctx"
+  if [ -n "$fm_roto" ]; then
+    push_chequeo "orgs/$org/context.md: $fm_roto — el rol no se activa"
+  fi
+  role="$fm_role"
+  if [ -n "$role" ]; then
+    if rol_ruta=$(os_buscar_oficio "$brain" "$role"); then
+      :
+    else
+      rol_ruta=""
+      push_chequeo "capacidad no instalada: rol de posición \"$role\""
+    fi
   fi
 fi
 
@@ -253,13 +287,24 @@ fi
 cabezas=""
 while IFS="$sep" read -r raiz f || [ -n "$raiz" ]; do
   [ -n "$f" ] || continue
-  case "$f" in
-    "orgs/$org/"*) ;;
-    *) continue ;;
-  esac
+  if [ "$root" = "1" ]; then
+    # Solo lo que vive en el brain mismo: la raíz no tiene montajes propios en esta spec, y un
+    # archivo montado con ruta que no empieza en "orgs/" no puede confundirse con una cabeza propia.
+    [ "$raiz" = "$brain" ] || continue
+    case "$f" in
+      orgs/*) continue ;;
+    esac
+    propios="$OS_ROOT_PROPIOS"
+  else
+    case "$f" in
+      "orgs/$org/"*) ;;
+      *) continue ;;
+    esac
+    propios="$OS_ORG_PROPIOS"
+  fi
   base=$(basename "$f")
   propio=0
-  for p in $OS_ORG_PROPIOS; do
+  for p in $propios; do
     [ "$base" = "$p" ] && propio=1
   done
   [ "$propio" = "1" ] && continue
@@ -401,12 +446,30 @@ TOKENS
 
 revisar_rutas "$brain/resolver.md" "resolver.md"
 revisar_rutas "$brain/.os/core/resolver.md" ".os/core/resolver.md"
-revisar_rutas "$res_org" "orgs/$org/resolver.md"
+if [ "$root" = "0" ]; then
+  revisar_rutas "$res_org" "orgs/$org/resolver.md"
+fi
 
 # ---------------------------------------------------------------- nodos fuera del árbol
-# El check de la raíz es de la spec 003: acá el barrido mira solo su organización.
+# El check de la raíz es de la spec 003: acá el barrido mira solo su ámbito — su organización, o (con
+# `--root`) los archivos propios de la raíz: sueltos en el brain, o bajo `initiatives/` y `voice/`,
+# nunca `orgs/` ni lo que instala el producto.
 fuera=""
 n_fuera=0
+if [ "$root" = "1" ]; then
+  listado=$(cd "$brain" && {
+      for f in *.md; do
+        [ -f "$f" ] || continue
+        [ "$f" = "CLAUDE.md" ] && continue
+        [ "$f" = "tree.md" ] && continue
+        printf '%s\n' "$f"
+      done
+      [ -d initiatives ] && find initiatives -type f -name '*.md'
+      [ -d voice ] && find voice -type f -name '*.md'
+    } | sort)
+else
+  listado=$(cd "$brain" && find "orgs/$org" -type f -name '*.md' | sort)
+fi
 while IFS= read -r f || [ -n "$f" ]; do
   [ -n "$f" ] || continue
   if ! en_tree "$f"; then
@@ -416,7 +479,7 @@ while IFS= read -r f || [ -n "$f" ]; do
     fi
   fi
 done <<FUERA
-$(cd "$brain" && find "orgs/$org" -type f -name '*.md' | sort)
+$listado
 FUERA
 if [ "$n_fuera" -gt 0 ]; then
   resto=$(( n_fuera - CAP_NOMBRES ))
@@ -434,7 +497,13 @@ push_cola "next $n_next · later $n_later"
 # viven en common.sh: los comparten quien escribe la tarea y quien la cuenta. Reconocer los
 # marcadores por substring convertía el texto del operador en estructura — "revisar el blocked-by:
 # de la spec 3" desaparecía del conteo de listas sin que nada lo dijera.
-backlog="$brain/orgs/$org/backlog.md"
+if [ "$root" = "1" ]; then
+  backlog="$brain/backlog.md"
+  backlog_rel="backlog.md"
+else
+  backlog="$brain/orgs/$org/backlog.md"
+  backlog_rel="orgs/$org/backlog.md"
+fi
 if [ -f "$backlog" ]; then
   marcar_leido
   hoy=$(date +%Y-%m-%d)
@@ -460,9 +529,9 @@ if [ -f "$backlog" ]; then
   push_cola "backlog: $b_listas listas de $b_pend pendientes"
   if [ "$b_viejos" -gt 0 ]; then
     if [ "$b_viejos" = "1" ]; then
-      push_chequeo "orgs/$org/backlog.md — $b_viejo_linea"
+      push_chequeo "$backlog_rel — $b_viejo_linea"
     else
-      push_chequeo "orgs/$org/backlog.md — $b_viejo_linea y $(( b_viejos - 1 )) más"
+      push_chequeo "$backlog_rel — $b_viejo_linea y $(( b_viejos - 1 )) más"
     fi
   fi
 fi

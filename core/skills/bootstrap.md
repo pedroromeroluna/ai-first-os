@@ -43,8 +43,11 @@ org: <Nombre> | <rol> | <dueño> | <archivo de identidad>
 `profile`, `voice`, `reply` y `org` se repiten. En `org`, el dueño y el archivo de identidad son
 opcionales: sin dueño queda el operador, y sin identidad queda el texto a completar.
 
-El resultado son `operator.md`, `resolver.md`, `tree.md` y una carpeta por organización. Nada más:
-el inbox, la ficha de personas y la tabla del entorno nacen con su primer dato.
+El resultado son `operator.md`, `voice.md`, `resolver.md`, `tree.md` y una carpeta por
+organización. `voice.md` es la voz del operador — antes vivía en una sección de `operator.md`, y
+desde ahora es su propio archivo: una identidad, dos preguntas, nunca la misma frase en las dos.
+Nada más: el inbox, el trabajo propio de la raíz (iniciativas, backlog, decisiones, aprendizajes) y
+la tabla del entorno nacen con su primer dato, como cualquier nodo.
 
 **Corre una sola vez por brain.** Si las piezas de la raíz ya están, el script frena en vez de
 reescribirlas. Sumar una organización a un brain que ya existe es trabajo de `new-org`.

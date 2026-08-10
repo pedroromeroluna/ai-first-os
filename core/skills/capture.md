@@ -20,18 +20,22 @@ la sesión.
 ```
 .os/core/lib/capture.sh --brain . --session-org <slug-de-la-sesión> --text "<texto>" \
   [--org <slug-destino>] [--blocked-by <ref>] [--hold "<razón>"] [--hold-until <YYYY-MM-DD>]
+.os/core/lib/capture.sh --brain . --root --text "<texto>" \
+  [--blocked-by <ref>] [--hold "<razón>"] [--hold-until <YYYY-MM-DD>]
 ```
 
-Sin `--org` el texto va al inbox de la raíz. **El inbox es tránsito de lo que no se pudo clasificar,
-nunca destino por comodidad**: si sabés de qué organización es, va a su backlog.
+Sin `--org` ni `--root` el texto va al inbox de la raíz. **El inbox es tránsito de lo que no se pudo
+clasificar, nunca destino por comodidad**: si sabés de qué organización es, va a su backlog; si es
+del trabajo propio del operador —no de ninguna organización—, va al backlog de la raíz con `--root`.
 
 Para escribir en una organización que no es la de la sesión: cargá su `context.md` y su
-`resolver.md`, y repetí con `--load-context`.
+`resolver.md`, y repetí con `--load-context`. La raíz no lo pide nunca: su identidad (`operator.md`)
+ya está cargada en cualquier sesión, a cualquier ámbito.
 
 ## Cómo se decide el destino
 
-1. **¿De qué organización es?** Si no se puede contestar sin preguntar, no se pregunta en el medio de
-   otra cosa: va al inbox y se dice.
+1. **¿De qué organización es, o es del trabajo propio del operador?** Si no se puede contestar sin
+   preguntar, no se pregunta en el medio de otra cosa: va al inbox y se dice.
 2. **¿Pertenece a una iniciativa?** Nombrala en el texto entre paréntesis. La tarea vive en el
    backlog igual: el backlog es "qué falta" del nodo organización.
 3. **¿Está trabada o postergada?** `--blocked-by` con la referencia que la traba; `--hold` con la

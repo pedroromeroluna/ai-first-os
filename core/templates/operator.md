@@ -1,12 +1,10 @@
 # {{NAME}}
 
+Voz: `voice.md`.
+
 ## Perfil
 
 {{PROFILE}}
-
-## Voz
-
-{{VOICE}}
 
 ## Cómo se me contesta
 

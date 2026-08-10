@@ -22,6 +22,20 @@ OS_ESTADOS_CERRADOS="closed"
 # que nazca.
 OS_ORG_PROPIOS="context.md resolver.md backlog.md decisions.md learnings.md"
 
+# Los archivos propios de la raíz como nodo (spec 018): sus preguntas canónicas, más el backlog. La
+# raíz no tiene `context.md` propio —esa identidad es `operator.md`, que ya se lee siempre— así que
+# la lista es la de arriba menos `context.md`, más los archivos que ya vivían sueltos en la raíz
+# (`operator.md`, `inbox.md`, `mounts.md`). Todo lo demás que un `glob:` alcance fuera de `orgs/` es
+# una cabeza de iniciativa de la raíz — hoy solo `initiatives/*.md`.
+OS_ROOT_PROPIOS="operator.md resolver.md inbox.md mounts.md backlog.md decisions.md learnings.md"
+
+# La etiqueta que agrupa el trabajo propio de la raíz en los barridos globales (spec 018). Nunca
+# puede ser un slug real: `os_slugify` solo produce alfanumérico en minúscula y guiones, y esta
+# etiqueta lleva paréntesis y una tilde. Es la misma razón por la que los scripts de ámbito único
+# (`session-start.sh`, `capture.sh`, `close-session.sh`) usan un flag `--root` separado en vez de un
+# valor reservado de `--org`: un valor de texto siempre puede colisionar con lo que alguien nombre.
+OS_ROOT_LABEL="(raíz)"
+
 # os_cerrado ESTADO -> 0 si ese estado saca la cabeza de lo activo.
 os_cerrado() {
   local e
@@ -430,6 +444,25 @@ os_backlog_asegurar() {
   [ -f "$file" ] && return 0
   titulo=$(os_titulo "$brain/orgs/$org/context.md")
   [ -n "$titulo" ] || titulo="$org"
+  {
+    printf '# Backlog de %s\n\n' "$titulo"
+    printf 'Lo que falta y no es de ninguna iniciativa. Una línea por tarea: nada queda sin estado\n'
+    printf 'y lo postergado lleva la fecha en la que resurge.\n\n'
+  } > "$file"
+  return 1
+}
+
+# os_root_backlog_asegurar BRAIN
+# Deja existiendo `backlog.md` en la raíz del brain y declarado su glob. Mismo criterio que
+# `os_backlog_asegurar`, para el nodo del operador: el título sale del nombre en `operator.md`, no de
+# un `context.md` que la raíz no tiene.
+#   0  ya estaba       1  nació con este dato
+os_root_backlog_asegurar() {
+  local brain="$1" file titulo
+  file="$brain/backlog.md"
+  [ -f "$file" ] && return 0
+  titulo=$(os_titulo "$brain/operator.md")
+  [ -n "$titulo" ] || titulo="la raíz"
   {
     printf '# Backlog de %s\n\n' "$titulo"
     printf 'Lo que falta y no es de ninguna iniciativa. Una línea por tarea: nada queda sin estado\n'

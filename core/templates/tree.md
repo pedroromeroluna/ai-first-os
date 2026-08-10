@@ -15,6 +15,10 @@ glob: operator.md
 glob: resolver.md
 glob: inbox.md
 glob: mounts.md
+glob: initiatives/*.md
+glob: backlog.md
+glob: decisions.md
+glob: learnings.md
 glob: orgs/*/context.md
 glob: orgs/*/resolver.md
 glob: orgs/*/backlog.md
@@ -22,6 +26,8 @@ glob: orgs/*/decisions.md
 glob: orgs/*/learnings.md
 glob: orgs/*/initiatives/*.md
 
+content: voice.md
+content: voice/*.md
 content: orgs/*/voice.md
 content: orgs/*/records/*.md
 content: orgs/*/products/*/context/*.md

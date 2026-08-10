@@ -9,7 +9,7 @@ capability: Ver cómo viene el roadmap
 
 Tres modos de una herramienta, no tres comandos. Contestan "¿qué tengo pendiente?", "¿qué está
 trabado y por qué?" y "¿cómo viene el roadmap?" leyendo solo frontmatter, en todas las
-organizaciones a la vez.
+organizaciones a la vez — y el trabajo propio de la raíz junto con ellas, agrupado aparte.
 
 ## Cómo se corre
 

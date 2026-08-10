@@ -3,14 +3,19 @@
 # La clasificación la hace core/skills/capture.md. Interno: no es invocable.
 #
 # Uso: capture.sh --brain DIR --text "TEXTO"
-#                 [--org SLUG] [--session-org SLUG] [--load-context]
+#                 [--org SLUG | --root] [--session-org SLUG] [--load-context]
 #                 [--blocked-by REF] [--hold RAZON] [--hold-until FECHA]
 #
 # Con `--org` la tarea va al `backlog.md` de esa organización, en el formato de línea que el arranque
-# de sesión ya lee. Sin `--org` el texto no se pudo clasificar y va al `inbox.md` de la raíz, dicho:
-# el inbox es tránsito de lo sin clasificar, nunca destino por comodidad.
+# de sesión ya lee. Con `--root` va al `backlog.md` de la raíz — el trabajo propio del operador, spec
+# 018 — con el mismo formato. Sin ninguno de los dos el texto no se pudo clasificar y va al
+# `inbox.md` de la raíz, dicho: el inbox es tránsito de lo sin clasificar, nunca destino por
+# comodidad. `--org` y `--root` son excluyentes.
 #
-# Los dos archivos nacen con su primer dato y el comando que los crea declara su glob en `tree.md`.
+# La raíz no exige `--session-org` ni `--load-context`: su identidad (`operator.md`) está cargada en
+# cualquier sesión, a cualquier ámbito — no hay context cross-nodo que custodiar.
+#
+# Los archivos nacen con su primer dato y el comando que los crea declara su glob en `tree.md`.
 #
 # Exit: 0 escribió · 2 la organización no existe · 3 escritura cross-nodo sin el context cargado.
 
@@ -22,6 +27,7 @@ here=$(cd "$(dirname "$0")" && pwd)
 brain=""
 text=""
 org=""
+root=0
 session_org=""
 load_context=0
 blocked_by=""
@@ -34,6 +40,7 @@ while [ $# -gt 0 ]; do
     --brain) brain="${2:-}"; shift 2 ;;
     --text) text="${2:-}"; shift 2 ;;
     --org) org="${2:-}"; shift 2 ;;
+    --root) root=1; shift ;;
     --session-org) session_org="${2:-}"; shift 2 ;;
     --load-context) load_context=1; shift ;;
     --blocked-by) blocked_by="${2:-}"; shift 2 ;;
@@ -45,6 +52,7 @@ done
 
 [ -n "$brain" ] || os_die "falta --brain"
 [ -n "$text" ] || os_die "falta --text"
+[ "$root" = "0" ] || [ -z "$org" ] || os_die "--root y --org son excluyentes"
 [ -d "$brain" ] || os_die "no existe el brain: $brain"
 brain=$(cd "$brain" && pwd)
 # Una captura es UNA línea, siempre — vale para el backlog y para el inbox. Un texto con saltos
@@ -65,6 +73,37 @@ declarar_glob() {
     2) printf '  falta tree.md — el glob "%s" quedó sin declarar\n' "$1" ;;
   esac
 }
+
+# ---------------------------------------------------------------- el ámbito raíz
+# El operador siempre está cargado —`operator.md` se lee en cualquier arranque, a cualquier ámbito—
+# así que la raíz no tiene escritura cross-nodo que custodiar: nunca pide `--session-org` ni
+# `--load-context`.
+if [ "$root" = "1" ]; then
+  backlog="$brain/backlog.md"
+  nacio=0
+  os_root_backlog_asegurar "$brain" || nacio=1
+
+  max=0
+  while IFS= read -r line || [ -n "$line" ]; do
+    os_backlog_lee "$line" || continue
+    num="${bl_id#tsk-}"
+    case "$num" in
+      ''|*[!0-9]*) continue ;;
+    esac
+    while [ "${num#0}" != "$num" ] && [ -n "${num#0}" ]; do num="${num#0}"; done
+    [ "$num" -gt "$max" ] && max="$num"
+  done < "$backlog"
+  id=$(printf 'tsk-%03d' "$(( max + 1 ))")
+
+  linea=$(os_backlog_linea "$id" "$text" "$blocked_by" "$hold" "$hold_until" "$hold_until_dado" "$hoy")
+  printf '%s\n' "$linea" >> "$backlog"
+
+  printf 'clasificado en la raíz\n'
+  printf '  backlog.md — %s\n' "$linea"
+  [ "$nacio" = "1" ] && printf '  backlog.md nació con este dato\n'
+  declarar_glob "backlog.md"
+  exit 0
+fi
 
 # ---------------------------------------------------------------- lo inclasificable va al inbox
 if [ -z "$org" ]; then

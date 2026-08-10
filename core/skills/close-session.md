@@ -30,7 +30,12 @@ Escribís el material con lo que salió de las dos preguntas —una clave por l�
 
 ```
 .os/core/lib/close-session.sh --brain . --org <slug> --material <archivo>
+.os/core/lib/close-session.sh --brain . --root --material <archivo>
 ```
+
+`--root` cierra sobre el trabajo propio de la raíz (spec 018) — el mismo material, los mismos
+canónicos, sin `orgs/<slug>/` adelante. No pide `--session-org` ni `--load-context`: la identidad de
+la raíz (`operator.md`) ya está cargada en cualquier sesión.
 
 ```
 decision:     Título

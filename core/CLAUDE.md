@@ -5,29 +5,33 @@ repo del producto. Nada del operador vive acá; lo suyo está en `operator.md`.
 
 ## Al arrancar la sesión
 
-**El primer mensaje nombra la organización donde se trabaja.** Si no la nombra, listar los slugs de
-`orgs/` y preguntar cuál. Nunca adivinarla: el contexto de una organización en el trabajo de otra es
-la falla más cara del sistema.
+**El primer mensaje nombra el ámbito donde se trabaja: una organización, o tu propio trabajo (la
+raíz).** Si no lo nombra, listar los slugs de `orgs/` junto con la raíz y preguntar cuál. Nunca
+adivinarlo: el contexto de un ámbito en el trabajo de otro es la falla más cara del sistema.
 
 Antes de responder el primer mensaje, en este orden:
 
-1. Correr el barrido de arranque:
+1. Correr el barrido de arranque, con el ámbito que corresponda:
 
    ```
    .os/core/lib/session-start.sh --brain . --org <slug>
+   .os/core/lib/session-start.sh --brain . --root
    ```
 
    Si sale distinto de 0, la organización no existe: mostrar los slugs que listó y preguntar.
 
 2. Leer en este orden:
-   1. `operator.md` — quién es el operador, su voz y cómo se le contesta.
-   2. `orgs/<slug>/context.md` — la identidad de la organización y el `role:` que activa.
-   3. `orgs/<slug>/resolver.md` — dónde va lo que se escribe en este nodo.
-   4. `.os/core/resolver.md` — el resolver de la raíz del producto: capacidad → herramienta.
-   5. `resolver.md` — el resolver de la raíz del operador. Sus filas ganan sobre las del producto
+   1. `operator.md` — quién es el operador y cómo se le contesta — y `voice.md` — su voz.
+   2. Si el ámbito es una organización: `orgs/<slug>/context.md` — su identidad y el `role:` que
+      activa — y `orgs/<slug>/resolver.md` — dónde va lo que se escribe en ese nodo. Si el ámbito es
+      la raíz, estos dos pasos no aplican: no tiene `context.md` propio, y su `resolver.md` es el
+      del paso siguiente.
+   3. `.os/core/resolver.md` — el resolver de la raíz del producto: capacidad → herramienta.
+   4. `resolver.md` — el resolver de la raíz del operador. Sus filas ganan sobre las del producto
       cuando las dos cubren la misma capacidad.
-   6. Si el barrido imprimió una línea `rol activo: <slug> · <ruta>`, leer esa ruta — es el oficio
-      de la posición, activado por el `role:` del nodo. Sin esa línea, no hay oficio que leer.
+   5. Si el barrido imprimió una línea `rol activo: <slug> · <ruta>`, leer esa ruta — es el oficio
+      de la posición, activado por el `role:` del nodo. Sin esa línea, no hay oficio que leer. Con el
+      ámbito en la raíz nunca aparece: el operador no declara `role:`.
 
 Si alguno no está, se dice y se sigue degradado. No se asume su contenido.
 

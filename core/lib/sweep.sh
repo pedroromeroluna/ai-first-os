@@ -7,6 +7,9 @@
 #   blocked   las que tienen `blocked`, `waiting_on` o `depends_on` sin cerrar, con el porqué
 #   roadmap   agrupado por `horizon`, con las dependencias cross-nodo visibles
 #
+# No tiene ámbito propio: siempre es global. El trabajo de la raíz (spec 018) entra al mismo
+# recorrido, agrupado bajo `OS_ROOT_LABEL` — la misma tabla, sin sección nueva.
+#
 # Lee el frontmatter de cada cabeza y nunca abre un cuerpo. El recorrido son los globs de `tree.md`
 # más los montajes de la tabla del entorno —`mounts.md` de la raíz del brain, que se lee sola:
 # `--mounts` es override—; un montaje declarado sin checkout local se reporta como no alcanzado,
@@ -135,26 +138,39 @@ fi
 registros=""
 indice=""
 
+# El trabajo propio de la raíz (spec 018) entra al mismo recorrido, con `OS_ROOT_LABEL` como grupo:
+# una etiqueta que nunca puede ser un slug real de `orgs/` (ver el comentario de la constante en
+# common.sh). Antes de la 018 todo lo que no empezaba con "orgs/" quedaba afuera sin excepción — con
+# un brain sin archivos de nodo en la raíz esa rama nunca matchea, así que la salida no cambia.
 while IFS= read -r linea || [ -n "$linea" ]; do
   [ -n "$linea" ] || continue
   raiz="${linea%%$sep*}"
   f="${linea#*$sep}"
-  case "$f" in
-    orgs/*) ;;
-    *) continue ;;
-  esac
-  resto="${f#orgs/}"
-  case "$resto" in
-    */*) ;;
-    *) continue ;;
-  esac
-  org="${resto%%/*}"
   base="${f##*/}"
-  propio=0
-  for p in $OS_ORG_PROPIOS; do
-    [ "$base" = "$p" ] && propio=1
-  done
-  [ "$propio" = "1" ] && continue
+  case "$f" in
+    orgs/*)
+      resto="${f#orgs/}"
+      case "$resto" in
+        */*) ;;
+        *) continue ;;
+      esac
+      org="${resto%%/*}"
+      propio=0
+      for p in $OS_ORG_PROPIOS; do
+        [ "$base" = "$p" ] && propio=1
+      done
+      [ "$propio" = "1" ] && continue
+      ;;
+    *)
+      [ "$raiz" = "$brain" ] || continue
+      propio=0
+      for p in $OS_ROOT_PROPIOS; do
+        [ "$base" = "$p" ] && propio=1
+      done
+      [ "$propio" = "1" ] && continue
+      org="$OS_ROOT_LABEL"
+      ;;
+  esac
 
   nombre="${base%.md}"
   fm_read "$raiz/$f"
