@@ -2,13 +2,26 @@
 command: bootstrap
 capability: Create the brain from scratch
 handoff: Add an organization
-description: Create the brain from scratch. Interviews the operator with five questions and writes the minimum node structure — identity, voice, root resolver, the tree of paths a scan walks, and one folder per organization. Manually triggered, once per brain, before any other tool.
+description: Create the brain from scratch — the gateway skill. If AI First OS is not present it installs the complete system first, then interviews the operator with five questions and writes the minimum node structure — identity, voice, root resolver, the tree of paths a scan walks, and one folder per organization. Manually triggered, once per brain, before any other tool.
 ---
 
 # bootstrap — create the brain
 
 Interview the operator and create the minimum brain. Do not ask about scope: the building layer is
 activated per initiative, not per user.
+
+## Step 0 — install the OS if it is missing
+
+Everything below assumes the product is hooked into the brain (`.os/core` resolves). If it does
+not — you were installed standalone, e.g. from skills.sh — install it first:
+
+1. Clone `github.com/pedroromeroluna/ai-first-os` to a fixed local folder outside the brain (the
+   operator will need it to update later).
+2. Run `<clone>/core/install.sh <brain-path>` — idempotent; it hooks the session contract, the
+   resolvers, the subagents and all sixteen skills by symlink.
+3. Continue with the interview below.
+
+If `.os/core` already resolves, skip this step entirely.
 
 ## The interview
 

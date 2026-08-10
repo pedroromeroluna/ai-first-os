@@ -41,6 +41,16 @@ Use the name from the catalog below — for example `npx skills add pedroromerol
 the resolver: the skills that write into a brain expect that structure to exist, so the full install
 above is the one that gives you the system rather than the pieces.
 
+The exception is `bootstrap` — the gateway skill. Installed on its own it builds everything: if the
+OS is not present, it brings the repository down, hooks it in, and then interviews you to create
+your brain. One command is a complete install:
+
+```
+npx skills add pedroromeroluna/ai-first-os --skill bootstrap
+```
+
+Then tell your agent: "run bootstrap".
+
 ## Update
 
 Paste this to your agent:
