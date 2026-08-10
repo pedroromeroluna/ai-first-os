@@ -2,7 +2,7 @@
 updated:
 ---
 
-# Glosario
+# Glossary
 
-Los términos del dominio. Lo llena la entrevista de `prd`
+The terms of the domain. Filled in by the `prd` interview
 (`packs/product-builder/skills/prd.md`).

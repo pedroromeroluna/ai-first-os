@@ -2,7 +2,7 @@
 updated:
 ---
 
-# Problema
+# Problem
 
-Qué problema resuelve, para quién, por qué ahora, y cómo se sabe si funcionó. Lo llena la
-entrevista de `prd` (`packs/product-builder/skills/prd.md`).
+What problem it solves, for whom, why now, and how you know whether it worked. Filled in by the
+`prd` interview (`packs/product-builder/skills/prd.md`).

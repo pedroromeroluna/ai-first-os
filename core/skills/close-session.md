@@ -1,77 +1,82 @@
 ---
 command: close-session
-capability: Cerrar la sesión sin perder nada
-handoff: Capturar algo al vuelo
+capability: Close the session without losing anything
+handoff: Capture something on the fly
+description: Close a session by distributing what it produced —decisions, learnings, pending items, what stayed waiting, where to resume— into the loaded node's canonical files, and end with a four-part verdict that names what was not captured. Manually triggered, at the end of a session.
 ---
 
-# close-session — cerrar distribuyendo lo que dejó la sesión
+# close-session — closing by distributing what the session left
 
-Una sesión que termina deja material que no está en ningún archivo. Esto lo reparte a los canónicos
-del nodo cargado y termina con un veredicto honesto: qué se capturó, qué **no**, y por dónde se
-retoma.
+A session that ends leaves material that is in no file. This spreads it across the loaded node's
+canonical files and ends with an honest verdict: what was captured, what was **not**, and where it
+resumes.
 
-## Las dos preguntas
+## The two questions
 
-Se hacen las dos, siempre, en este orden:
+Both are asked, always, in this order:
 
-1. **¿Qué no puede perderse de esta sesión?** De la respuesta salen decisiones, aprendizajes y
-   pendientes.
-2. **¿Hubo algo que casi funcionó?** El intento sin conclusión, el archivado razonable pero
-   equivocado, la herramienta que hizo algo parecido a lo pedido. **Es la pregunta que nadie contesta
-   sola**: cuando el agente no hace nada se nota en el momento; cuando hace algo casi bien, no lo
-   reporta nadie. Va a los aprendizajes marcado `provisional`.
+1. **What cannot be lost from this session?** Decisions, learnings and pending items come out of
+   that answer.
+2. **Was there anything that almost worked?** The attempt with no conclusion, the reasonable but
+   wrong filing, the tool that did something close to what was asked. **This is the question nobody
+   answers on their own**: when the agent does nothing it shows immediately; when it does something
+   almost right, nobody reports it. It goes to the learnings marked `provisional`.
 
-No se inventa material para llenar el archivo. Si la sesión no dejó nada de una clase, esa clase no
-tiene línea.
+Material is never invented to fill the file. If the session left nothing of one class, that class
+gets no line.
 
-## Cómo se corre
+## How it is run
 
-Escribís el material con lo que salió de las dos preguntas —una clave por línea— y corrés:
-
-```
-.os/core/lib/close-session.sh --brain . --org <slug> --material <archivo>
-.os/core/lib/close-session.sh --brain . --root --material <archivo>
-```
-
-`--root` cierra sobre el trabajo propio de la raíz (spec 018) — el mismo material, los mismos
-canónicos, sin `orgs/<slug>/` adelante. No pide `--session-org` ni `--load-context`: la identidad de
-la raíz (`operator.md`) ya está cargada en cualquier sesión.
+You write the material with whatever came out of the two questions —one key per line— and run:
 
 ```
-decision:     Título
-que:          Qué se decide
-porque:       Por qué
-reemplaza:    Qué decisión reemplaza          (opcional)
-invalidaria:  Qué la haría falsa              (opcional)
-learning:     Título
-cuerpo:       El cuerpo
-provisional:  Título
-cuerpo:       El cuerpo
-pending:      Texto de la tarea
-pending-de:   iniciativa | Texto de la tarea
-waiting:      iniciativa | quién destraba
-sin-fila:     destino | contenido que archivaste ahí
-no-capturado: Lo que no pudiste archivar, y por qué
-retomar:      Por dónde sigue la próxima sesión
+.os/core/lib/close-session.sh --brain . --org <slug> --material <file>
+.os/core/lib/close-session.sh --brain . --root --material <file>
 ```
 
-**El texto del operador va siempre al final de su línea y se archiva entero.** Después de la clave
-hay a lo sumo un dato estructural —una iniciativa, una ruta— y termina en `|`; lo que sigue es texto
-libre y se queda con todo el resto, pipes incluidos. **Nunca lo partas vos ni le saques caracteres**:
-si una frase trae un `|`, va tal cual. Un registro se cierra cuando empieza el siguiente.
+`--root` closes over the root's own work — the same material, the same canonical files, without
+`orgs/<slug>/` in front. It asks for neither `--session-org` nor `--load-context`: the root's
+identity (`operator.md`) is already loaded in any session.
 
-**Todo lo que escribís en el material sale del operador, no de vos.** Una decisión que él no tomó no
-es una decisión: es una inferencia, y va como `no-capturado` para que la vea.
+```
+decision:     Title
+que:          What is decided
+porque:       Why
+reemplaza:    Which decision it replaces      (optional)
+invalidaria:  What would make it false        (optional)
+learning:     Title
+cuerpo:       The body
+provisional:  Title
+cuerpo:       The body
+pending:      Text of the task
+pending-de:   initiative | Text of the task
+waiting:      initiative | who unblocks it
+sin-fila:     destination | content you filed there
+no-capturado: What you could not file, and why
+retomar:      Where the next session picks up
+```
 
-`waiting:` se escribe cuando la sesión deja una iniciativa esperando algo — un gate, una persona, un
-tercero. El valor dice quién destraba: eso es lo que la pone arriba de todo en el próximo arranque.
+The keys are the input format the script reads: they are written exactly as shown.
 
-## El veredicto
+**The operator's text always goes at the end of its line and is filed whole.** After the key there
+is at most one structural field —an initiative, a path— ending in `|`; whatever follows is free text
+and keeps all the rest, pipes included. **Never split it yourself and never strip characters from
+it**: if a sentence carries a `|`, it goes through as is. One record closes when the next one
+starts.
 
-**Se muestra tal como salió.** Las cuatro partes son fijas: capturado, no capturado, fila candidata
-y el puntero para retomar. **Nunca se cierra con "listo" a secas**: un cierre que solo dice que
-terminó no se distingue de uno que perdió algo.
+**Everything you write in the material comes from the operator, not from you.** A decision they did
+not make is not a decision: it is an inference, and it goes as `no-capturado` so they can see it.
 
-Si el veredicto ofrece una fila candidata para el resolver, se la mostrás al operador y la escribís
-solo si dice que sí. El resolver crece por excepción encontrada; una fila que él no aprobó es una
-arista que nadie va a usar.
+`waiting:` is written when the session leaves an initiative waiting on something — a gate, a person,
+a third party. The value says who unblocks it: that is what puts it at the top of the next session
+start.
+
+## The verdict
+
+**It is shown exactly as it came out.** The four parts are fixed: captured, not captured, candidate
+row, and the pointer to resume. **It never closes with a bare "done"**: a close that only says it
+finished cannot be told apart from one that lost something.
+
+If the verdict offers a candidate row for the resolver, you show it to the operator and write it
+only if they say yes. The resolver grows by exception found; a row they did not approve is an edge
+nobody is going to use.

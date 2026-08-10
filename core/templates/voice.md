@@ -1,6 +1,6 @@
-# Voz de {{NAME}}
+# Voice of {{NAME}}
 
-El registro es por canal: sin canal declarado, entra acá. Un canal con personalidad propia se vuelve
-identidad, con su propio `voice.md` en su propio nodo.
+The record is per channel: with no channel declared, it goes here. A channel with a personality of
+its own becomes an identity, with its own `voice.md` in its own node.
 
 {{VOICE}}

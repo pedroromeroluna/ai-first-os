@@ -2,7 +2,7 @@
 updated:
 ---
 
-# Alcance
+# Scope
 
-Qué NO hace, a quién NO le vende, restricciones duras, y qué entra en la primera versión. Lo
-llena la entrevista de `prd` (`packs/product-builder/skills/prd.md`).
+What it does NOT do, who it does NOT sell to, hard constraints, and what goes into the first
+version. Filled in by the `prd` interview (`packs/product-builder/skills/prd.md`).

@@ -2,7 +2,7 @@
 updated:
 ---
 
-# Visión
+# Vision
 
-El sistema terminado, a dónde se llega. Lo llena la entrevista de `prd`
+The finished system, where it gets to. Filled in by the `prd` interview
 (`packs/product-builder/skills/prd.md`).

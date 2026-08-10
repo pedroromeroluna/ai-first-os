@@ -1,104 +1,104 @@
 ---
 command: ux-research
-capability: Planificar la ronda de research cualitativo o cuantitativo sobre la hipótesis más riesgosa
+capability: Plan the qualitative or quantitative research round on the riskiest hypothesis
+description: Design one research round against the single riskiest hypothesis — behavioral screening, one modality chosen on purpose, a guide whose every question is tied to a hypothesis or a job dimension — and write the Research Plan as dated research of the loaded product node. Manually triggered, third station of the discovery pipeline.
 ---
 
-# ux-research — el Plan de Research
+# ux-research — the Research Plan
 
-Tercera estación del pipeline. Diseña la ronda de research que ataca la hipótesis más riesgosa del
-Discovery Brief — nunca todas a la vez — y cierra con un Plan de Research listo para pilotear.
+Third station of the pipeline. It designs the research round that attacks the riskiest hypothesis of
+the Discovery Brief — never all of them at once — and closes with a Research Plan ready to pilot.
 
-## Cuándo se invoca
+## When it is invoked
 
-| Cuándo | Desde / hacia |
+| When | From / to |
 |---|---|
-| El Market Brief de `market-research` ya dimensionó el mercado | Entrada desde `market-research` (`packs/product-builder/skills/market-research.md`) |
-| El Plan de Research queda escrito | Salida hacia `usuarios-sinteticos` (`packs/product-builder/skills/usuarios-sinteticos.md`) — pilotea el guión antes de gastar campo real |
-| Sin Market Brief previo | Invocable sola, sobre el nodo de producto cargado, con el Discovery Brief como entrada mínima |
+| The Market Brief from `market-research` already sized the market | Entry from `market-research` (`packs/product-builder/skills/market-research.md`) |
+| The Research Plan is written | Exit toward `synthetic-users` (`packs/product-builder/skills/synthetic-users.md`) — pilots the script before spending real fieldwork |
+| With no prior Market Brief | Invocable on its own, over the loaded product node, with the Discovery Brief as the minimum input |
 
-## La entrevista
+## The interview
 
-Se conduce con el método de presión de `core/skills/grill.md#método` — se cita por ruta, nunca se
-copia — sobre la elección de la hipótesis, el criterio de screening y cada pregunta de la guía.
+It is run with the pressure method of `core/skills/grill.md#method` — cited by path, never copied —
+over the choice of hypothesis, the screening criterion and every question in the guide.
 
-### Un objetivo por ronda
+### One objective per round
 
-Cada ronda ataca una sola hipótesis: la más riesgosa del Discovery Brief, la misma priorización
-riesgo × impacto que ya hizo `product-strategy`. Ante un pedido de "investigar todo junto", se
-presiona: ¿cuál es la que, si sale mal, más cuesta? Esa es la de esta ronda; las demás esperan la
-próxima.
+Each round attacks a single hypothesis: the riskiest one in the Discovery Brief, the same risk ×
+impact prioritization `product-strategy` already did. Faced with a request to "research everything
+together", pressure is applied: which is the one that costs the most if it turns out wrong? That one
+belongs to this round; the others wait for the next.
 
-### Screening que evita "usuarios en general"
+### Screening that avoids "users in general"
 
-El criterio de selección de a quién entrevistar se escribe en comportamiento verificable, nunca en
-demografía sola. "Usuarios activos" no es screening; "personas que compraron en las últimas dos
-semanas y abandonaron el checkout al menos una vez" sí. Ante un criterio demasiado amplio
-("cualquier usuario de la app"), se devuelve con contrapregunta: ¿qué comportamiento tiene que
-haber hecho o no hecho esta persona para que su respuesta sirva?
+The criterion for who gets interviewed is written in verifiable behavior, never in demographics
+alone. "Active users" is not screening; "people who bought in the last two weeks and abandoned
+checkout at least once" is. Faced with a criterion that is too broad ("any user of the app"), it is
+returned with a counter-question: what behavior must this person have done or not done for their
+answer to be useful?
 
-### Exploratorio → cualitativo; dimensionar → cuantitativo
+### Exploratory → qualitative; sizing → quantitative
 
-La modalidad se decide según qué pregunta hace la ronda. Si la pregunta es "¿por qué pasa esto?" o
-"¿qué hace la gente hoy?", cualitativo — entrevistas, pocas personas, profundidad. Si la pregunta
-es "¿cuánta gente le pasa esto?" o "¿qué tan seguido?", cuantitativo — encuesta, muestra
-representativa. Mezclar las dos sin decidir cuál manda produce un plan sin foco; se elige una y se
-dice por qué.
+The modality is decided by what question the round asks. If the question is "why does this happen?"
+or "what do people do today?", qualitative — interviews, few people, depth. If the question is "how
+many people does this happen to?" or "how often?", quantitative — survey, representative sample.
+Mixing the two without deciding which one leads produces a plan without focus; one is chosen and the
+reason is stated.
 
-### JTBD en cuatro dimensiones
+### JTBD in four dimensions
 
-Cuando la ronda explora un job-to-be-done, la guía cubre las cuatro fuerzas del cambio, no solo la
-funcional:
+When the round explores a job-to-be-done, the guide covers the four forces of change, not just the
+functional one:
 
-| Dimensión | Qué busca |
+| Dimension | What it looks for |
 |---|---|
-| Empuje | Qué de la situación actual empuja a buscar algo distinto |
-| Atracción | Qué de la nueva solución atrae |
-| Ansiedad | Qué duda o miedo frena el cambio |
-| Hábito | Qué de la solución actual pesa por costumbre, aunque no funcione bien |
+| Push | What about the current situation pushes toward looking for something different |
+| Pull | What about the new solution attracts |
+| Anxiety | What doubt or fear holds the change back |
+| Habit | What about the current solution weighs by habit, even when it does not work well |
 
-Una guía que solo pregunta por la funcionalidad deseada cubre una sola de las cuatro y se devuelve
-incompleta.
+A guide that only asks about the desired feature covers one of the four and is returned incomplete.
 
-### Técnica madre: reconstruir la última vez real
+### Master technique: reconstruct the last real time
 
-La pregunta madre de cualquier guía no es "¿qué opinás de X?": es "contame la última vez que
-[situación]" — reconstruir paso a paso qué pasó, en qué momento, con quién, qué hizo justo antes y
-después. Las preguntas de opinión ("¿te gustaría que...?") se sacan de la guía salvo que sirvan
-para cerrar la sesión, nunca para explorar.
+The master question of any guide is not "what do you think of X?": it is "tell me about the last time
+[situation]" — reconstructing step by step what happened, at what moment, with whom, what they did
+right before and right after. Opinion questions ("would you like it if...?") are taken out of the
+guide unless they serve to close the session, never to explore.
 
-### Cada pregunta atada, o se saca
+### Every question tied, or it comes out
 
-Toda pregunta de la guía se ata explícitamente a una hipótesis del Discovery Brief o a una de las
-cuatro dimensiones del job. Una pregunta que no se puede atar a ninguna de las dos se saca de la
-guía — "por las dudas" no es un criterio de inclusión.
+Every question in the guide is tied explicitly to a hypothesis from the Discovery Brief or to one of
+the four job dimensions. A question that cannot be tied to either is taken out of the guide — "just
+in case" is not an inclusion criterion.
 
-## El Plan de Research
+## The Research Plan
 
-Cierra escribiendo el entregable como research fechado del nodo de producto cargado, en:
-
-```
-context/<AAAA-MM-DD>-research-plan.md
-```
-
-Fechado, no se pisa. La ruta cae dentro de `content: orgs/*/products/*/context/*.md` de
-`core/templates/tree.md`: no hace falta glob nuevo ni fila de resolver.
-
-El Plan lleva estas cuatro secciones, en este orden, cada una con su encabezado literal:
+It closes by writing the deliverable as dated research of the loaded product node, in:
 
 ```
-## Objetivo de la ronda
-## Criterio de screening
-## Modalidad
-## Guía de preguntas
+context/<YYYY-MM-DD>-research-plan.md
 ```
 
-- **Objetivo de la ronda**: la hipótesis elegida y por qué es la más riesgosa.
-- **Criterio de screening**: en comportamiento verificable, nunca solo demografía.
-- **Modalidad**: cualitativo o cuantitativo, con la pregunta que lo decide.
-- **Guía de preguntas**: cada pregunta con la hipótesis o dimensión del job a la que está atada.
+Dated, never overwritten. The path falls inside `content: orgs/*/products/*/context/*.md` of
+`core/templates/tree.md`: no new glob and no resolver row are needed.
 
-## Lo que este entregable no exige
+The Plan carries these four sections, in this order, each with its literal heading:
 
-El Plan de Research es la guía v1: todavía no se piloteó. Piloterla contra personas sintéticas —
-antes de gastar el primer minuto de campo real— es trabajo de `usuarios-sinteticos`, la estación
-siguiente.
+```
+## Objective of the round
+## Screening criterion
+## Modality
+## Question guide
+```
+
+- **Objective of the round**: the chosen hypothesis and why it is the riskiest.
+- **Screening criterion**: in verifiable behavior, never demographics alone.
+- **Modality**: qualitative or quantitative, with the question that decides it.
+- **Question guide**: every question with the hypothesis or job dimension it is tied to.
+
+## What this deliverable does not claim
+
+The Research Plan is the v1 guide: it has not been piloted yet. Piloting it against synthetic
+personas —before spending the first minute of real fieldwork— is the job of `synthetic-users`,
+the next station.

@@ -1,112 +1,114 @@
 ---
 command: product-metrics
-capability: Definir la North Star, el árbol de métricas y la métrica de cada hipótesis activa
+capability: Define the North Star, the metric tree and the metric of each active hypothesis
+description: Build the measurement layer of a product — one candidate North Star, the tree of levers that hold it up with where each is measured, one metric per active hypothesis with its value today or a gap with an owner, and the antimetrics with their alarm thresholds — and write the Metric Brief. Manually triggered, or entered when the metric gate of product-strategy does not pass.
 ---
 
-# product-metrics — el Metric Brief
+# product-metrics — the Metric Brief
 
-El hueco que la pipeline vieja reconocía sin llenar: `product-strategy` exige que "si no hay
-métrica, el problema no está claro", pero ninguna herramienta ayudaba a construir esa métrica —
-derivaba a un "Product Metric Coach" que nunca existió. Esta es esa estación: define la North Star
-candidata, arma el árbol de palancas que la sostienen, y le pone número, forma de medición y valor
-de hoy a cada hipótesis activa.
+The gap the old pipeline acknowledged without filling: `product-strategy` demands that "with no
+metric, the problem is not clear", but no tool helped build that metric — it handed off to a metrics
+coach that never existed. This is that station: it defines the candidate North Star, builds the tree
+of levers that hold it up, and gives every active hypothesis a number, a way of measuring it and a
+value as of today.
 
-## Cuándo se invoca
+## When it is invoked
 
-| Cuándo | Desde / hacia |
+| When | From / to |
 |---|---|
-| El gate de métrica de `product-strategy` no pasa ("si no hay métrica, el problema no está claro") | Entrada desde `product-strategy` (`packs/product-builder/skills/product-strategy.md`) |
-| El Metric Brief queda escrito | Salida hacia `prd` (`packs/product-builder/skills/prd.md`) — el `context/` estratégico del nodo se completa con la métrica ya definida |
-| Sin gate previo | Invocable sola, sobre el nodo de producto ya cargado |
+| The metric gate of `product-strategy` does not pass ("with no metric, the problem is not clear") | Entry from `product-strategy` (`packs/product-builder/skills/product-strategy.md`) |
+| The Metric Brief is written | Exit toward `prd` (`packs/product-builder/skills/prd.md`) — the strategic `context/` of the node is completed with the metric already defined |
+| With no prior gate | Invocable on its own, over the product node already loaded |
 
-Las dos estaciones vecinas ya están instaladas en este pack: nombrarlas acá es real, no inventado —
-no es el caso de la vieja referencia a un "Product Metric Coach" sin spec ni dueño.
+Both neighboring stations are already installed in this pack: naming them here is real, not invented
+— unlike the old reference to a metrics coach with neither spec nor owner.
 
-## La entrevista
+## The interview
 
-Se conduce con el método de presión de `core/skills/grill.md#método` — se cita por ruta, nunca se
-copia. Los cinco ingredientes (contrapregunta con ejemplo, presión acotada a 1-2 intentos, escape
-hatches, jerarquía de evidencia, todo hueco se registra) se aplican tal como están descriptos ahí.
+It is run with the pressure method of `core/skills/grill.md#method` — cited by path, never copied.
+The five ingredients (counter-question with an example, pressure capped at 1-2 attempts, escape
+hatches, evidence hierarchy, every gap recorded) are applied exactly as described there.
 
-Antes de preguntar: si el nodo de producto cargado tiene research fechado de `product-strategy`
-(un Discovery Brief con hipótesis), leelo — las hipótesis activas salen de ahí, no se piden de
-nuevo. Si no hay research previo, se preguntan directamente.
+Before asking: if the loaded product node has dated research from `product-strategy` (a Discovery
+Brief with hypotheses), read it — the active hypotheses come from there, they are not asked again.
+If there is no prior research, they are asked directly.
 
-Cuatro pasos, en este orden:
+Four steps, in this order:
 
-### 1. North Star candidata
+### 1. Candidate North Star
 
-Una sola métrica candidata a North Star, con el porqué en una línea: qué decisión de producto
-mueve, no por qué "es importante". Ante una respuesta que no nombra una decisión ("porque mide el
-éxito", "porque es la que todos miran"), grill la devuelve con contrapregunta.
+A single candidate North Star metric, with the reason in one line: which product decision it moves,
+not why "it matters". Faced with an answer that names no decision ("because it measures success",
+"because it is the one everybody looks at"), grill returns it with a counter-question.
 
-### 2. Árbol de métricas
+### 2. Metric tree
 
-La North Star arriba, sus palancas abajo — las variables que, si se mueven, mueven la North
-Star. Cada palanca lleva dónde se mide (qué evento, qué tabla, qué fuente — el dónde, nunca cómo
-instrumentarlo: eso es del cuerpo del producto del usuario, no de esta herramienta). Una palanca
-sin dónde-se-mide es un hueco, no un renglón completo.
+The North Star on top, its levers below — the variables that, if they move, move the North Star.
+Every lever carries where it is measured (which event, which table, which source — the where, never
+how to instrument it: that belongs to the body of the user's product, not to this tool). A lever
+with no where-it-is-measured is a gap, not a complete line.
 
-### 3. Métrica por hipótesis activa
+### 3. Metric per active hypothesis
 
-Por cada hipótesis activa (las que trae `product-strategy`, o las que se levantan acá si no hay
-research previo): qué número la valida o la refuta, medido cómo, contra qué valor de hoy.
+For each active hypothesis (the ones `product-strategy` brings, or the ones raised here if there is
+no prior research): which number validates or refutes it, measured how, against what value as of
+today.
 
-**Regla dura: sin valor con fuente no hay dato.** Un valor de hoy que el operador no puede citar
-con su origen (un dashboard, una medición, un dato con fecha) no se escribe como si lo fuera: se
-anota como hueco, con quién lo cierra — el mismo formato de hueco que usa `grill`. Inventar el
-número para que la fila quede completa es el mismo barrido incompleto presentado como completo que
-el resto del sistema prohíbe.
+**Hard rule: no value with a source, no data.** A value as of today that the operator cannot cite
+with its origin (a dashboard, a measurement, a dated figure) is not written as if they could: it is
+recorded as a gap, with who closes it — the same gap format `grill` uses. Inventing the number so the
+row looks complete is the same incomplete scan presented as complete that the rest of the system
+forbids.
 
-### 4. Antimétricas
+### 4. Antimetrics
 
-Qué no debería empeorar mientras la North Star mejora, con el umbral que dispara la alarma —un
-número o una condición verificable, nunca "si empeora mucho".
+What should not get worse while the North Star improves, with the threshold that triggers the alarm
+— a number or a verifiable condition, never "if it gets much worse".
 
-### La métrica vanidosa
+### The vanity metric
 
-Después de cada métrica propuesta (North Star, palanca o métrica de hipótesis), se aplica esta
-pregunta: **¿qué decisión cambia este número, en cualquier dirección que se mueva?**
+After every proposed metric (North Star, lever or hypothesis metric), this question is applied:
+**which decision does this number change, in whichever direction it moves?**
 
-Si no hay respuesta o la respuesta es otra métrica ("cambia cómo vemos el crecimiento"), es una
-métrica vanidosa: se lo dice tal cual — "esto es una métrica vanidosa: no cambia ninguna decisión"
-— y se pide la decisión concreta que la métrica debería mover antes de aceptarla en el Brief. No
-se descarta en silencio ni se acepta para no interrumpir la entrevista.
+If there is no answer, or the answer is another metric ("it changes how we see growth"), it is a
+vanity metric: it is said outright — "this is a vanity metric: it changes no decision" — and the
+concrete decision the metric should move is requested before accepting it into the Brief. It is
+neither discarded in silence nor accepted to avoid interrupting the interview.
 
-## El Metric Brief
+## The Metric Brief
 
-Cierra escribiendo el entregable como research fechado del nodo de producto cargado, en:
-
-```
-context/<AAAA-MM-DD>-metric-brief.md
-```
-
-Fechado, no se pisa — el mismo criterio que ya usa `docs/research/` de este repo. La ruta cae
-dentro de `content: orgs/*/products/*/context/*.md` de `core/templates/tree.md`: no hace falta
-glob nuevo ni fila de resolver.
-
-El Brief lleva estas cuatro secciones, en este orden, cada una con su encabezado literal:
+It closes by writing the deliverable as dated research of the loaded product node, in:
 
 ```
-## North Star candidata
-## Árbol de métricas
-## Métrica por hipótesis
-## Antimétricas
+context/<YYYY-MM-DD>-metric-brief.md
 ```
 
-- **North Star candidata**: la métrica y el porqué en una línea (qué decisión mueve).
-- **Árbol de métricas**: la North Star arriba, cada palanca en una línea con su dónde-se-mide.
-- **Métrica por hipótesis**: una entrada por hipótesis activa — qué número, medido cómo, valor de
-  hoy o hueco con dueño.
-- **Antimétricas**: cada una con su umbral de alarma.
+Dated, never overwritten — the same criterion the research folder of this repo already uses. The path
+falls inside `content: orgs/*/products/*/context/*.md` of `core/templates/tree.md`: no new glob and
+no resolver row are needed.
 
-Si la entrevista detectó una métrica vanidosa en el camino, el Brief la deja escrita igual —con la
-etiqueta "(vanidosa: no cambia [la decisión que se pidió y no llegó a tener dueño, si quedó sin
-cerrar])"— nunca la borra en silencio.
+The Brief carries these four sections, in this order, each with its literal heading:
 
-## Lo que este entregable no exige
+```
+## Candidate North Star
+## Metric tree
+## Metric per hypothesis
+## Antimetrics
+```
 
-El Metric Brief no crea ni pide un canónico nuevo del nodo de producto: es research fechado, se
-suma a lo que ya hay, no reemplaza ni obliga a versionar de nuevo un archivo vivo del `context/`.
-Si alguna vez hiciera falta un canónico de métricas (un `metrics.md` vivo que se pise), esa
-decisión la aprueba el operador — no esta herramienta.
+- **Candidate North Star**: the metric and the reason in one line (which decision it moves).
+- **Metric tree**: the North Star on top, each lever on one line with its where-it-is-measured.
+- **Metric per hypothesis**: one entry per active hypothesis — which number, measured how, value as
+  of today or a gap with an owner.
+- **Antimetrics**: each one with its alarm threshold.
+
+If the interview detected a vanity metric along the way, the Brief leaves it written anyway —with the
+label "(vanity: it does not change [the decision that was asked for and never got an owner, if it
+was left unclosed])"— and never deletes it in silence.
+
+## What this deliverable does not claim
+
+The Metric Brief neither creates nor demands a new canonical file of the product node: it is dated
+research, it adds to what is already there, and it neither replaces nor forces re-versioning a live
+file of the `context/`. If a metrics canonical file were ever needed (a live `metrics.md` that gets
+overwritten), that decision is approved by the operator — not by this tool.

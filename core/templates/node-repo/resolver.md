@@ -1,13 +1,14 @@
-# Resolver de {{NAME}} — dónde va lo que se escribe
+# Resolver of {{NAME}} — where what gets written goes
 
-Contenido → destino. Una fila por excepción: lo que la estructura ya contesta no lleva fila. La
-frontera con el cuerpo es una fila como cualquier otra.
+Content → destination. One row per exception: whatever the structure already answers gets no row.
+The boundary with the body is a row like any other.
 
-Nace sin filas.
+It is born with no rows.
 
-| Contenido | Destino |
+| Content | Destination |
 |---|---|
 
-## Referencias
+## References
 
-Lo que este nodo usa de afuera, por ruta. Si el agente no la alcanza, lo dice en vez de asumir.
+What this node uses from outside, by path. If the agent cannot reach it, it says so instead of
+assuming.

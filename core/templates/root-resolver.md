@@ -1,10 +1,10 @@
-# Resolver de la raíz — origen: personal
+# Root resolver — origin: personal
 
-Capacidad → herramienta. Acá van las filas del operador: lo que el producto no rutea, o lo que él
-prefiere rutear distinto. Ganan sobre las del producto cuando las dos cubren la misma capacidad.
+Capability → tool. The operator's rows go here: what the product does not route, or what they would
+rather route differently. They win over the product's rows when both cover the same capability.
 
-Nace sin filas. Una fila entra cuando un agente competente hubiera elegido mal sin ella, y sale
-cuando se ignora sistemáticamente.
+It is born with no rows. A row goes in when a competent agent would have chosen wrong without it,
+and comes out when it is systematically ignored.
 
-| Capacidad | Herramienta | Ruta |
+| Capability | Tool | Path |
 |---|---|---|

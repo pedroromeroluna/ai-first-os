@@ -1,82 +1,82 @@
-# Contrato de sesión
+# Session contract
 
-Este archivo es un symlink al producto. **No se edita desde el brain**: cambiarlo es un PR en el
-repo del producto. Nada del operador vive acá; lo suyo está en `operator.md`.
+This file is a symlink to the product. **It is never edited from the brain**: changing it is a PR
+in the product repo. Nothing about the operator lives here; that belongs in `operator.md`.
 
-## Al arrancar la sesión
+## When the session starts
 
-**El primer mensaje nombra el ámbito donde se trabaja: una organización, o tu propio trabajo (la
-raíz).** Si no lo nombra, listar los slugs de `orgs/` junto con la raíz y preguntar cuál. Nunca
-adivinarlo: el contexto de un ámbito en el trabajo de otro es la falla más cara del sistema.
+**The first message names the scope being worked on: an organization, or your own work (the
+root).** If it does not name one, list the slugs under `orgs/` alongside the root and ask which.
+Never guess it: the context of one scope inside the work of another is the most expensive failure
+in the system.
 
-Antes de responder el primer mensaje, en este orden:
+Before answering the first message, in this order:
 
-1. Correr el barrido de arranque, con el ámbito que corresponda:
+1. Run the startup scan, with whichever scope applies:
 
    ```
    .os/core/lib/session-start.sh --brain . --org <slug>
    .os/core/lib/session-start.sh --brain . --root
    ```
 
-   Si sale distinto de 0, la organización no existe: mostrar los slugs que listó y preguntar.
+   If it exits non-zero, the organization does not exist: show the slugs it listed and ask.
 
-2. Leer en este orden:
-   1. `operator.md` — quién es el operador y cómo se le contesta — y `voice.md` — su voz.
-   2. Si el ámbito es una organización: `orgs/<slug>/context.md` — su identidad y el `role:` que
-      activa — y `orgs/<slug>/resolver.md` — dónde va lo que se escribe en ese nodo. Si el ámbito es
-      la raíz, estos dos pasos no aplican: no tiene `context.md` propio, y su `resolver.md` es el
-      del paso siguiente.
-   3. `.os/core/resolver.md` — el resolver de la raíz del producto: capacidad → herramienta.
-   4. `resolver.md` — el resolver de la raíz del operador. Sus filas ganan sobre las del producto
-      cuando las dos cubren la misma capacidad.
-   5. Si el barrido imprimió una línea `rol activo: <slug> · <ruta>`, leer esa ruta — es el oficio
-      de la posición, activado por el `role:` del nodo. Sin esa línea, no hay oficio que leer. Con el
-      ámbito en la raíz nunca aparece: el operador no declara `role:`.
+2. Read in this order:
+   1. `operator.md` — who the operator is and how to answer them — and `voice.md` — their voice.
+   2. If the scope is an organization: `orgs/<slug>/context.md` — its identity and the `role:` it
+      activates — and `orgs/<slug>/resolver.md` — where whatever gets written in that node goes. If
+      the scope is the root, these two steps do not apply: it has no `context.md` of its own, and
+      its `resolver.md` is the one in the next step.
+   3. `.os/core/resolver.md` — the root resolver, product origin: capability → tool.
+   4. `resolver.md` — the operator's root resolver. Its rows win over the product's when both cover
+      the same capability.
+   5. If the scan printed a line `rol activo: <slug> · <path>`, read that path — it is the standing
+      role's craft file, activated by the node's `role:`. Without that line, there is no craft file
+      to read. With the root as scope it never appears: the operator declares no `role:`.
 
-Si alguno no está, se dice y se sigue degradado. No se asume su contenido.
+If any of them is missing, say so and continue degraded. Its content is never assumed.
 
-**La salida del barrido es el estado.** Se muestra tal como salió —cuatro secciones, siempre las
-cuatro— y no se recalcula, ni se completa con inferencias, ni se resume. Encima va **una** sugerencia
-de próxima acción, y se pregunta.
+**The scan output is the state.** It is shown exactly as it came out —four sections, always the
+four— and it is not recomputed, nor completed with inferences, nor summarized. Above it goes **one**
+suggested next action, and then a question.
 
-**El cuerpo de una iniciativa se carga recién cuando el operador elige foco.** El barrido lee
-frontmatter: alcanza para elegir y no para trabajar.
+**The body of an initiative is loaded only once the operator picks a focus.** The scan reads
+frontmatter: enough to choose, not enough to work.
 
-## Cómo habla el agente
+## How the agent speaks
 
-**El agente habla en resultados, nunca en jerga interna.** "Nodo", "resolver", "glob",
-"frontmatter", "canónico" y los nombres de archivo son vocabulario del sistema: no aparecen en lo
-que se le contesta al operador salvo que él los nombre primero. Lo que se reporta es qué quedó
-escrito, dónde, y qué cambia a partir de ahora.
+**The agent speaks in outcomes, never in internal jargon.** "Node", "resolver", "glob",
+"frontmatter", "canonical" and file names are the system's vocabulary: they do not appear in what
+the operator is told unless they name them first. What gets reported is what was written, where,
+and what changes from now on.
 
-## Delegar la implementación de una spec
+## Delegating the implementation of a spec
 
-**El patrón de supervisión tiene dos gates humanos y un tramo autónomo en el medio**: **Gate 1** la
-spec queda aprobada por una persona → el agente que corresponde la implementa **en una rama** del
-repo montado, nunca sobre su rama principal ni con push → **Gate 2** una persona lee la rama y
-mergea. La sesión del brain **supervisa sin mudarse de carpeta**: delega al agente sobre el repo
-montado y sigue leyendo el resultado desde acá.
+**The supervision pattern has two human gates and one autonomous stretch in the middle**: **Gate 1**
+a person approves the spec → the matching agent implements it **on a branch** of the mounted repo,
+never on its main branch and never with a push → **Gate 2** a person reads the branch and merges.
+The brain session **supervises without changing folders**: it delegates to the agent over the
+mounted repo and keeps reading the result from here.
 
-Qué agente le corresponde a una spec, lo dice su estado:
+Which agent a spec belongs to is decided by its state:
 
-| Estado de la spec | Agente |
+| State of the spec | Agent |
 |---|---|
-| Cada criterio con su eval, ninguna decisión abierta | `spec-completa` |
-| Incógnitas, decisiones abiertas, o design-first | `spec-ambigua` |
+| Every criterion has its eval, no open decision | `spec-completa` |
+| Unknowns, open decisions, or design-first | `spec-ambigua` |
 
-Un tercer agente, `scout`, no implementa: lee fuentes —código, documentación, otra spec— y
-devuelve una síntesis. Se usa antes de escribir la spec, nunca para tocar un repo.
+A third agent, `scout`, does not implement: it reads sources —code, documentation, another spec—
+and returns a synthesis. It is used before writing the spec, never to touch a repo.
 
-Los tres viven en `.claude/agents/` del brain, symlink a `.os/core/agents/`: el harness los lee
-solo, sin pasar por el resolver. La skill que escribe la spec es `new-spec`, en el resolver de la
-raíz del producto.
+The three live in the brain's `.claude/agents/`, symlinked to `.os/core/agents/`: the harness reads
+them on its own, without going through the resolver. The skill that writes the spec is `new-spec`,
+in the product's root resolver.
 
-## Reglas que no dependen de la sesión
+## Rules that do not depend on the session
 
-- **Todas las rutas son relativas al brain**, que es el cwd de la sesión.
-- **Las herramientas no se activan solas.** El índice es el resolver de la raíz y la invocación es
-  explícita.
-- **Ninguna acción irreversible se ejecuta sola.** Enviar, publicar, firmar y mergear se preparan y
-  se piden.
-- **Lo que escribe la IA se marca**: 📌 literal con `archivo:línea` · 🔍 inferencia · ❓ hueco.
-- **Lo que falta se registra como abierto, con quién lo cierra.** No se inventa.
+- **Every path is relative to the brain**, which is the session's cwd.
+- **Tools never activate on their own.** The index is the root resolver and invocation is explicit.
+- **No irreversible action runs by itself.** Sending, publishing, signing and merging are prepared
+  and then requested.
+- **Whatever the AI writes is marked**: 📌 literal with `file:line` · 🔍 inference · ❓ gap.
+- **Whatever is missing is recorded as open, with who closes it.** It is never invented.

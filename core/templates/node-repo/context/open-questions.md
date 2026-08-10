@@ -2,8 +2,8 @@
 updated:
 ---
 
-# Preguntas abiertas
+# Open questions
 
-Lo que falta decidir. Vivo: se vacía a medida que se cierra cada pregunta, nunca se rellena con
-una inferencia para que quede prolijo. Lo llena la entrevista de `prd`
-(`packs/product-builder/skills/prd.md`) y `grill` (`core/skills/grill.md`).
+What is left to decide. Live: it empties out as each question closes, and it is never padded with an
+inference to look tidy. Filled in by the `prd` interview
+(`packs/product-builder/skills/prd.md`) and by `grill` (`core/skills/grill.md`).

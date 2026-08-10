@@ -1,17 +1,18 @@
 ---
 command: sweep
-capability: Ver qué hay pendiente
-capability: Ver qué está trabado y por qué
-capability: Ver cómo viene el roadmap
+capability: See what is pending
+capability: See what is blocked and why
+capability: See how the roadmap is going
+description: Run one of the three global scans over every organization plus the root's own work — what is pending, what is blocked and why, or how the roadmap is going — reading frontmatter only. Manually triggered; the mode is an argument, not a separate command.
 ---
 
-# sweep — los tres barridos globales
+# sweep — the three global scans
 
-Tres modos de una herramienta, no tres comandos. Contestan "¿qué tengo pendiente?", "¿qué está
-trabado y por qué?" y "¿cómo viene el roadmap?" leyendo solo frontmatter, en todas las
-organizaciones a la vez — y el trabajo propio de la raíz junto con ellas, agrupado aparte.
+Three modes of one tool, not three commands. They answer "what do I have pending?", "what is blocked
+and why?" and "how is the roadmap going?" reading frontmatter only, across every organization at
+once — and the root's own work along with them, grouped separately.
 
-## Cómo se corre
+## How it is run
 
 ```
 .os/core/lib/sweep.sh --brain . --mode pending
@@ -19,18 +20,20 @@ organizaciones a la vez — y el trabajo propio de la raíz junto con ellas, agr
 .os/core/lib/sweep.sh --brain . --mode roadmap
 ```
 
-La tabla del entorno —la que mapea el remote de un nodo montado a su ruta local en esta máquina— se
-lee sola desde `mounts.md`, en la raíz del brain: `--mounts <ruta>` es override y no hace falta
-pasarla. Sin tabla el barrido cubre solo el brain y lo declara; con un montaje declarado y sin
-clonar, lo reporta como no alcanzado y sigue. La escribe `mount-repo`.
+The environment table —the one mapping a mounted node's remote to its local path on this machine—
+is read on its own from `mounts.md`, at the root of the brain: `--mounts <path>` is an override and
+does not need to be passed. With no table the scan covers the brain only and says so; with a mount
+declared and not cloned, it reports it as unreachable and continues. `mount-repo` writes it.
 
-## Qué hacer con la salida
+## What to do with the output
 
-**La salida es el estado.** Se muestra tal como salió y no se recalcula, ni se completa con
-inferencias, ni se resume. Encima va una lectura de una línea y una sugerencia de próxima acción.
+**The output is the state.** It is shown exactly as it came out and it is not recomputed, nor
+completed with inferences, nor summarized. Above it goes a one-line reading and a suggested next
+action.
 
-**Lo que aparece en "Sin clasificar" no se adivina.** Una cabeza sin `status` o sin `horizon` no
-tiene estado que el barrido pueda deducir: se le ofrece al operador escribirlo, con la ruta.
+**Whatever shows up under "Sin clasificar" is never guessed.** A head without `status` or without
+`horizon` has no state the scan can deduce: the operator is offered the chance to write it, with the
+path.
 
-**El cuerpo de una iniciativa se carga recién cuando el operador elige foco.** El barrido lee
-frontmatter: alcanza para elegir y no para trabajar.
+**The body of an initiative is loaded only once the operator picks a focus.** The scan reads
+frontmatter: enough to choose, not enough to work.

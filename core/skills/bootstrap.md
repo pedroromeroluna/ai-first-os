@@ -1,62 +1,64 @@
 ---
 command: bootstrap
-capability: Crear el brain desde cero
-handoff: Agregar una organización
+capability: Create the brain from scratch
+handoff: Add an organization
+description: Create the brain from scratch. Interviews the operator with five questions and writes the minimum node structure — identity, voice, root resolver, the tree of paths a scan walks, and one folder per organization. Manually triggered, once per brain, before any other tool.
 ---
 
-# bootstrap — crear el brain
+# bootstrap — create the brain
 
-Entrevistá al operador y creá el brain mínimo. No preguntes alcance: la capa de construcción se
-activa por iniciativa, no por usuario.
+Interview the operator and create the minimum brain. Do not ask about scope: the building layer is
+activated per initiative, not per user.
 
-## La entrevista
+## The interview
 
-Cinco preguntas. Una por vez, y no sigas hasta tener la respuesta.
+Five questions. One at a time, and do not move on until you have the answer.
 
-1. **¿Cómo te llamás?**
-2. **Perfil**: a qué te dedicás, en qué estás hoy, qué decidís vos.
-3. **Voz**: cómo escribís cuando escribís bien — idioma, registro, qué palabras no usás.
-4. **Cómo se te contesta**: qué esperás de un agente. Largo, orden, qué te molesta.
-5. **Tus organizaciones**: dónde trabajás. Para el caso típico —una persona, un empleador— es una.
-   Para cada una preguntá **qué hace** y **qué hacés vos ahí**; el rol lo escribe el sistema.
+1. **What is your name?**
+2. **Profile**: what you do, what you are on today, what you decide.
+3. **Voice**: how you write when you write well — language, register, words you do not use.
+4. **How you want to be answered**: what you expect from an agent. Length, order, what annoys you.
+5. **Your organizations**: where you work. For the typical case —one person, one employer— that is
+   one. For each one ask **what it does** and **what you do there**; the role is written by the
+   system.
 
-Devolvé las respuestas resumidas y esperá el visto bueno antes de escribir nada.
+Return the answers summarized and wait for approval before writing anything.
 
-## Qué escribe
+## What it writes
 
-Armá un archivo de respuestas y corré la parte determinística:
-
-```
-.os/core/lib/bootstrap.sh --brain . --answers <archivo>
-```
-
-Formato del archivo de respuestas, una clave por línea:
+Build an answers file and run the deterministic part:
 
 ```
-name: <nombre>
-profile: <un ítem>
-voice: <un ítem>
-reply: <un ítem>
-org: <Nombre> | <rol> | <dueño> | <archivo de identidad>
+.os/core/lib/bootstrap.sh --brain . --answers <file>
 ```
 
-`profile`, `voice`, `reply` y `org` se repiten. En `org`, el dueño y el archivo de identidad son
-opcionales: sin dueño queda el operador, y sin identidad queda el texto a completar.
+Format of the answers file, one key per line:
 
-El resultado son `operator.md`, `voice.md`, `resolver.md`, `tree.md` y una carpeta por
-organización. `voice.md` es la voz del operador — antes vivía en una sección de `operator.md`, y
-desde ahora es su propio archivo: una identidad, dos preguntas, nunca la misma frase en las dos.
-Nada más: el inbox, el trabajo propio de la raíz (iniciativas, backlog, decisiones, aprendizajes) y
-la tabla del entorno nacen con su primer dato, como cualquier nodo.
+```
+name: <name>
+profile: <one item>
+voice: <one item>
+reply: <one item>
+org: <Name> | <role> | <owner> | <identity file>
+```
 
-**Corre una sola vez por brain.** Si las piezas de la raíz ya están, el script frena en vez de
-reescribirlas. Sumar una organización a un brain que ya existe es trabajo de `new-org`.
+`profile`, `voice`, `reply` and `org` repeat. In `org`, the owner and the identity file are
+optional: with no owner the operator is used, and with no identity a placeholder text is left.
 
-## Al terminar
+The result is `operator.md`, `voice.md`, `resolver.md`, `tree.md` and one folder per organization.
+`voice.md` is the operator's voice — it used to live in a section of `operator.md`, and from now on
+it is its own file: one identity, two questions, never the same sentence in both. Nothing else: the
+inbox, the root's own work (initiatives, backlog, decisions, learnings) and the environment table
+are born with their first piece of data, like any node.
 
-- Mostrá el árbol creado y qué contesta cada archivo, en resultados y no en nombres canónicos.
-- Si el aviso del tope de identidad aparece, pasalo tal cual: la salida la elige el operador.
-- Si el script declara `sin dato:` o `sin crear:`, pasalo entero y volvé a preguntar lo que falta.
-  Un hueco que no se nombra es un hueco que nadie completa.
-- Handoff: si el operador quiere sumar otra organización, hace falta la capacidad **agregar una
-  organización**. Si no está disponible, decilo y seguí.
+**It runs once per brain.** If the root pieces already exist, the script stops instead of rewriting
+them. Adding an organization to a brain that already exists is `new-org`'s job.
+
+## When it finishes
+
+- Show the tree created and what each file answers, in outcomes and not in canonical names.
+- If the identity cap warning appears, pass it through as is: the operator chooses the way out.
+- If the script reports `sin dato:` or `sin crear:`, pass it through whole and ask again for what is
+  missing. A gap nobody names is a gap nobody fills.
+- Handoff: if the operator wants to add another organization, the **add an organization** capability
+  is needed. If it is not available, say so and continue.

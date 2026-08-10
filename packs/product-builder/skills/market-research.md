@@ -1,93 +1,94 @@
 ---
 command: market-research
-capability: Investigar el mercado con research secundario y dimensionar la oportunidad
+capability: Research the market with secondary research and size the opportunity
+description: Size the opportunity with secondary research only — directional TAM/SAM/SOM where every number carries its cited source and the assumption that turns it into a number for this product — and write the Market Brief as dated research of the loaded product node. Manually triggered, second station of the discovery pipeline.
 ---
 
-# market-research — el Market Brief
+# market-research — the Market Brief
 
-Segunda estación del pipeline. Investiga el mercado con research secundario —nunca habla con
-usuarios, eso es trabajo de las estaciones siguientes— y dimensiona la oportunidad de forma
-direccional, cada número con su fuente y su supuesto al lado.
+Second station of the pipeline. It researches the market with secondary research —it never talks to
+users, that is the job of the following stations— and sizes the opportunity directionally, every
+number with its source and its assumption next to it.
 
-## Cuándo se invoca
+## When it is invoked
 
-| Cuándo | Desde / hacia |
+| When | From / to |
 |---|---|
-| El Discovery Brief de `product-strategy` ya tiene hipótesis priorizadas | Entrada desde `product-strategy` (`packs/product-builder/skills/product-strategy.md`) |
-| El Market Brief queda escrito | Salida hacia `ux-research` (`packs/product-builder/skills/ux-research.md`) — siguiente estación del pipeline |
-| Sin Discovery Brief previo | Invocable sola, sobre el nodo de producto cargado, preguntando el segmento y el mercado directamente |
+| The Discovery Brief from `product-strategy` already has prioritized hypotheses | Entry from `product-strategy` (`packs/product-builder/skills/product-strategy.md`) |
+| The Market Brief is written | Exit toward `ux-research` (`packs/product-builder/skills/ux-research.md`) — next station of the pipeline |
+| With no prior Discovery Brief | Invocable on its own, over the loaded product node, asking for the segment and the market directly |
 
-## La investigación
+## The research
 
-Antes de buscar, se aplica el método de presión de `core/skills/grill.md#método` — se cita por
-ruta, nunca se copia — sobre la definición del segmento y del mercado, y sobre cada fuente que se
-propone: la contrapregunta, la presión acotada a 1-2 intentos y el registro del hueco cuando la
-segunda resistencia no trae el dato son los mismos de siempre.
+Before searching, the pressure method of `core/skills/grill.md#method` is applied — cited by path,
+never copied — to the definition of the segment and the market, and to every source proposed: the
+counter-question, the pressure capped at 1-2 attempts and the recording of the gap when the second
+resistance brings no data are the same as always.
 
-### Solo research secundario
+### Secondary research only
 
-Se declara explícito al arrancar: "esto es research secundario — no reemplaza hablar con
-usuarios, esa es la estación siguiente". Nunca se simulan respuestas de usuarios ni se presenta un
-dato de una fuente secundaria como si fuera research primario.
+It is declared explicitly at the start: "this is secondary research — it does not replace talking to
+users, that is the next station". User answers are never simulated, and a data point from a
+secondary source is never presented as if it were primary research.
 
-### TAM/SAM/SOM direccional, con fuente y supuesto
+### Directional TAM/SAM/SOM, with source and assumption
 
-Se dimensiona la oportunidad en tres capas — TAM (el mercado total), SAM (el segmento alcanzable
-con el modelo de negocio actual), SOM (lo capturable en el horizonte de la hipótesis que se está
-probando) — y cada número lleva su fuente citada más el supuesto que lo convierte de un dato de
-mercado en un número de este producto.
+The opportunity is sized in three layers — TAM (the total market), SAM (the segment reachable with
+the current business model), SOM (what is capturable within the horizon of the hypothesis being
+tested) — and every number carries its cited source plus the assumption that turns it from a market
+figure into a number for this product.
 
-Ejemplo genérico (app B2B): "TAM de USD 2.000M (fuente: informe de la cámara del sector, 2025)
-asumiendo que el segmento de empresas de 10 a 200 empleados es el 15% de ese mercado (supuesto
-propio, sin fuente que lo mida directo)" es una fila completa. Un número sin fuente no entra al
+Generic example (B2B app): "TAM of USD 2,000M (source: industry association report, 2025) assuming
+that the segment of companies with 10 to 200 employees is 15% of that market (own assumption, no
+source measuring it directly)" is a complete row. A number without a source does not enter the
 Brief.
 
-**Sin fuente no sirve.** Un número que no se puede citar con su origen no se escribe como si lo
-fuera. Se presiona la fuente con el método de grill y, si no aparece tras la presión acotada, se
-registra como hueco con quién lo cierra — nunca se completa con un número inventado para que la
-tabla quede prolija.
+**Without a source it is worthless.** A number that cannot be cited with its origin is not written
+as if it could be. The source is pressured with the grill method and, if it does not appear after the
+capped pressure, it is recorded as a gap with who closes it — it is never filled in with an invented
+number to make the table look tidy.
 
-### Ante el vacío, se dice y se sugiere validación
+### Faced with a void, say so and suggest validation
 
-Cuando la búsqueda no encuentra dato para una capa o un segmento, el Brief lo dice explícito ("no
-se encontró fuente pública para el SAM de [segmento] en [mercado]") y sugiere cómo validarlo con
-evidencia primaria — una encuesta acotada, un piloto, una entrevista con alguien del rubro — nunca
-inventa el número para completar la fila.
+When the search finds no data for a layer or a segment, the Brief says so explicitly ("no public
+source found for the SAM of [segment] in [market]") and suggests how to validate it with primary
+evidence — a short survey, a pilot, an interview with someone in the industry — and never invents the
+number to complete the row.
 
-### Presupuesto de búsqueda acotado, con plan explícito
+### Capped search budget, with an explicit plan
 
-La investigación corre con un tope dicho antes de arrancar (por ejemplo: hasta 5 búsquedas por
-capa, o un bloque de tiempo fijo) — no una búsqueda abierta hasta agotar la web. Al llegar al tope
-sin resolver una fila, se cierra con el hueco anotado y un plan explícito de cómo profundizar si
-hiciera falta: qué buscar después, con qué tipo de fuente (un informe pago, una entrevista con un
-experto del rubro).
+The research runs with a cap stated before starting (for example: up to 5 searches per layer, or a
+fixed block of time) — not an open search until the web runs out. On hitting the cap without
+resolving a row, it closes with the gap recorded and an explicit plan for how to go deeper if
+needed: what to search next, with what kind of source (a paid report, an interview with an industry
+expert).
 
-## El Market Brief
+## The Market Brief
 
-Cierra escribiendo el entregable como research fechado del nodo de producto cargado, en:
+It closes by writing the deliverable as dated research of the loaded product node, in:
 
 ```
-context/<AAAA-MM-DD>-market-brief.md
+context/<YYYY-MM-DD>-market-brief.md
 ```
 
-Fechado, no se pisa. La ruta cae dentro de `content: orgs/*/products/*/context/*.md` de
-`core/templates/tree.md`: no hace falta glob nuevo ni fila de resolver.
+Dated, never overwritten. The path falls inside `content: orgs/*/products/*/context/*.md` of
+`core/templates/tree.md`: no new glob and no resolver row are needed.
 
-El Brief lleva estas tres secciones, en este orden, cada una con su encabezado literal:
+The Brief carries these three sections, in this order, each with its literal heading:
 
 ```
 ## TAM/SAM/SOM
-## Fuentes y supuestos
-## Huecos y plan para profundizar
+## Sources and assumptions
+## Gaps and plan to go deeper
 ```
 
-- **TAM/SAM/SOM**: las tres capas, cada una con su número, su fuente y su supuesto.
-- **Fuentes y supuestos**: el detalle de cada fuente citada, separado del supuesto que la conecta
-  con este producto.
-- **Huecos y plan para profundizar**: cada fila sin fuente, con quién la cierra y cómo — nunca en
-  silencio.
+- **TAM/SAM/SOM**: the three layers, each with its number, its source and its assumption.
+- **Sources and assumptions**: the detail of every cited source, separated from the assumption that
+  connects it to this product.
+- **Gaps and plan to go deeper**: every row without a source, with who closes it and how — never in
+  silence.
 
-## Lo que este entregable no exige
+## What this deliverable does not claim
 
-El Market Brief no reemplaza research primario con usuarios: es la capa de contexto de mercado que
-sostiene la decisión de para qué segmento vale la pena diseñar la ronda de `ux-research`.
+The Market Brief does not replace primary research with users: it is the market-context layer that
+supports the decision about which segment is worth designing the `ux-research` round for.

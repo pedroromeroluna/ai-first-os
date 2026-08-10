@@ -1,70 +1,72 @@
 ---
 command: grill
-capability: Presionar los hechos antes de que una decisión se cierre
+capability: Pressure the facts before a decision closes
+description: Pressure the facts behind a claim before a decision closes — counter-question with a concrete example, capped attempts, escape hatches, evidence hierarchy — and route what comes out to the loaded node's decisions or backlog. Manually triggered, and also the method any other interviewing tool cites by path.
 ---
 
-# grill — la entrevista de presión
+# grill — the pressure interview
 
-Dos caras. **Invocable sola**: presiona los hechos del nodo cargado y reparte lo que sale sin
-inventar destino nuevo. **Método referenciable**: cualquier herramienta que entreviste cita la
-sección de abajo en vez de copiarla — variar a quién apunta o qué ejemplos usa es parametrización
-de quien cita, nunca una segunda copia del método.
+Two faces. **Invocable on its own**: it pressures the facts of the loaded node and distributes what
+comes out without inventing a new destination. **Referenceable method**: any tool that interviews
+cites the section below instead of copying it — varying who it points at or which examples it uses
+is parameterization by whoever cites, never a second copy of the method.
 
-## Método
+## Method
 
-Citá esta sección por su encabezado (`core/skills/grill.md#método`) desde cualquier herramienta que
-entreviste. Los cinco ingredientes, en el orden en que se aplican:
+Cite this section by its heading (`core/skills/grill.md#method`) from any tool that interviews. The
+five ingredients, in the order they are applied:
 
-### 1. Contrapregunta con ejemplo concreto
+### 1. Counter-question with a concrete example
 
-Ante una respuesta que no se puede falsear ("a todos les gustó", "fue exitoso", "el equipo lo tiene
-claro"), la respuesta no se acepta ni se reformula: se devuelve una contrapregunta que pide el hecho
-de atrás, con un ejemplo de qué contaría como buena respuesta.
+Faced with an answer that cannot be falsified ("everybody liked it", "it was a success", "the team
+is clear on it"), the answer is neither accepted nor rephrased: a counter-question is returned
+asking for the fact behind it, with an example of what would count as a good answer.
 
-> Mal: "¿podés dar más detalle?"
+> Bad: "could you give more detail?"
 >
-> Bien: "¿'les gustó' según qué — completaron la tarea sin ayuda, lo dijeron ellos, o lo inferiste
-> vos? Una buena respuesta nombra el dato: '3 de 5 completaron sin pedir ayuda, 2 abandonaron en el
-> paso 3'."
+> Good: "'they liked it' by what measure — did they finish the task unassisted, did they say it, or
+> did you infer it? A good answer names the data: '3 out of 5 finished without asking for help, 2
+> dropped out at step 3'."
 
-### 2. Presión acotada a 1-2 intentos
+### 2. Pressure capped at 1-2 attempts
 
-Como máximo dos vueltas de contrapregunta sobre el mismo hecho. Una tercera no saca más
-información: satura al entrevistado y el método deja de ser entrevista para volverse
-interrogatorio.
+At most two rounds of counter-question on the same fact. A third one gets no more information: it
+saturates the interviewee and the method stops being an interview and becomes an interrogation.
 
 ### 3. Escape hatches
 
-Dos salidas, ninguna es "seguir insistiendo":
+Two ways out, neither of which is "keep insisting":
 
-- **Segunda resistencia** — la respuesta a la segunda contrapregunta sigue sin hecho. El intento no
-  se descarta ni se fuerza una tercera vuelta: el hueco se anota, con quién lo cierra, y se sigue.
-- **Evidencia fuerte de entrada** — si la primera respuesta ya trae el hecho (comportamiento
-  observado, dato medido), no hay contrapregunta que hacer: se confirma y se avanza.
+- **Second resistance** — the answer to the second counter-question still has no fact. The attempt
+  is neither discarded nor forced into a third round: the gap is recorded, with who closes it, and
+  you move on.
+- **Strong evidence up front** — if the first answer already carries the fact (observed behavior,
+  measured data), there is no counter-question to make: it is confirmed and you move on.
 
-### 4. Jerarquía de evidencia
+### 4. Evidence hierarchy
 
-`comportamiento > dato > dicho > supuesto`. Ante dos respuestas que compiten sobre el mismo hecho,
-gana la de mayor jerarquía — un supuesto no pesa lo mismo que un comportamiento observado aunque
-las dos se digan con la misma confianza.
+`behavior > data > claim > assumption`. Faced with two answers competing over the same fact, the one
+higher in the hierarchy wins — an assumption does not weigh the same as observed behavior even when
+both are stated with the same confidence.
 
-### 5. Todo hueco se registra, nunca se rellena
+### 5. Every gap is recorded, never filled in
 
-Un hueco que la presión no cerró no se completa con una inferencia para que el documento quede
-prolijo. Se registra como abierto, con quién lo cierra. Rellenarlo en silencio es la misma clase de
-barrido incompleto presentado como completo que el resto del sistema prohíbe.
+A gap the pressure did not close is not completed with an inference so the document looks tidy. It
+is recorded as open, with who closes it. Filling it in silently is the same class of incomplete scan
+presented as complete that the rest of the system forbids.
 
-## Cara invocable
+## Invocable face
 
-Se corre sola sobre el nodo que ya está cargado. Presiona sus hechos con el método de arriba y
-reparte lo que sale entre los canónicos que ya existen — no inventa ninguno:
+It runs on its own over the node that is already loaded. It pressures its facts with the method
+above and distributes what comes out across the canonical files that already exist — it invents
+none:
 
-| Sale | Va a |
+| What comes out | Where it goes |
 |---|---|
-| Una decisión | `decisions.md` del nodo cargado — el de la organización si se está trabajando ahí, el de la raíz si el nodo cargado es el propio producto |
-| Un hueco | El backlog del nodo cargado (`backlog.md` de la organización), registrado como abierto con quién lo cierra nombrado en el texto — el mismo formato de línea de texto libre y verbatim que ya usa el cierre de sesión |
-| Un hueco, si el nodo de producto cargado declara su propia capa de preguntas abiertas | Esa capa (`context/open-questions.md` del nodo), en vez del backlog |
+| A decision | `decisions.md` of the loaded node — the organization's if that is where the work is happening, the root's if the loaded node is the operator's own work |
+| A gap | The backlog of the loaded node (`backlog.md` of the organization), recorded as open with who closes it named in the text — the same free-text, verbatim line format the session close already uses |
+| A gap, if the loaded product node declares its own open-questions layer | That layer (`context/open-questions.md` of the node), instead of the backlog |
 
-Los tres destinos existen antes de esta herramienta. Si presionar un hecho llevara a escribir en
-un destino que no está en esta tabla, `grill` no lo inventa: lo dice y para — esa fila la agrega el
-operador, no la sesión.
+The three destinations exist before this tool. If pressuring a fact were to lead to writing into a
+destination that is not in this table, `grill` does not invent it: it says so and stops — that row
+is added by the operator, not by the session.

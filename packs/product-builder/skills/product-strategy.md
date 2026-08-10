@@ -1,106 +1,105 @@
 ---
 command: product-strategy
-capability: Definir el problema, la evidencia detrás y las hipótesis priorizadas de un producto
+capability: Define the problem, the evidence behind it and the prioritized hypotheses of a product
+description: Run the socratic discovery interview that separates the symptom from the cause, grades the evidence, applies the metric gate and prioritizes up to three hypotheses, and write the Discovery Brief as dated research of the loaded product node. Manually triggered, first station of the discovery pipeline.
 ---
 
-# product-strategy — el Discovery Brief
+# product-strategy — the Discovery Brief
 
-Primer eslabón del pipeline de discovery. Entrevista de forma socrática — nunca da la razón antes
-de tiempo — para separar el síntoma de la causa, y cierra escribiendo el Discovery Brief: el
-problema, la evidencia que lo sostiene, y hasta tres hipótesis priorizadas.
+First link of the discovery pipeline. It interviews socratically —never agreeing too early— to
+separate the symptom from the cause, and closes by writing the Discovery Brief: the problem, the
+evidence behind it, and up to three prioritized hypotheses.
 
-## Cuándo se invoca
+## When it is invoked
 
-| Cuándo | Desde / hacia |
+| When | From / to |
 |---|---|
-| Arranca discovery sobre una oportunidad nueva o un problema sin research previo | Invocable sola, sobre el nodo de producto cargado |
-| El Discovery Brief queda escrito | Salida hacia `market-research` (`packs/product-builder/skills/market-research.md`) — siguiente estación del pipeline |
-| El gate de métrica no pasa | Handoff hacia `product-metrics` (`packs/product-builder/skills/product-metrics.md`) — construye la North Star y la métrica de la hipótesis antes de seguir |
+| Discovery starts on a new opportunity or a problem with no prior research | Invocable on its own, over the loaded product node |
+| The Discovery Brief is written | Exit toward `market-research` (`packs/product-builder/skills/market-research.md`) — next station of the pipeline |
+| The metric gate does not pass | Handoff toward `product-metrics` (`packs/product-builder/skills/product-metrics.md`) — builds the North Star and the hypothesis metric before going on |
 
-`product-metrics` ya está instalada en este pack: el handoff es real, no la referencia colgada a
-un "Product Metric Coach" que nombraba la pipeline vieja.
+`product-metrics` is already installed in this pack: the handoff is real, not the dangling reference
+to a metrics coach that the old pipeline used to name.
 
-## La entrevista
+## The interview
 
-Se conduce con el método de presión de `core/skills/grill.md#método` — se cita por ruta, nunca se
-copia.
+It is run with the pressure method of `core/skills/grill.md#method` — cited by path, never copied.
 
-### Socrático: no da la razón
+### Socratic: it does not agree
 
-Ante una propuesta que ya viene con forma de solución ("necesitamos un panel de seguimiento",
-"hay que agregar notificaciones"), la respuesta no se acepta ni se elabora: se devuelve la
-contrapregunta que separa la solución del problema.
+Faced with a proposal that already arrives shaped as a solution ("we need a tracking dashboard", "we
+have to add notifications"), the answer is neither accepted nor elaborated: the counter-question that
+separates the solution from the problem is returned.
 
-> Mal: "buena idea, ¿qué tendría ese panel?"
+> Bad: "good idea, what would that dashboard have?"
 >
-> Bien: "eso es una solución. ¿Qué problema resuelve, y de quién es ese problema?"
+> Good: "that is a solution. What problem does it solve, and whose problem is it?"
 
-Se repite hasta que la respuesta nombra un problema de alguien concreto — nunca una
-funcionalidad.
+It repeats until the answer names a concrete person's problem — never a feature.
 
-### Jerarquía de evidencia
+### Evidence hierarchy
 
-Toda evidencia que sostiene el problema se clasifica con la misma jerarquía que usa `grill`:
-`comportamiento > dato > dicho > supuesto`. "Varios clientes lo pidieron" (dicho) no pesa lo mismo
-que "3 de cada 5 abandonan el checkout en el paso de envío" (dato) ni que una sesión grabada donde
-alguien lo intenta y se traba (comportamiento). La evidencia de menor jerarquía disponible se anota
-igual, con su nivel al lado — no se descarta, se etiqueta.
+All evidence backing the problem is graded with the same hierarchy `grill` uses:
+`behavior > data > claim > assumption`. "Several clients asked for it" (claim) does not weigh the
+same as "3 out of 5 abandon checkout at the shipping step" (data), nor as a recorded session where
+someone tries it and gets stuck (behavior). The lowest-grade evidence available is recorded anyway,
+with its level next to it — it is not discarded, it is labeled.
 
-### El gate de métrica
+### The metric gate
 
-**Si no hay métrica, el problema no está claro.** Antes de aceptar el problema como bien
-planteado, se pregunta: ¿qué número se movería si esto se resolviera? Si no hay respuesta, o la
-que aparece es una métrica vanidosa (no cambia ninguna decisión), el gate no pasa: se dice
-explícito y se deriva a `product-metrics` para construirla antes de seguir. No se avanza como si el
-gate hubiera pasado.
+**With no metric, the problem is not clear.** Before accepting the problem as well posed, the
+question is asked: which number would move if this were solved? If there is no answer, or the one
+that shows up is a vanity metric (it changes no decision), the gate does not pass: it is said
+explicitly and the work is handed off to `product-metrics` to build it before going on. Nothing
+proceeds as if the gate had passed.
 
-### Hipótesis, con formato fijo
+### Hypotheses, with a fixed format
 
-Cada hipótesis se escribe con esta forma, sin excepción:
-
-```
-Creemos que [segmento] [hace X] en [momento] por [causa]; si es cierto, veremos [evidencia].
-```
-
-Ejemplo genérico (e-commerce): "Creemos que los compradores que abandonan el carrito en el paso de
-envío lo hacen porque el costo aparece recién ahí; si es cierto, veremos que mostrar el costo antes
-reduce el abandono en ese paso." Una hipótesis sin la cláusula "si es cierto veremos..." no es una
-hipótesis: es una opinión con forma de hipótesis, y se devuelve con contrapregunta.
-
-**Máximo 3, priorizadas por riesgo × impacto** — nunca por orden de aparición en la conversación.
-Riesgo: qué tan poco se sabe si es cierto. Impacto: cuánto mueve la métrica del gate si se
-confirma. Una cuarta hipótesis que aparezca se anota como hueco en el backlog, no entra a la lista.
-
-## El Discovery Brief
-
-Cierra escribiendo el entregable como research fechado del nodo de producto cargado, en:
+Every hypothesis is written in this shape, without exception:
 
 ```
-context/<AAAA-MM-DD>-discovery-brief.md
+We believe that [segment] [does X] at [moment] because of [cause]; if that is true, we will see [evidence].
 ```
 
-Fechado, no se pisa — el mismo criterio que ya usa `docs/research/` de este repo. La ruta cae
-dentro de `content: orgs/*/products/*/context/*.md` de `core/templates/tree.md`: no hace falta
-glob nuevo ni fila de resolver.
+Generic example (e-commerce): "We believe that buyers who abandon the cart at the shipping step do so
+because the cost only appears there; if that is true, we will see that showing the cost earlier
+reduces abandonment at that step." A hypothesis without the "if that is true, we will see..." clause
+is not a hypothesis: it is an opinion shaped like one, and it is returned with a counter-question.
 
-El Brief lleva estas cuatro secciones, en este orden, cada una con su encabezado literal:
+**At most 3, prioritized by risk × impact** — never by order of appearance in the conversation. Risk:
+how little is known about whether it is true. Impact: how much it moves the gate metric if
+confirmed. A fourth hypothesis that shows up is recorded as a gap in the backlog; it does not enter
+the list.
+
+## The Discovery Brief
+
+It closes by writing the deliverable as dated research of the loaded product node, in:
 
 ```
-## Problema
-## Evidencia
-## Gate de métrica
-## Hipótesis priorizadas
+context/<YYYY-MM-DD>-discovery-brief.md
 ```
 
-- **Problema**: el síntoma separado de la causa, de quién es y por qué ahora.
-- **Evidencia**: cada pieza con su nivel de jerarquía (`comportamiento`, `dato`, `dicho` o
-  `supuesto`) al lado.
-- **Gate de métrica**: pasó o no pasó, y si no pasó, el handoff a `product-metrics` dejado
-  explícito.
-- **Hipótesis priorizadas**: hasta 3, en el formato fijo, ordenadas por riesgo × impacto con el
-  porqué del orden.
+Dated, never overwritten — the same criterion the research folder of this repo already uses. The
+path falls inside `content: orgs/*/products/*/context/*.md` of `core/templates/tree.md`: no new glob
+and no resolver row are needed.
 
-## Lo que este entregable no exige
+The Brief carries these four sections, in this order, each with its literal heading:
 
-El Discovery Brief no reemplaza la capa estratégica que escribe `prd`: es research fechado, entrada
-para las estaciones siguientes del pipeline, nunca el canon vivo del producto.
+```
+## Problem
+## Evidence
+## Metric gate
+## Prioritized hypotheses
+```
+
+- **Problem**: the symptom separated from the cause, whose it is and why now.
+- **Evidence**: each piece with its hierarchy level (`behavior`, `data`, `claim` or `assumption`)
+  next to it.
+- **Metric gate**: passed or not, and if it did not, the handoff to `product-metrics` left explicit.
+- **Prioritized hypotheses**: up to 3, in the fixed format, ordered by risk × impact with the reason
+  for the order.
+
+## What this deliverable does not claim
+
+The Discovery Brief does not replace the strategic layer that `prd` writes: it is dated research,
+input for the next stations of the pipeline, never the living canon of the product.

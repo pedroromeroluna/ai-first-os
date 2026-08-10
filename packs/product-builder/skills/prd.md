@@ -1,122 +1,126 @@
 ---
 command: prd
-capability: Entrevistar y escribir la capa estratégica de un producto
+capability: Interview and write the strategic layer of a product
+description: Interview the operator and write the strategic layer of a product —vision, problem, users, scope, competitors, opportunities, open questions, glossary— into the `context/` of its node in the brain, never into the body repo. Manually triggered, last link of the discovery pipeline and the gate before specs.
 ---
 
-# prd — la capa estratégica de un producto
+# prd — the strategic layer of a product
 
-Entrevista al operador y produce la definición estratégica de un producto: visión, problema,
-usuarios, alcance, competidores, oportunidades, preguntas abiertas y glosario. Es la puerta de
-entrada al método — de esta capa salen las specs.
+It interviews the operator and produces the strategic definition of a product: vision, problem,
+users, scope, competitors, opportunities, open questions and glossary. It is the entry door to the
+method — out of this layer come the specs.
 
-**Escribe siempre en el `context/` del nodo de producto cargado del brain, nunca en el repo
-cuerpo.** El repo declarado en `repo:` de la cabeza del nodo es el cuerpo: specs, decisiones
-técnicas, as-built. La capa estratégica vive en la cabeza, no en el cuerpo.
+**It always writes into the `context/` of the loaded product node of the brain, never into the body
+repo.** The repo declared in `repo:` of the node's head is the body: specs, technical decisions,
+as-built. The strategic layer lives in the head, not in the body.
 
-La entrevista presiona con el método de `core/skills/grill.md#método`: se cita por ese encabezado,
-nunca se copia. Cualquier cambio al método se hace ahí, una sola vez.
+The interview applies pressure with the method of `core/skills/grill.md#method`: it is cited by that
+heading, never copied. Any change to the method happens there, once.
 
-## Los archivos que produce
+## The files it produces
 
-Van a `context/` del nodo de producto cargado. Si el nodo no tiene `context/` todavía, nace con
-`README.md` primero y el resto según se completa la entrevista.
+They go into `context/` of the loaded product node. If the node has no `context/` yet, it is born
+with `README.md` first and the rest as the interview gets completed.
 
-| Archivo | Qué contesta |
+| File | What it answers |
 |---|---|
-| `README.md` | Índice: qué es el producto, en qué orden se llenó cada archivo, su estado |
-| `vision.md` | El sistema terminado, a dónde se llega |
-| `problem.md` | Qué problema resuelve, para quién, por qué ahora, cómo se sabe si funcionó |
-| `users.md` | A quién le vende, qué usa hoy en su lugar |
-| `scope.md` | Qué NO hace, a quién NO le vende, restricciones duras, qué entra en la primera versión |
-| `competitors.md` | Contra qué compite y en qué se diferencia |
-| `opportunities.md` | Lo que podría valer la pena y todavía no se decidió |
-| `open-questions.md` | Lo que falta decidir — vivo, se vacía a medida que se cierra |
-| `glossary.md` | Los términos del dominio |
+| `README.md` | Index: what the product is, in what order each file was filled, its state |
+| `vision.md` | The finished system, where it gets to |
+| `problem.md` | What problem it solves, for whom, why now, how you know whether it worked |
+| `users.md` | Who it sells to, what they use instead today |
+| `scope.md` | What it does NOT do, who it does NOT sell to, hard constraints, what goes into the first version |
+| `competitors.md` | What it competes against and how it differs |
+| `opportunities.md` | What might be worth it and has not been decided |
+| `open-questions.md` | What is left to decide — live, it empties out as things close |
+| `glossary.md` | The terms of the domain |
 
-Ningún archivo de esta lista se escribe en el repo cuerpo. Si completar una sección obligara a
-tocar el repo cuerpo o un resolver, la herramienta no lo hace: lo dice y para — es una condición de
-parada de la spec que la trajo, no una decisión de esta sesión.
+No file in this list is written into the body repo. If completing a section forced touching the body
+repo or a resolver, the tool does not do it: it says so and stops — that is a stopping condition of
+the spec that brought it, not a decision of this session.
 
-El árbol de KPIs no entra acá: es del brief de métricas de otra herramienta; esta skill lo
-referencia si ya existe, no lo produce.
+The KPI tree does not go here: it belongs to another tool's metric brief; this skill references it
+if it already exists, it does not produce it.
 
-## Fase 1 — Leé lo que el brain ya sabe antes de preguntar
+## Phase 1 — Read what the brain already knows before asking
 
-Antes de la primera pregunta:
+Before the first question:
 
-1. Identificá el nodo de producto cargado y su `context/` — si no existe, se crea con esta
-   entrevista.
-2. Leé completos los archivos que ya tiene ese `context/`. Esto es incremental: se completa por
-   etapas y nunca se pisa una sección llena sin decirlo primero.
-3. Leé el contexto de la organización dueña y, si existe, research fechado que aplique.
-4. Decile al operador qué leíste y **qué secciones ya podés llenar solo** con eso. Recién ahí
-   arranca la entrevista, y solo sobre lo que falta — no le preguntás lo que el sistema ya tiene
-   escrito.
+1. Identify the loaded product node and its `context/` — if it does not exist, it is created with
+   this interview.
+2. Read in full the files that `context/` already has. This is incremental: it is completed in
+   stages and a filled section is never overwritten without saying so first.
+3. Read the context of the owning organization and, if it exists, dated research that applies.
+4. Tell the operator what you read and **which sections you can already fill on your own** with
+   that. Only then does the interview start, and only over what is missing — you do not ask them what
+   the system already has written.
 
-## Fase 2 — La entrevista
+## Phase 2 — The interview
 
-Una pregunta por vez, con una línea de por qué esa sección cambia una decisión antes de cada una.
-Sin esa línea la pregunta suena a burocracia.
+One question at a time, with a line about why that section changes a decision before each one.
+Without that line the question sounds like bureaucracy.
 
-### Las seis preguntas que fuerzan la verdad
+### The six questions that force the truth
 
-Etapa de oportunidad y negocio, antes de tocar la solución:
+Opportunity and business stage, before touching the solution:
 
-1. ¿Cuál es la evidencia más fuerte de que alguien quiere esto? No interés: comportamiento.
-2. ¿Con qué lo resuelven hoy? Si la respuesta es "con nada", ¿por qué viven bien sin esto?
-3. Nombrame una persona concreta. Cargo, y qué le pasa si no lo resuelve.
-4. ¿Cuál es la versión más chica por la que alguien pagaría esta semana?
-5. ¿Qué te sorprendió mirando a alguien usarlo o intentar resolverlo?
-6. En tres años, ¿esto se vuelve más necesario o menos?
+1. What is the strongest evidence that someone wants this? Not interest: behavior.
+2. What do they solve it with today? If the answer is "with nothing", why do they live fine without
+   this?
+3. Name me a concrete person. Their job title, and what happens to them if they do not solve it.
+4. What is the smallest version someone would pay for this week?
+5. What surprised you watching someone use it or try to solve it?
+6. In three years, does this become more necessary or less?
 
-### Etapa de investigación
+### Research stage
 
-No se inventan conclusiones: si no hay research hecho, se dice y se ofrece la herramienta de
-descubrimiento que corresponda. Se pregunta por segmento, por no-target explícito, y por las
-alternativas que el operador ya usa hoy.
+Conclusions are not invented: if no research has been done, that is said and the matching discovery
+tool is offered. Questions cover the segment, the explicit non-target, and the alternatives the
+operator already uses today.
 
-### Etapa de solución
+### Solution stage
 
-Antes de hablar de qué construir, se desafía la premisa: ¿es este el problema correcto? ¿qué pasa
-si no se hace nada? ¿hay algo ya construido que sirva? Después sí: visión, slicing, qué NO hace con
-su condición de reactivación, restricciones duras, supuestos con su condición de invalidación.
+Before talking about what to build, the premise is challenged: is this the right problem? what
+happens if nothing is done? is there something already built that would do? Only then: vision,
+slicing, what it does NOT do with its reactivation condition, hard constraints, assumptions with
+their invalidation condition.
 
-### Cómo presionar
+### How to apply pressure
 
-El método de `core/skills/grill.md#método` decide cuándo contrapreguntar, cuántas vueltas, y qué
-hacer con la segunda resistencia. No se repite acá: se aplica.
+The method of `core/skills/grill.md#method` decides when to counter-question, how many rounds, and
+what to do with the second resistance. It is not repeated here: it is applied.
 
-## Fase de alternativas, obligatoria
+## Alternatives phase, mandatory
 
-Antes de fijar la solución, se presentan 2 o 3 caminos, cada uno con su esfuerzo, riesgo y qué
-reusa de lo que ya existe:
+Before fixing the solution, 2 or 3 paths are presented, each with its effort, risk and what it
+reuses of what already exists:
 
-- **el mínimo embarcable** — la versión más chica que se puede lanzar esta semana,
-- **el que mejor envejece** — la que menos retrabajo pide si el producto crece,
-- **uno lateral que reencuadre el problema** — una salida que no es "más de lo mismo, más chico".
+- **the smallest shippable one** — the smallest version that can be launched this week,
+- **the one that ages best** — the one that demands the least rework if the product grows,
+- **a lateral one that reframes the problem** — a way out that is not "more of the same, smaller".
 
-El operador elige uno. Sin esta fase el documento registra la primera idea, no la mejor.
+The operator picks one. Without this phase the document records the first idea, not the best one.
 
-## La regla del hueco explícito
+## The explicit-gap rule
 
-Un hueco se escribe **solo cuando el operador decide explícitamente no contestar**, y siempre con
-quién lo cierra. Un archivo lleno de huecos no es un entregable: es un fracaso disfrazado de
-completitud. Si un hueco aparece porque la sección no se preguntó, no es un hueco: es trabajo sin
-hacer, y se retoma la entrevista.
+A gap is written **only when the operator explicitly decides not to answer**, and always with who
+closes it. A file full of gaps is not a deliverable: it is a failure dressed up as completeness. If a
+gap appears because the section was never asked about, it is not a gap: it is work not done, and the
+interview resumes.
 
-## Mostrá antes de escribir
+## Show before writing
 
-Antes de tocar cualquier archivo, se muestra al operador exactamente qué se va a escribir —el
-contenido, no un resumen— y se espera su ok. Se escriben solo los archivos que la entrevista tocó;
-los que ya estaban completos no se pisan.
+Before touching any file, the operator is shown exactly what is going to be written —the content, not
+a summary— and their go-ahead is awaited. Only the files the interview touched get written; the ones
+that were already complete are not overwritten.
 
-## El veredicto de cierre
+## The closing verdict
 
-Al terminar, uno de tres, siempre explícito:
+At the end, one of three, always explicit:
 
-- **Completo** — alcanza para escribir specs.
-- **Completo con reservas** — se puede avanzar, y estas son las preguntas abiertas que quedaron.
-- **Falta contexto** — qué archivo quedó sin cerrar y qué hace falta para cerrarlo.
+- **Complete** — enough to write specs.
+- **Complete with reservations** — it is possible to move forward, and these are the open questions
+  that remain.
+- **Missing context** — which file was left unclosed and what it takes to close it.
 
-**El gate de los mínimos**: si `glossary.md`, `scope.md` o la arquitectura del cuerpo quedan
-vacíos, de ahí no salen specs todavía. Se dice explícito, no se deja que se descubra después.
+**The minimums gate**: if `glossary.md`, `scope.md` or the architecture of the body are left empty,
+no specs come out of there yet. It is said explicitly, never left to be discovered later.

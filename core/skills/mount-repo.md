@@ -1,60 +1,61 @@
 ---
 command: mount-repo
-capability: Montar un repo como cuerpo de un nodo
+capability: Mount a repo as the body of a node
+description: Give an initiative a body: write the remote into the head's frontmatter, clone the checkout outside the brain, and record the remote-to-local-path row in the machine's environment table. Manually triggered, once per initiative that starts being built.
 ---
 
-# mount-repo — darle cuerpo a un nodo
+# mount-repo — giving a node a body
 
-Cuando un nodo pasa a construirse, su cuerpo vive en un repo git: specs, decisiones técnicas y
-as-built. En el brain queda la cabeza. **Decidir construir y montar el repo son el mismo acto**: el
-`repo:` de la cabeza es lo que activa la mecánica de construcción, y lo escribe este comando.
+When a node starts being built, its body lives in a git repo: specs, technical decisions and
+as-built. The head stays in the brain. **Deciding to build and mounting the repo are the same act**:
+the head's `repo:` is what activates the building mechanics, and this command writes it.
 
-## Cómo se corre
+## How it is run
 
 ```
-.os/core/lib/mount-repo.sh --brain . --head orgs/<slug>/initiatives/<nombre>.md \
-  --remote <remote> [--clone-root <ruta absoluta>]
+.os/core/lib/mount-repo.sh --brain . --head orgs/<slug>/initiatives/<name>.md \
+  --remote <remote> [--clone-root <absolute path>]
 ```
 
-## Antes de correrlo
+## Before running it
 
-1. **La cabeza ya existe.** El comando monta un repo sobre una cabeza escrita; no la inventa. Si el
-   nodo todavía no está, primero se crea.
-2. **El remote es el remote, nunca una ruta local.** Lo que se escribe en `repo:` viaja con el brain
-   a cualquier máquina; la ruta local es dato de esta.
-3. **La raíz de clonado se pregunta una sola vez.** Es la carpeta donde viven los checkouts de esta
-   máquina, fuera del brain. Queda escrita en `mounts.md` y no se vuelve a preguntar. **Sin
-   respuesta no se inventa un default**: preguntá y esperá.
+1. **The head already exists.** The command mounts a repo onto a head that is written; it does not
+   invent one. If the node is not there yet, it is created first.
+2. **The remote is the remote, never a local path.** What gets written into `repo:` travels with the
+   brain to any machine; the local path is data of this one.
+3. **The clone root is asked once.** It is the folder where this machine's checkouts live, outside
+   the brain. It ends up written in `mounts.md` and is never asked again. **With no answer no
+   default is invented**: ask and wait.
 
-## Qué hace
+## What it does
 
-| Acto | Dónde |
+| Act | Where |
 |---|---|
-| `repo: <remote>` | El frontmatter de la cabeza |
-| El clon, plano y fuera del brain | `<raíz de clonado>/<nombre del repo>` |
-| La fila `remote → ruta local` | `mounts.md` de la raíz del brain |
+| `repo: <remote>` | The head's frontmatter |
+| The clone, flat and outside the brain | `<clone root>/<repo name>` |
+| The `remote → local path` row | `mounts.md` at the root of the brain |
 
-`mounts.md` **no viaja**: el comando lo crea con su primer dato, lo declara en el `.gitignore` del
-brain y appendea su glob a `tree.md`. En una máquina nueva la tabla no está — los barridos reportan
-el montaje como no alcanzado y correr `mount-repo` sobre el mismo remote la reconstruye. Esa es la
-degradación diseñada, no un error.
+`mounts.md` **does not travel**: the command creates it with its first piece of data, declares it in
+the brain's `.gitignore` and appends its glob to `tree.md`. On a new machine the table is not there
+— the scans report the mount as unreachable and running `mount-repo` on the same remote rebuilds it.
+That is the designed degradation, not an error.
 
-Correrlo dos veces sobre el mismo remote no duplica la fila ni vuelve a clonar.
+Running it twice on the same remote neither duplicates the row nor clones again.
 
-## Cuándo frena
+## When it stops
 
-| Exit | Qué pasó | Qué hacer |
+| Exit | What happened | What to do |
 |---|---|---|
-| 2 | La cabeza no existe, o su frontmatter no se puede leer | Crear o arreglar la cabeza |
-| 3 | El remote no responde | Verificar el remote y los permisos |
-| 4 | La cabeza ya declara **otro** `repo:` | Es del operador: preguntarle cuál queda |
-| 5 | La raíz de clonado falta, o cae adentro del brain o de otro repo | Preguntar dónde van los checkouts |
+| 2 | The head does not exist, or its frontmatter cannot be read | Create or fix the head |
+| 3 | The remote does not answer | Check the remote and the permissions |
+| 4 | The head already declares **another** `repo:` | It belongs to the operator: ask which one stays |
+| 5 | The clone root is missing, or falls inside the brain or inside another repo | Ask where the checkouts go |
 
-En los cinco casos no se escribió nada. Un nodo montado a medias es peor que uno sin montar.
+In all five cases nothing was written. A half-mounted node is worse than an unmounted one.
 
-## Al terminar
+## When it finishes
 
-Reportá qué quedó escrito y dónde, en una línea. Si el script dice que la tabla nació o que declaró
-un glob, pasalo tal cual.
+Report what was written and where, in one line. If the script says the table was born or that it
+declared a glob, pass it through as is.
 
-El desmonte no existe todavía: sacar un montaje es editar `mounts.md` y la cabeza a mano.
+Unmounting does not exist yet: removing a mount is editing `mounts.md` and the head by hand.

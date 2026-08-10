@@ -9,6 +9,6 @@ updated: {{DATE}}
 
 {{IDENTITY}}
 
-El cuerpo vive en el checkout declarado en `repo:`: specs, decisiones técnicas y el as-built. Acá
-queda la cabeza. El campo lo escribe el comando que monta el repo — decidir construir y montar el
-repo son el mismo acto.
+The body lives in the checkout declared in `repo:`: specs, technical decisions and the as-built. The
+head stays here. The field is written by the command that mounts the repo — deciding to build and
+mounting the repo are the same act.

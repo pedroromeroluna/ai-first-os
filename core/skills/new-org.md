@@ -1,41 +1,45 @@
 ---
 command: new-org
-capability: Agregar una organización
+capability: Add an organization
+description: Add an organization to an existing brain. Two questions —what the organization is, and what the operator does there— and it writes the node with its identity, its empty resolver and its initiatives folder. Manually triggered, once per organization.
 ---
 
-# new-org — crear una organización
+# new-org — create an organization
 
-Una organización es el límite de aislamiento: una empresa, un cliente. Crearla el día 40 deja
-exactamente el mismo resultado que declararla el día 1.
+An organization is the isolation boundary: a company, a client. Creating it on day 40 leaves exactly
+the same result as declaring it on day 1.
 
-## La entrevista
+## The interview
 
-Dos preguntas. Nada más.
+Two questions. Nothing else.
 
-1. **¿Qué es esta organización?** Qué hace, para quién y cómo gana plata. Tres o cuatro líneas.
-2. **¿Qué hacés vos acá?** De la respuesta sale el rol. **El campo lo escribís vos, nunca se lo
-   pedís al operador**: él contesta en su idioma —"soy el que decide producto"— y vos lo traducís a
-   un slug. Si todavía no se sabe, el campo nace vacío y se completa cuando el dato aparezca.
+1. **What is this organization?** What it does, for whom and how it makes money. Three or four
+   lines.
+2. **What do you do here?** The role comes out of that answer. **You write the field, you never ask
+   the operator for it**: they answer in their own words —"I'm the one who decides product"— and you
+   translate that into a slug. If it is not known yet, the field is born empty and gets filled in
+   when the data shows up.
 
-## Qué escribe
+## What it writes
 
 ```
-.os/core/lib/new-org.sh --brain . --name "<Nombre>" --role "<slug>" --owner "<persona>" \
-  [--identity-file <archivo>]
+.os/core/lib/new-org.sh --brain . --name "<Name>" --role "<slug>" --owner "<person>" \
+  [--identity-file <file>]
 ```
 
-Deja `orgs/<slug>/` con `context.md`, `resolver.md` sin filas e `initiatives/` vacío. Nada más: lo
-que solo guarda contenido nace con su primer dato.
+Leaves `orgs/<slug>/` with `context.md`, a `resolver.md` with no rows and an empty `initiatives/`.
+Nothing else: whatever only stores content is born with its first piece of data.
 
-`--owner` sale del título de `operator.md`: la organización la crea el operador, así que él es el
-dueño. Si el brain todavía no lo tiene —o la organización la lleva otra persona— preguntá quién es
-y no lo deduzcas. `--role` y `--owner` son obligatorios porque los escribe el comando: el operador
-no ve esos campos ni tiene que acordarse de que existen.
+`--owner` comes from the title of `operator.md`: the organization is created by the operator, so
+they are the owner. If the brain does not have it yet —or the organization is run by someone else—
+ask who it is and do not deduce it. `--role` and `--owner` are mandatory because the command writes
+them: the operator neither sees those fields nor has to remember they exist.
 
-La identidad entra por `--identity-file`. Escribila vos con lo que contestó el operador, sin
-inventar lo que no dijo: lo que falte va marcado como hueco.
+The identity comes in through `--identity-file`. You write it with what the operator answered,
+without inventing what they did not say: whatever is missing is marked as a gap.
 
-## Al terminar
+## When it finishes
 
-- Reportá qué quedó creado en resultados: qué se puede escribir ahí y qué contesta cada archivo.
-- Si el aviso del tope de identidad aparece, pasalo tal cual: resumir o partir lo elige el operador.
+- Report what was created, in outcomes: what can be written there and what each file answers.
+- If the identity cap warning appears, pass it through as is: summarizing or splitting is the
+  operator's call.

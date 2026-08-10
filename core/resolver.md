@@ -1,19 +1,19 @@
-# Resolver de la raíz — origen: producto
+# Root resolver — origin: product
 
-Capacidad → herramienta. Una fila por capacidad. Este archivo viaja con el producto y no se edita
-desde el brain: las filas del operador van en `resolver.md`, en la raíz del brain.
+Capability → tool. One row per capability. This file travels with the product and is not edited
+from the brain: the operator's rows go in `resolver.md`, at the root of the brain.
 
-| Capacidad | Herramienta | Ruta |
+| Capability | Tool | Path |
 |---|---|---|
-| Enganchar o actualizar el producto en un brain | `install.sh` | `.os/core/install.sh` |
-| Crear el brain desde cero | `bootstrap` | `.os/core/skills/bootstrap.md` |
-| Agregar una organización | `new-org` | `.os/core/skills/new-org.md` |
-| Ver qué hay pendiente | `sweep` | `.os/core/skills/sweep.md` |
-| Ver qué está trabado y por qué | `sweep` | `.os/core/skills/sweep.md` |
-| Ver cómo viene el roadmap | `sweep` | `.os/core/skills/sweep.md` |
-| Auditar el ruteo de la raíz | `check-resolvable` | `.os/core/skills/check-resolvable.md` |
-| Capturar algo al vuelo | `capture` | `.os/core/skills/capture.md` |
-| Cerrar la sesión sin perder nada | `close-session` | `.os/core/skills/close-session.md` |
-| Montar un repo como cuerpo de un nodo | `mount-repo` | `.os/core/skills/mount-repo.md` |
-| Presionar los hechos antes de que una decisión se cierre | `grill` | `.os/core/skills/grill.md` |
-| Escribir una spec nueva | `new-spec` | `.os/core/skills/new-spec.md` |
+| Hook up or update the product in a brain | `install.sh` | `.os/core/install.sh` |
+| Create the brain from scratch | `bootstrap` | `.os/core/skills/bootstrap.md` |
+| Add an organization | `new-org` | `.os/core/skills/new-org.md` |
+| See what is pending | `sweep` | `.os/core/skills/sweep.md` |
+| See what is blocked and why | `sweep` | `.os/core/skills/sweep.md` |
+| See how the roadmap is going | `sweep` | `.os/core/skills/sweep.md` |
+| Audit the routing of the root | `check-resolvable` | `.os/core/skills/check-resolvable.md` |
+| Capture something on the fly | `capture` | `.os/core/skills/capture.md` |
+| Close the session without losing anything | `close-session` | `.os/core/skills/close-session.md` |
+| Mount a repo as the body of a node | `mount-repo` | `.os/core/skills/mount-repo.md` |
+| Pressure the facts before a decision closes | `grill` | `.os/core/skills/grill.md` |
+| Write a new spec | `new-spec` | `.os/core/skills/new-spec.md` |

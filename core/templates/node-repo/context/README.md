@@ -1,22 +1,22 @@
-# Capa estratégica
+# Strategic layer
 
-> Índice. El contenido vive descompuesto en este `context/`, para que un agente lea solo lo que
-> necesita.
+> Index. The content lives broken down across this `context/`, so that an agent reads only what it
+> needs.
 
-## Los archivos
+## The files
 
-| # | Archivo | Qué contesta | Estado |
+| # | File | What it answers | State |
 |---|---|---|---|
-| 1 | `problem.md` | Qué problema resuelve, para quién, por qué ahora | ⬜ |
-| 2 | `users.md` | A quién le vende, qué usa hoy en su lugar | ⬜ |
-| 3 | `vision.md` | El sistema terminado, a dónde se llega | ⬜ |
-| 4 | `scope.md` | Qué NO hace, restricciones duras, qué entra en la primera versión | ⬜ |
-| 5 | `competitors.md` | Contra qué compite y en qué se diferencia | ⬜ |
-| 6 | `glossary.md` | Los términos del dominio | ⬜ |
-| 7 | `open-questions.md` | Lo que falta decidir — vivo, se vacía | ⬜ |
-| 8 | `opportunities.md` | Lo que podría valer la pena y no se decidió | ⬜ |
+| 1 | `problem.md` | What problem it solves, for whom, why now | ⬜ |
+| 2 | `users.md` | Who it sells to, what they use instead today | ⬜ |
+| 3 | `vision.md` | The finished system, where it gets to | ⬜ |
+| 4 | `scope.md` | What it does NOT do, hard constraints, what goes into the first version | ⬜ |
+| 5 | `competitors.md` | What it competes against and how it differs | ⬜ |
+| 6 | `glossary.md` | The terms of the domain | ⬜ |
+| 7 | `open-questions.md` | What is left to decide — live, it empties out | ⬜ |
+| 8 | `opportunities.md` | What might be worth it and was not decided | ⬜ |
 
-Estados: ⬜ vacío · 🟡 parcial · ✅ cerrado el [fecha]. Los actualiza quien completa cada archivo.
+States: ⬜ empty · 🟡 partial · ✅ closed on [date]. Whoever completes each file updates them.
 
-`scope.md` y `glossary.md` son los que hacen que un agente no decida mal: si están vacíos, todavía
-no se puede escribir una spec.
+`scope.md` and `glossary.md` are the ones that keep an agent from deciding wrong: if they are empty,
+no spec can be written yet.

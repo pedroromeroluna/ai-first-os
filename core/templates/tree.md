@@ -1,15 +1,15 @@
-# Árbol — qué rutas recorre un barrido
+# Tree — which paths a scan walks
 
-Dos clases de línea, cada una con su prefijo. Ningún barrido descubre el árbol ni asume
-profundidad: lee estas líneas. Agregar una altura es agregar una línea acá, no tocar scripts.
+Two classes of line, each with its prefix. No scan discovers the tree and none assumes depth: it
+reads these lines. Adding a level is adding a line here, not touching scripts.
 
-- `glob:` — lo que un barrido lee como cabeza: frontmatter con `status`, `horizon`, etc.
-- `content:` — lo que un barrido cuenta como alcanzado pero **nunca** lee como cabeza: la voz, un
-  registro, el `context/` de un nodo de producto, el cuerpo de una iniciativa con carpeta. Sin esta
-  línea, ese archivo se acusa como "ningún glob de tree.md alcanza" aunque esté bien escrito.
+- `glob:` — what a scan reads as a head: frontmatter with `status`, `horizon`, and so on.
+- `content:` — what a scan counts as reached but **never** reads as a head: the voice, a record, the
+  `context/` of a product node, the body of an initiative with a folder. Without this line, that
+  file gets flagged as unreached by any glob even when it is written correctly.
 
-Los comandos que crean un nivel agregan su glob o su línea de contenido. Un archivo que ninguna de
-las dos alcanza es un hallazgo del chequeo, no un caso a ignorar.
+The commands that create a level add their glob or their content line. A file that neither of the
+two reaches is a finding of the check, not a case to ignore.
 
 glob: operator.md
 glob: resolver.md

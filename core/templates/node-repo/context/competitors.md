@@ -2,7 +2,7 @@
 updated:
 ---
 
-# Competidores
+# Competitors
 
-Contra qué compite y en qué se diferencia. Lo llena la entrevista de `prd`
+What it competes against and how it differs. Filled in by the `prd` interview
 (`packs/product-builder/skills/prd.md`).

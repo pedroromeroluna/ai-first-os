@@ -1,11 +1,11 @@
 # {{NAME}}
 
-Voz: `voice.md`.
+Voice: `voice.md`.
 
-## Perfil
+## Profile
 
 {{PROFILE}}
 
-## Cómo se me contesta
+## How I want to be answered
 
 {{REPLY}}

@@ -1,51 +1,56 @@
 ---
 command: capture
-capability: Capturar algo al vuelo
+capability: Capture something on the fly
+description: File what the operator throws in mid-conversation into the right backlog —an organization's, the root's, or the inbox when it cannot be classified— without opening a discussion about it. Manually triggered; classifying is the model's job, writing is the script's.
 ---
 
-# capture — archivar lo que aparece al vuelo
+# capture — file whatever shows up on the fly
 
-Lo que el operador tira en medio de otra cosa —"acordate de renovar el seguro"— se archiva donde el
-resolver del nodo diga, sin abrir una conversación. Clasificar es tuyo; escribir es del script.
+What the operator throws in the middle of something else —"remember to renew the insurance"— is
+filed wherever the node's resolver says, without opening a conversation. Classifying is yours;
+writing is the script's.
 
-## Antes de escribir
+## Before writing
 
-**El resolver del nodo ya está cargado**: el arranque de sesión lo trae. Si la tarea es de otra
-organización, su resolver **no** está cargado y no se archiva a ciegas: se carga primero o se dice
-que no. Eso lo custodia el script — le pasás `--session-org` con la organización donde está parada
-la sesión.
+**The node's resolver is already loaded**: the session start brings it. If the task belongs to
+another organization, its resolver is **not** loaded and nothing is filed blind: it is loaded first,
+or the answer is no. The script guards that — you pass it `--session-org` with the organization the
+session is standing on.
 
-## Cómo se corre
+## How it is run
 
 ```
-.os/core/lib/capture.sh --brain . --session-org <slug-de-la-sesión> --text "<texto>" \
-  [--org <slug-destino>] [--blocked-by <ref>] [--hold "<razón>"] [--hold-until <YYYY-MM-DD>]
-.os/core/lib/capture.sh --brain . --root --text "<texto>" \
-  [--blocked-by <ref>] [--hold "<razón>"] [--hold-until <YYYY-MM-DD>]
+.os/core/lib/capture.sh --brain . --session-org <session-slug> --text "<text>" \
+  [--org <target-slug>] [--blocked-by <ref>] [--hold "<reason>"] [--hold-until <YYYY-MM-DD>]
+.os/core/lib/capture.sh --brain . --root --text "<text>" \
+  [--blocked-by <ref>] [--hold "<reason>"] [--hold-until <YYYY-MM-DD>]
 ```
 
-Sin `--org` ni `--root` el texto va al inbox de la raíz. **El inbox es tránsito de lo que no se pudo
-clasificar, nunca destino por comodidad**: si sabés de qué organización es, va a su backlog; si es
-del trabajo propio del operador —no de ninguna organización—, va al backlog de la raíz con `--root`.
+Without `--org` and without `--root` the text goes to the root's inbox. **The inbox is transit for
+what could not be classified, never a destination out of convenience**: if you know which
+organization it belongs to, it goes to its backlog; if it belongs to the operator's own work —to no
+organization— it goes to the root backlog with `--root`.
 
-Para escribir en una organización que no es la de la sesión: cargá su `context.md` y su
-`resolver.md`, y repetí con `--load-context`. La raíz no lo pide nunca: su identidad (`operator.md`)
-ya está cargada en cualquier sesión, a cualquier ámbito.
+To write into an organization that is not the session's: load its `context.md` and its
+`resolver.md`, and repeat with `--load-context`. The root never asks for it: its identity
+(`operator.md`) is already loaded in any session, at any scope.
 
-## Cómo se decide el destino
+## How the destination is decided
 
-1. **¿De qué organización es, o es del trabajo propio del operador?** Si no se puede contestar sin
-   preguntar, no se pregunta en el medio de otra cosa: va al inbox y se dice.
-2. **¿Pertenece a una iniciativa?** Nombrala en el texto entre paréntesis. La tarea vive en el
-   backlog igual: el backlog es "qué falta" del nodo organización.
-3. **¿Está trabada o postergada?** `--blocked-by` con la referencia que la traba; `--hold` con la
-   razón y `--hold-until` con la fecha en que resurge. Un hold sin fecha es vigente indefinido: la
-   tarea no vuelve sola nunca más.
+1. **Which organization is it from, or is it the operator's own work?** If that cannot be answered
+   without asking, it is not asked in the middle of something else: it goes to the inbox and that is
+   said.
+2. **Does it belong to an initiative?** Name it in the text between parentheses. The task lives in
+   the backlog either way: the backlog is the organization node's "what is missing".
+3. **Is it blocked or postponed?** `--blocked-by` with the reference blocking it; `--hold` with the
+   reason and `--hold-until` with the date it resurfaces. A hold with no date is indefinitely in
+   force: the task never comes back on its own.
 
-## Al terminar
+## When it finishes
 
-Reportá qué quedó escrito y dónde, en una línea. Si el script dice que el archivo nació o que declaró
-un glob, pasalo tal cual: es el sistema escribiéndose solo y no le cuesta nada al operador.
+Report what was written and where, in one line. If the script says the file was born or that it
+declared a glob, pass it through as is: that is the system writing itself, and it costs the operator
+nothing.
 
-Si tuviste que decidir el destino sin fila del resolver que lo contestara, decilo: esa es una fila
-candidata, y el cierre de sesión la ofrece.
+If you had to decide the destination with no resolver row answering it, say so: that is a candidate
+row, and the session close offers it.

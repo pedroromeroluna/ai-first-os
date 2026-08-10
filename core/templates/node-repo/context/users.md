@@ -2,7 +2,7 @@
 updated:
 ---
 
-# Usuarios
+# Users
 
-A quién le vende, qué usa hoy en su lugar. Lo llena la entrevista de `prd`
+Who it sells to, what they use instead today. Filled in by the `prd` interview
 (`packs/product-builder/skills/prd.md`).

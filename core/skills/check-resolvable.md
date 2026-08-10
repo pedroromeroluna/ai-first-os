@@ -1,36 +1,37 @@
 ---
 command: check-resolvable
-capability: Auditar el ruteo de la raíz
+capability: Audit the routing of the root
+description: Audit the root's capability-to-tool graph and report the three failures it can have — a tool nothing routes to, a handoff no row provides, and a row pointing at a tool that does not exist. Manually triggered, or hung off a cron; it exits non-zero when it finds something.
 ---
 
-# check-resolvable — que ninguna herramienta quede oscura
+# check-resolvable — so that no tool stays dark
 
-Audita el grafo de la raíz: capacidad → herramienta. Es el que corre sobre todo el sistema; el del
-nodo —contenido → dónde— ya corre en cada arranque de sesión.
+It audits the root graph: capability → tool. This is the one that runs over the whole system; the
+node-level one —content → where— already runs at every session start.
 
-## Cómo se corre
+## How it is run
 
 ```
 .os/core/lib/check-resolvable.sh --brain .
 ```
 
-Termina con exit distinto de 0 si encontró algo. Es lo que hace falta para colgarlo de un cron sin
-que nadie lea la salida.
+It exits non-zero if it found something. That is what it takes to hang it off a cron without anyone
+reading the output.
 
-## Las tres direcciones, que son tres errores distintos
+## The three directions, which are three different errors
 
-| Hallazgo | Qué pasó | Cómo se arregla |
+| Finding | What happened | How it is fixed |
 |---|---|---|
-| capacidad oscura | La herramienta está instalada y ninguna fila la alcanza | Agregar la fila que la rutea |
-| eslabón roto | Un handoff nombra una capacidad que ninguna fila provee | Agregar la fila, o corregir el nombre de la capacidad |
-| ilusión de capacidad | Una fila apunta a una herramienta que no existe | Corregir la ruta, o borrar la fila |
+| dark capability | The tool is installed and no row reaches it | Add the row that routes it |
+| broken link | A handoff names a capability no row provides | Add the row, or fix the capability name |
+| capability illusion | A row points at a tool that does not exist | Fix the path, or delete the row |
 
-## Qué hacer con la salida
+## What to do with the output
 
-Cada hallazgo trae `archivo:línea`. Se arregla editando markdown, nunca código: las filas viven en
-`.os/core/resolver.md` —origen producto, se cambia por PR en el repo— y en `resolver.md` —origen
-personal, lo edita el operador—.
+Every finding carries `file:line`. It is fixed by editing markdown, never code: the rows live in
+`.os/core/resolver.md` —product origin, changed by PR in the repo— and in `resolver.md` —personal
+origin, edited by the operator—.
 
-**Una capacidad oscura del producto no se arregla en el brain.** Si la fila que falta es del
-producto, lo que corresponde es el PR; agregarla en el resolver personal tapa el síntoma en una
-máquina sola.
+**A dark capability of the product is not fixed in the brain.** If the missing row belongs to the
+product, the right move is the PR; adding it to the personal resolver covers the symptom on one
+machine only.
