@@ -29,12 +29,10 @@ Pegale a tu agente:
 > Actualizá el sistema.
 
 Con esa frase alcanza. El agente va a la carpeta local donde quedó el repositorio, trae la
-versión más nueva y corre el instalador **desde esa carpeta** — nunca desde el enganche que ya
-quedó instalado en tu brain. Correr el instalador desde el enganche instalado produce hoy un
-enganche circular que rompe la instalación en vez de actualizarla; correrlo desde la carpeta
-donde vive el repositorio es el camino que funciona. Tu brain —tus organizaciones, tus decisiones,
-tu contenido— no se toca: la actualización solo refresca las herramientas que quedaron
-enganchadas.
+versión más nueva y corre el instalador desde esa carpeta. Tu brain —tus organizaciones, tus
+decisiones, tu contenido— no se toca: la actualización solo refresca las herramientas que
+quedaron enganchadas. Y si el instalador se corriera por error a través del enganche ya
+instalado, se frena solo con un mensaje antes de escribir nada.
 
 ## Qué instala
 

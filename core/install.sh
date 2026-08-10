@@ -18,8 +18,11 @@
 
 set -eu
 
-core=$(cd "$(dirname "$0")" && pwd)
-product=$(cd "$core/.." && pwd)
+# Ruta física, no lógica (spec 016): invocado a través del symlink instalado en un brain,
+# `pwd` lógico devuelve la ruta del symlink y cada `ln` posterior escribe un enlace sobre sí
+# mismo — el brain entero queda circular. `pwd -P` atraviesa el symlink hasta el checkout real.
+core=$(cd "$(dirname "$0")" && pwd -P)
+product=$(cd "$core/.." && pwd -P)
 
 brain=""
 adopt=0
@@ -88,6 +91,38 @@ if [ "$needs_adopt" = "1" ]; then
     exit 1
   fi
 fi
+
+# La guarda del self-link (spec 016): si el destino de un enlace por escribir resuelve —tras
+# atravesar los symlinks del camino— a su propio origen, no se escribe nada y se aborta. Cubre
+# el brain cuyo `.os` es symlink a la raíz del producto: ahí cada `ln` escribiría adentro del
+# producto un enlace sobre sí mismo. Se chequean todos los pares antes del primer mkdir/ln.
+guard_selflink() {
+  local dest="$1" src="$2" ddir dreal sreal
+  ddir=$(cd -P "$(dirname "$dest")" 2>/dev/null && pwd -P) || return 0
+  dreal="$ddir/$(basename "$dest")"
+  if [ -d "$src" ]; then
+    sreal=$(cd -P "$src" && pwd -P)
+  else
+    sreal="$(cd -P "$(dirname "$src")" && pwd -P)/$(basename "$src")"
+  fi
+  if [ "$dreal" = "$sreal" ]; then
+    printf 'error: el enlace %s resolvería a sí mismo (%s).\n' "$dest" "$sreal" >&2
+    printf '       No se escribió nada. Corré install.sh desde el checkout del producto,\n' >&2
+    printf '       nunca a través de un enganche ya instalado.\n' >&2
+    exit 1
+  fi
+}
+
+guard_selflink "$brain/.os/core" "$core"
+for pack in "$product"/packs/*; do
+  [ -d "$pack" ] || continue
+  guard_selflink "$brain/.os/packs/$(basename "$pack")" "$pack"
+done
+for agent in "$core"/agents/*.md; do
+  [ -f "$agent" ] || continue
+  guard_selflink "$brain/.claude/agents/$(basename "$agent")" "$agent"
+done
+guard_selflink "$claude" "$claude_target"
 
 mkdir -p "$brain/.os/packs"
 ln -sfn "$core" "$brain/.os/core"
