@@ -13,6 +13,17 @@ stays written down** — never inside the memory of a chat.
 The files are yours: plain text, in your folder, readable without this system installed. What the
 system adds is where each thing goes and who reads it back.
 
+## Two names, two things
+
+- **AI First OS** is the software: the skills, the session contract, the agents. It gets installed
+  and updated, and it stores nothing of yours.
+- **Your brain** is this folder: your identity, your voice and your work. It is what the system
+  operates, and the only part that is yours.
+
+The analogy is an operating system and your disk: the OS gets updated; your brain is never
+touched. That is why you do not "install a brain" — you install the OS, and your brain is born
+once, through the interview.
+
 ## Everything is a node
 
 There is one single building block, repeated at every height: the **node**. Your own work is a node

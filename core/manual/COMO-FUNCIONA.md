@@ -13,6 +13,16 @@ escrito** — nunca adentro de la memoria de un chat.
 Los archivos son tuyos: texto plano, en tu carpeta, legibles sin este sistema instalado. Lo que el
 sistema agrega es dónde va cada cosa y quién la vuelve a leer.
 
+## Dos nombres, dos cosas
+
+- **AI First OS** es el software: los skills, el contrato de sesión, los agentes. Se instala y se
+  actualiza, y no guarda nada tuyo.
+- **Tu brain** es esta carpeta: tu identidad, tu voz y tu trabajo. Es lo que el sistema opera y lo
+  único que es tuyo.
+
+La analogía es un sistema operativo y tu disco: el OS se actualiza; tu brain no se toca. Por eso
+no se "instala un brain" — se instala el OS, y tu brain nace una sola vez, con la entrevista.
+
 ## Todo es un nodo
 
 Hay un solo primitivo, repetido a todas las alturas: el **nodo**. Tu trabajo propio es un nodo —la
