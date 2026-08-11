@@ -72,15 +72,15 @@ Use the name from the catalog below — for example `npx skills add pedroromerol
 the resolver: the skills that write into a brain expect that structure to exist, so the full install
 above is the one that gives you the system rather than the pieces.
 
-The exception is `bootstrap` — the gateway skill. Installed on its own it builds everything: if the
-OS is not present, it brings the repository down, hooks it in, and then interviews you to create
-your brain. One command is a complete install:
+**This is also the way to try the toolkit before trusting it with a system install.** `grill`,
+`product-strategy` or `prd` work on their own, in any project, with nothing else from this
+repository: a small skill, a small blast radius, a real deliverable. If what they do earns your
+trust, the full install above is the system they came from.
 
-```
-npx skills add pedroromeroluna/ai-first-os --skill bootstrap
-```
-
-Then tell your agent: "run bootstrap".
+`bootstrap` is also in the catalog: installed on its own it can bring the whole system down and
+build your brain. It exists for whoever prefers that route — but if you are new here, start with a
+sample skill or with the full install above, not with an installer from someone you have not read
+yet.
 
 ## Update
 
