@@ -72,7 +72,10 @@ os_append_kv() {
 
 # respaldo_local BRAIN IDIOMA
 # `git init` + primer commit. Tres cosas que se declaran en vez de hacerse en silencio:
-#   - sin `git` en el PATH no hay respaldo y se dice;
+#   - sin `git` en el PATH el bootstrap NO falla (spec 023, decisión 3): el brain queda escrito, el
+#     versionado se declara pendiente y la tarea guiada —con la instalación oficial adentro— queda
+#     en el backlog de la raíz. Es el mismo patrón que la mitad remota del respaldo
+#     (`remote-backup.sh`): un pendiente que nadie escribe es un pendiente que nadie completa;
 #   - un brain adentro de otro repo git NO se inicializa: un repo anidado adentro del árbol de
 #     trabajo de otro es una trampa —el de afuera lo ve como una carpeta sin seguimiento y el
 #     respaldo del brain queda a merced de esa confusión—, así que se nombra el repo de afuera y lo
@@ -83,7 +86,16 @@ respaldo_local() {
   local brain="$1" lang="$2" top rc
   os_lang_load "$lang"
   if ! command -v git > /dev/null 2>&1; then
-    printf 'sin respaldo: git no está en el PATH — el brain quedó sin versionar\n'
+    local tarea="$S_VERSIONING_TASK"
+    if [ -f "$brain/backlog.md" ] && grep -qF "$tarea" "$brain/backlog.md"; then
+      printf 'sin git: el versionado queda pendiente — la tarea guiada ya estaba en el backlog de la raíz\n'
+      return 0
+    fi
+    "$here/capture.sh" --brain "$brain" --root --text "$tarea" > /dev/null || {
+      printf 'sin git: el versionado queda pendiente — y la tarea guiada no se pudo escribir en el backlog de la raíz\n'
+      return 0
+    }
+    printf 'sin git: el versionado queda pendiente — la tarea guiada quedó en el backlog de la raíz\n'
     return 0
   fi
   top=$(git -C "$brain" rev-parse --show-toplevel 2>/dev/null) || top=""

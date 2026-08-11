@@ -11,7 +11,29 @@ description_es: Crea el brain desde cero — la skill de entrada. Si AI First OS
 Interview the operator and create the minimum brain. Do not ask about scope: the building layer is
 activated per initiative, not per user.
 
-## Step 0 — install the OS if it is missing
+## Step 0 — preflight, then install the OS if it is missing
+
+### The preflight
+
+**Check the requirements before running anything.** Do not run `npx`, do not clone, do not read an
+error to find out what is missing:
+
+```
+node --version
+git --version
+```
+
+- **Node.js missing**: point the operator at the LTS installer on nodejs.org.
+- **git missing**: macOS, `xcode-select --install`; Windows, git-scm.com.
+
+**You guide; the operator installs.** You never install system software on your own — you name the
+official channel, wait for them to run it, and check again. Anything they decline is a choice, not
+an error: report it and take the branch below that matches.
+
+**A missing git never blocks the bootstrap.** Keep going: the brain gets written and the script
+leaves the local versioning as a pending task in the root backlog — see "The backup, in two halves".
+
+### Bringing the product down
 
 Everything below assumes the product is hooked into the brain (`.os/core` resolves). If it does
 not — you were installed standalone, e.g. from skills.sh — install it first:
@@ -21,6 +43,24 @@ not — you were installed standalone, e.g. from skills.sh — install it first:
 2. Run `<clone>/core/install.sh <brain-path>` — idempotent; it hooks the session contract, the
    resolvers, the subagents and all sixteen skills by symlink.
 3. Continue with the interview below.
+
+**The download without a clone.** Cloning needs git. The same repository also comes down as a
+tarball, and this branch is taken under two conditions and only these two:
+
+- **git is missing** and the operator is not installing it now.
+- **Node.js is missing and the operator refuses to install it.** Say the cost before going ahead:
+  installed this way the system does not count in skills.sh.
+
+```
+curl -L https://github.com/pedroromeroluna/ai-first-os/archive/refs/heads/main.tar.gz | tar xz
+```
+
+Unpack it in the same fixed folder outside the brain, run `ai-first-os-main/core/install.sh
+<brain-path>`, and continue with the interview. Either condition leaves a plain folder rather than a
+checkout, so it updates by downloading the tarball again — the procedure is written once, in the
+repository's `README.md` under **Update**, and is not restated here.
+
+Never offer this branch first: it is the alternative to a refusal, not an option on the menu.
 
 If `.os/core` already resolves, skip this step entirely.
 
@@ -89,6 +129,11 @@ them. Adding an organization to a brain that already exists is `new-org`'s job.
 
 **Local, always, with no account and no question**: the same script closes the bootstrap with
 `git init` and the first commit. Nothing to ask; a brain with no history loses work silently.
+
+**Without git the script does not fail.** It prints `sin git: el versionado queda pendiente` and
+leaves the guided task in the root backlog — the install channel is inside the task, and any later
+session finishes it. Pass that line through to the operator as it came: the brain is created and
+unversioned, and they are the ones who decide when to install git.
 
 **Remote, right after**, and it never runs alone:
 

@@ -142,6 +142,10 @@ key: FIRST_COMMIT
 en: the brain is born
 es: nace el brain
 
+key: VERSIONING_TASK
+en: Local versioning pending: install git (macOS: run `xcode-select --install`; Windows: get it from git-scm.com — the operator installs it, never the agent), and then ask any session to run `git init` in the brain and make its first commit
+es: Versionado local pendiente: instalar git (macOS: correr `xcode-select --install`; Windows: bajarlo de git-scm.com — lo instala el operador, nunca el agente), y después pedirle a cualquier sesión que corra `git init` en el brain y haga el primer commit
+
 key: BACKUP_TASK
 en: Remote backup pending: create the account at github.com (the operator creates it, never the agent), run `gh auth login`, and then ask any session to run `.os/core/lib/remote-backup.sh --brain .`
 es: Respaldo remoto pendiente: crear la cuenta en github.com (la crea el operador, nunca el agente), correr `gh auth login`, y después pedirle a cualquier sesión que corra `.os/core/lib/remote-backup.sh --brain .`

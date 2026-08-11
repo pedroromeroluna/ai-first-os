@@ -10,6 +10,36 @@ The skills are written in English. The deliverables come out in the language you
 
 This document is written for your agent to execute, not for you to follow step by step.
 
+## Requirements
+
+**Two requirements, checked before running anything.** An agent that installs first and reads the
+error afterwards leaves you with `command not found` instead of an answer.
+
+| What | How the agent checks it | Where it comes from if it is missing |
+|---|---|---|
+| Node.js | `node --version` | The LTS installer at nodejs.org |
+| git | `git --version` | macOS: `xcode-select --install` · Windows: git-scm.com |
+
+**The agent guides; you install.** System software is never installed by the agent on its own: it
+points at the official channel, waits for you to run it, and checks again.
+
+**A missing git does not block the install.** The brain still gets created — the local versioning is
+left as a pending task in your root backlog, with the install guidance inside it, and any later
+session finishes it.
+
+**If you refuse to install Node** — and only then — there is a path that needs neither Node nor git.
+It brings the repository down as a tarball with `curl`, which is already on macOS and on current
+Windows:
+
+```
+curl -L https://github.com/pedroromeroluna/ai-first-os/archive/refs/heads/main.tar.gz | tar xz
+```
+
+Then `ai-first-os-main/core/install.sh <brain-path>`, and the interview follows as usual. Its cost,
+said before it is used: installed this way the system does not count in skills.sh, and the copy is a
+plain folder rather than a checkout, so updating it means downloading the tarball again — see
+**Update** below.
+
 ## Install
 
 ### Claude Code
@@ -62,6 +92,11 @@ down the newest version and runs the installer from that folder. Your brain —y
 your decisions, your content— is not touched: the update only refreshes the tools that were hooked
 in. And if the installer were run by mistake through the hook that is already installed, it stops on
 its own with a message before writing anything.
+
+**The tarball copy updates differently, and this is the only place that says how**: it has no
+checkout to pull from, so the agent downloads the tarball again into the same fixed folder,
+replacing it, and runs `core/install.sh` from there. Everything else is identical — your brain is
+still untouched.
 
 ## The catalog
 
