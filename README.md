@@ -12,8 +12,9 @@ This document is written for your agent to execute, not for you to follow step b
 
 ## Requirements
 
-**Two requirements, checked before running anything.** An agent that installs first and reads the
-error afterwards leaves you with `command not found` instead of an answer.
+**Two requirements, checked before running anything, and neither one is optional.** An agent that
+installs first and reads the error afterwards leaves you with `command not found` instead of an
+answer.
 
 | What | How the agent checks it | Where it comes from if it is missing |
 |---|---|---|
@@ -23,13 +24,13 @@ error afterwards leaves you with `command not found` instead of an answer.
 **The agent guides; you install.** System software is never installed by the agent on its own: it
 points at the official channel, waits for you to run it, and checks again.
 
-**A missing git does not block the install.** The brain still gets created — the local versioning is
-left as a pending task in your root backlog, with the install guidance inside it, and any later
-session finishes it.
+**git has no path around it.** Every brain is versioned from the moment it exists — that is what
+gives you an auditable history and updates you can undo — so nothing gets written until git is
+there. Install it and say "run bootstrap" again; nothing you already answered is lost.
 
-**If you refuse to install Node** — and only then — there is a path that needs neither Node nor git.
-It brings the repository down as a tarball with `curl`, which is already on macOS and on current
-Windows:
+**If you refuse to install Node** — and only then — there is a path that skips Node. It still needs
+git. It brings the repository down as a tarball with `curl`, which is already on macOS and on
+current Windows:
 
 ```
 curl -L https://github.com/pedroromeroluna/ai-first-os/archive/refs/heads/main.tar.gz | tar xz

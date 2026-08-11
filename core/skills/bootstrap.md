@@ -30,8 +30,10 @@ git --version
 official channel, wait for them to run it, and check again. Anything they decline is a choice, not
 an error: report it and take the branch below that matches.
 
-**A missing git never blocks the bootstrap.** Keep going: the brain gets written and the script
-leaves the local versioning as a pending task in the root backlog — see "The backup, in two halves".
+**git has no path around it.** If it's missing, stop right there — point at the install channel,
+wait for the operator to run it, check again. `bootstrap.sh` itself refuses to write anything
+without git: re-running the same command once it is installed picks the interview up cleanly.
+Node is the only requirement with an alternative branch below; git is not.
 
 ### Bringing the product down
 
@@ -44,21 +46,23 @@ not — you were installed standalone, e.g. from skills.sh — install it first:
    resolvers, the subagents and all sixteen skills by symlink.
 3. Continue with the interview below.
 
-**The download without a clone.** Cloning needs git. The same repository also comes down as a
-tarball, and this branch is taken under two conditions and only these two:
+**The download without a clone.** Cloning needs git, but the clone is not what the tarball avoids —
+Node is. This branch is taken under one condition and only this one:
 
-- **git is missing** and the operator is not installing it now.
 - **Node.js is missing and the operator refuses to install it.** Say the cost before going ahead:
   installed this way the system does not count in skills.sh.
+
+git is still required either way — the preflight above already stopped if it were missing, so by
+the time you reach this step it is there.
 
 ```
 curl -L https://github.com/pedroromeroluna/ai-first-os/archive/refs/heads/main.tar.gz | tar xz
 ```
 
 Unpack it in the same fixed folder outside the brain, run `ai-first-os-main/core/install.sh
-<brain-path>`, and continue with the interview. Either condition leaves a plain folder rather than a
-checkout, so it updates by downloading the tarball again — the procedure is written once, in the
-repository's `README.md` under **Update**, and is not restated here.
+<brain-path>`, and continue with the interview. This leaves a plain folder rather than a checkout, so
+it updates by downloading the tarball again — the procedure is written once, in the repository's
+`README.md` under **Update**, and is not restated here.
 
 Never offer this branch first: it is the alternative to a refusal, not an option on the menu.
 
@@ -128,12 +132,8 @@ them. Adding an organization to a brain that already exists is `new-org`'s job.
 ## The backup, in two halves
 
 **Local, always, with no account and no question**: the same script closes the bootstrap with
-`git init` and the first commit. Nothing to ask; a brain with no history loses work silently.
-
-**Without git the script does not fail.** It prints `sin git: el versionado queda pendiente` and
-leaves the guided task in the root backlog — the install channel is inside the task, and any later
-session finishes it. Pass that line through to the operator as it came: the brain is created and
-unversioned, and they are the ones who decide when to install git.
+`git init` and the first commit. Nothing to ask; a brain with no history loses work silently. git is
+guaranteed present by the preflight in Step 0 — there is no unversioned brain to describe here.
 
 **Remote, right after**, and it never runs alone:
 

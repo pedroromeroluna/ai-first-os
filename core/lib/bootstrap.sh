@@ -42,6 +42,13 @@ done
 [ -n "$answers" ] || os_die "falta --answers"
 [ -f "$answers" ] || os_die "no existe el archivo de respuestas: $answers"
 
+# git es requisito duro (spec 024): la primera verificación del script, antes de crear ningún
+# archivo. Reemplaza la decisión 3 de la spec 023, que dejaba nacer un brain sin versionar. Sin
+# git no se escribe nada — ni siquiera la carpeta del brain — y el mensaje dice de dónde
+# instalarlo y que este mismo comando se re-corre solo.
+command -v git > /dev/null 2>&1 \
+  || os_die "falta git: instalalo desde el canal oficial (macOS: correr \`xcode-select --install\`; Windows: bajarlo de git-scm.com — lo instala el operador, nunca el agente) y volvé a correr este mismo comando — el bootstrap no escribió nada"
+
 name=""
 language=""
 profile=""
@@ -71,11 +78,9 @@ os_append_kv() {
 }
 
 # respaldo_local BRAIN IDIOMA
-# `git init` + primer commit. Tres cosas que se declaran en vez de hacerse en silencio:
-#   - sin `git` en el PATH el bootstrap NO falla (spec 023, decisión 3): el brain queda escrito, el
-#     versionado se declara pendiente y la tarea guiada —con la instalación oficial adentro— queda
-#     en el backlog de la raíz. Es el mismo patrón que la mitad remota del respaldo
-#     (`remote-backup.sh`): un pendiente que nadie escribe es un pendiente que nadie completa;
+# `git init` + primer commit. git ya está garantizado en el PATH — el chequeo duro corre al
+# principio del script, antes de escribir nada (spec 024) — así que acá no queda rama por su
+# ausencia. Dos cosas se declaran en vez de hacerse en silencio:
 #   - un brain adentro de otro repo git NO se inicializa: un repo anidado adentro del árbol de
 #     trabajo de otro es una trampa —el de afuera lo ve como una carpeta sin seguimiento y el
 #     respaldo del brain queda a merced de esa confusión—, así que se nombra el repo de afuera y lo
@@ -85,19 +90,6 @@ os_append_kv() {
 respaldo_local() {
   local brain="$1" lang="$2" top rc
   os_lang_load "$lang"
-  if ! command -v git > /dev/null 2>&1; then
-    local tarea="$S_VERSIONING_TASK"
-    if [ -f "$brain/backlog.md" ] && grep -qF "$tarea" "$brain/backlog.md"; then
-      printf 'sin git: el versionado queda pendiente — la tarea guiada ya estaba en el backlog de la raíz\n'
-      return 0
-    fi
-    "$here/capture.sh" --brain "$brain" --root --text "$tarea" > /dev/null || {
-      printf 'sin git: el versionado queda pendiente — y la tarea guiada no se pudo escribir en el backlog de la raíz\n'
-      return 0
-    }
-    printf 'sin git: el versionado queda pendiente — la tarea guiada quedó en el backlog de la raíz\n'
-    return 0
-  fi
   top=$(git -C "$brain" rev-parse --show-toplevel 2>/dev/null) || top=""
   if [ -n "$top" ] && [ "$top" != "$brain" ]; then
     printf 'sin respaldo: el brain vive adentro del repo %s — un repo anidado no se crea solo; moverlo afuera o versionarlo a mano lo elige el operador\n' "$top"
