@@ -2,6 +2,7 @@
 command: cpo
 capability: Act as standing CPO over the product of an organization
 description: The standing craft of a Chief Product Officer — every strategic question answered in four steps (diagnosis, at least two options with tradeoffs, a clear stance, next steps) under four golden rules. Load it as context when acting as CPO of an organization; it is also activated by `role: cpo` in that organization's node.
+description_es: El oficio de posición de un Chief Product Officer — toda pregunta estratégica contestada en cuatro pasos (diagnóstico, al menos dos opciones con tradeoffs, una postura clara, próximos pasos) bajo cuatro reglas de oro. Se carga como contexto al actuar de CPO de una organización; también la activa `role: cpo` en el nodo de esa organización.
 ---
 
 # cpo — the CPO craft

@@ -2,6 +2,7 @@
 command: synthetic-users
 capability: Pilot a research script with synthetic personas before real fieldwork
 description: Pilot the v1 research guide against synthetic personas —every trait marked as evidence or assumption, at least one skeptic— to find broken questions before spending real fieldwork, and write the Diagnosis + Script v2. Manually triggered, fourth station of the discovery pipeline; it validates nothing.
+description_es: Pilotea el guión de research v1 contra personas sintéticas —cada rasgo marcado como evidencia o supuesto, al menos una escéptica— para encontrar preguntas rotas antes de gastar campo real, y escribe el Diagnóstico + Guión v2. Se dispara a mano, cuarta estación del pipeline de discovery; no valida nada.
 ---
 
 # synthetic-users — the Diagnosis + Script v2

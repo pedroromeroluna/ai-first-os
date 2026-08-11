@@ -2,6 +2,7 @@
 command: product-metrics
 capability: Define the North Star, the metric tree and the metric of each active hypothesis
 description: Build the measurement layer of a product — one candidate North Star, the tree of levers that hold it up with where each is measured, one metric per active hypothesis with its value today or a gap with an owner, and the antimetrics with their alarm thresholds — and write the Metric Brief. Manually triggered, or entered when the metric gate of product-strategy does not pass.
+description_es: Construye la capa de medición de un producto — una North Star candidata, el árbol de palancas que la sostienen con dónde se mide cada una, una métrica por hipótesis activa con su valor de hoy o un hueco con dueño, y las antimétricas con sus umbrales de alarma — y escribe el Metric Brief. Se dispara a mano, o se entra cuando el gate de métrica de product-strategy no pasa.
 ---
 
 # product-metrics — the Metric Brief

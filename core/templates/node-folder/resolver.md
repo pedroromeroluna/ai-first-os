@@ -1,14 +1,9 @@
-# Resolver of {{NAME}} — where what gets written goes
+# {{T_RESOLVER_TITLE_HEAD}} {{NAME}} {{T_RESOLVER_TITLE_TAIL}}
 
-Content → destination. One row per exception: whatever the structure already answers gets no row.
-The system writes it when something had to be decided that the structure did not answer.
+{{T_RESOLVER_INTRO}}
 
-It is born with no rows.
+{{T_RESOLVER_TABLE_HEAD}}
 
-| Content | Destination |
-|---|---|
+## {{T_RESOLVER_REFERENCES_HEADING}}
 
-## References
-
-What this node uses from outside, by path. If the agent cannot reach it, it says so instead of
-assuming.
+{{T_RESOLVER_REFERENCES_INTRO}}

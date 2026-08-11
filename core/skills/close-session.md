@@ -3,6 +3,7 @@ command: close-session
 capability: Close the session without losing anything
 handoff: Capture something on the fly
 description: Close a session by distributing what it produced —decisions, learnings, pending items, what stayed waiting, where to resume— into the loaded node's canonical files, and end with a four-part verdict that names what was not captured. Manually triggered, at the end of a session.
+description_es: Cierra la sesión repartiendo lo que produjo —decisiones, aprendizajes, pendientes, lo que quedó esperando, por dónde retomar— en los archivos canónicos del nodo cargado, y termina con un veredicto de cuatro partes que nombra lo que no se capturó. Se dispara a mano, al final de una sesión.
 ---
 
 # close-session — closing by distributing what the session left

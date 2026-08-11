@@ -4,13 +4,23 @@
 #
 # Uso: bootstrap.sh --brain DIR --answers ARCHIVO
 #
-# Formato del archivo de respuestas — una clave por línea, `clave: valor`:
-#   name:    nombre del operador
-#   profile: una línea por ítem del perfil profesional (se repite)
-#   voice:   una línea por ítem de la voz (se repite)
-#   reply:   una línea por ítem de "cómo se me contesta" (se repite)
-#   org:     Nombre | rol | dueño | archivo-de-identidad   (se repite; los dos últimos, opcionales)
+# Formato del archivo de respuestas — una clave por línea, `clave: valor` (spec 021):
+#   language: idioma de todo lo que se escribe: `en` o `es`. Primera clave; sin ella, `en`.
+#   name:     nombre del operador
+#   profile:  el rol en una línea ("Senior PM en una fintech")
+#   voice:    una línea por ítem de la voz (se repite; la entrevista la declara opcional)
+#   org:      Nombre | título | dueño | archivo-de-identidad   (se repite; los dos últimos, opcionales)
+#             El título es identidad —"qué hacés ahí"— y va al cuerpo de context.md, nunca a
+#             `role:` (spec 020): ese campo activa un oficio del pack y nace vacío.
+# `reply:` no existe más (spec 021): "cómo querés que te conteste" no se pregunta, y el default vive
+# en el template de `operator.md` marcado como sección que se aprende con el uso. Sin
+# retrocompatibilidad: un archivo viejo con `reply:` frena con el motivo.
 # Las líneas vacías y las que empiezan con `#` se ignoran.
+#
+# El respaldo tiene dos mitades (spec 021). Acá va la local, que corre siempre y sin preguntar: `git
+# init` + primer commit. La remota —crear el repo y pushear, o dejar la tarea guiada en el backlog de
+# la raíz— es `remote-backup.sh`, que la sesión corre después y que cualquier sesión posterior puede
+# volver a correr.
 
 set -eu
 
@@ -33,9 +43,9 @@ done
 [ -f "$answers" ] || os_die "no existe el archivo de respuestas: $answers"
 
 name=""
+language=""
 profile=""
 voice=""
-reply=""
 orgs=""
 nl=$(printf '\n.')
 nl="${nl%.}"
@@ -60,6 +70,42 @@ os_append_kv() {
   fi
 }
 
+# respaldo_local BRAIN IDIOMA
+# `git init` + primer commit. Tres cosas que se declaran en vez de hacerse en silencio:
+#   - sin `git` en el PATH no hay respaldo y se dice;
+#   - un brain adentro de otro repo git NO se inicializa: un repo anidado adentro del árbol de
+#     trabajo de otro es una trampa —el de afuera lo ve como una carpeta sin seguimiento y el
+#     respaldo del brain queda a merced de esa confusión—, así que se nombra el repo de afuera y lo
+#     resuelve el operador;
+#   - sin identidad de git configurada, el commit se firma con una identidad genérica del producto y
+#     se avisa: el respaldo vale más que la firma.
+respaldo_local() {
+  local brain="$1" lang="$2" top rc
+  os_lang_load "$lang"
+  if ! command -v git > /dev/null 2>&1; then
+    printf 'sin respaldo: git no está en el PATH — el brain quedó sin versionar\n'
+    return 0
+  fi
+  top=$(git -C "$brain" rev-parse --show-toplevel 2>/dev/null) || top=""
+  if [ -n "$top" ] && [ "$top" != "$brain" ]; then
+    printf 'sin respaldo: el brain vive adentro del repo %s — un repo anidado no se crea solo; moverlo afuera o versionarlo a mano lo elige el operador\n' "$top"
+    return 0
+  fi
+  [ -n "$top" ] || git -C "$brain" init -q
+  git -C "$brain" add -A
+  if git -C "$brain" commit -q -m "$S_FIRST_COMMIT" > /dev/null 2>&1; then
+    printf 'respaldo local: git init + primer commit\n'
+    return 0
+  fi
+  if git -C "$brain" -c user.name="AI First OS" -c user.email="bootstrap@ai-first-os.local" \
+       commit -q -m "$S_FIRST_COMMIT" > /dev/null 2>&1; then
+    printf 'respaldo local: git init + primer commit, firmado con una identidad genérica — configurá git (user.name, user.email) para los que siguen\n'
+    return 0
+  fi
+  printf 'sin respaldo: el primer commit falló — el brain quedó versionado sin commits\n'
+  return 0
+}
+
 while IFS= read -r line || [ -n "$line" ]; do
   case "$line" in
     ''|'#'*) continue ;;
@@ -68,9 +114,10 @@ while IFS= read -r line || [ -n "$line" ]; do
   value=$(os_trim "${line#*:}")
   case "$key" in
     name) name="$value" ;;
+    language) language=$(os_lower "$value") ;;
     profile) profile=$(os_append "$profile" "$value") ;;
     voice) voice=$(os_append_kv "$voice" "voice" "$value") ;;
-    reply) reply=$(os_append "$reply" "$value") ;;
+    reply) os_die "la clave reply: no existe desde la spec 021: el default de cómo se contesta vive en el template de operator.md" ;;
     org) orgs="$orgs$value$nl" ;;
     *) os_die "clave desconocida en las respuestas: $key" ;;
   esac
@@ -78,8 +125,22 @@ done < "$answers"
 
 [ -n "$name" ] || os_die "falta la clave name: en las respuestas"
 
+# El idioma es la primera pregunta de la entrevista y gobierna todo lo que se escribe. Sin dato, se
+# escribe en inglés y el hueco se declara abajo: elegir por el operador en silencio le deja un brain
+# en un idioma que no eligió.
+sin_language=0
+if [ -z "$language" ]; then
+  language="en"
+  sin_language=1
+elif ! os_language_valido "$language"; then
+  os_die "idioma no soportado: $language — hoy: $OS_LANGUAGES"
+fi
+
 templates="$here/../templates"
 mkdir -p "$brain"
+# Ruta física: `git rev-parse --show-toplevel` la devuelve resuelta, y comparar contra una ruta con
+# symlinks adentro (`/var` → `/private/var` en macOS) hace ver como repo ajeno al repo propio.
+brain=$(cd "$brain" && pwd -P)
 
 # El bootstrap crea; no rehace. Si las piezas de la raíz ya están, frena: reescribirlas borraría lo
 # que el operador haya escrito encima, y eso es pérdida silenciosa. Agregar organizaciones a un
@@ -97,21 +158,35 @@ fi
 # Una identidad, dos archivos: operator.md contesta quién es y cómo se le contesta; voice.md, cómo
 # escribe. La voz sale de operator.md desde la spec 018 — nunca las dos cosas a la vez, o la misma
 # frase termina viviendo en dos lugares.
-os_render "$templates/operator.md" \
-  "NAME=$name" "PROFILE=$profile" "REPLY=$reply" > "$brain/operator.md"
-os_render "$templates/voice.md" "NAME=$name" "VOICE=$voice" > "$brain/voice.md"
-os_render "$templates/root-resolver.md" > "$brain/resolver.md"
-os_render "$templates/tree.md" > "$brain/tree.md"
+# La prosa fija sale del catálogo `templates/strings.md` en el idioma elegido: un solo template por
+# archivo, una traducción por string (spec 021). Nunca un árbol de templates por idioma.
+os_render_lang "$templates/operator.md" "$language" \
+  "NAME=$name" "LANGUAGE=$language" "PROFILE=$profile" > "$brain/operator.md"
+# La voz es opcional: sin dato, el archivo lo dice en vez de nacer con una sección en blanco.
+voice_body="$voice"
+[ -n "$voice_body" ] || voice_body="$S_VOICE_PENDING"
+os_render_lang "$templates/voice.md" "$language" \
+  "NAME=$name" "VOICE=$voice_body" > "$brain/voice.md"
+os_render_lang "$templates/root-resolver.md" "$language" > "$brain/resolver.md"
+# El manual de usuario es del idioma del brain, y su nombre lo enuncia `os_manual_file` una sola vez
+# (spec 022). El árbol lo declara como contenido: se ve en la raíz y ningún barrido lo lee como
+# trabajo.
+manual=$(os_manual_file "$language")
+os_render "$templates/tree.md" "MANUAL=$manual" > "$brain/tree.md"
 
 os_check_identity_cap "$brain/operator.md"
 
 printf 'operator.md · voice.md · resolver.md · tree.md\n'
 
+# El manual se engancha por symlink al del producto: nace con el brain y se actualiza con el
+# producto, sin volver a correr nada.
+"$here/manual-link.sh" --brain "$brain" --language "$language" || true
+
 # Lo que la entrevista no trajo se declara. Un hueco silencioso es un hueco que nadie completa.
 vacias=""
+[ "$sin_language" = "0" ] || vacias="$vacias language"
 [ -n "$profile" ] || vacias="$vacias profile"
 [ -n "$voice" ] || vacias="$vacias voice"
-[ -n "$reply" ] || vacias="$vacias reply"
 [ -n "$orgs" ] || vacias="$vacias org"
 if [ -n "$vacias" ]; then
   printf 'sin dato:%s — las secciones quedaron vacías y hay que volver a preguntarlas\n' "$vacias"
@@ -121,16 +196,19 @@ fi
 fallidas=""
 while IFS= read -r org; do
   [ -n "$org" ] || continue
-  IFS='|' read -r org_name org_role org_owner org_identity <<EOF
+  IFS='|' read -r org_name org_title org_owner org_identity <<EOF
 $org
 EOF
   org_name=$(os_trim "$org_name")
-  org_role=$(os_trim "${org_role:-}")
+  org_title=$(os_trim "${org_title:-}")
   org_owner=$(os_trim "${org_owner:-}")
   org_identity=$(os_trim "${org_identity:-}")
   # El dueño por omisión es el operador: la organización la crea él.
   [ -n "$org_owner" ] || org_owner="$name"
-  set -- --brain "$brain" --name "$org_name" --role "$org_role" --owner "$org_owner"
+  # El segundo campo es identidad —"qué hacés ahí"—, no activación (spec 020): va al cuerpo vía
+  # --title, nunca a --role. `role:` nace vacío; completarlo con el slug de un oficio del pack es
+  # un acto aparte, posterior.
+  set -- --brain "$brain" --name "$org_name" --role "" --title "$org_title" --owner "$org_owner"
   if [ -n "$org_identity" ]; then
     set -- "$@" --identity-file "$org_identity"
   fi
@@ -140,6 +218,11 @@ EOF
 done <<ORGS
 $orgs
 ORGS
+
+# ---------------------------------------------------------------- la mitad local del respaldo
+# Corre siempre, sin cuenta ni pregunta (spec 021, decisión 3). Es la única mitad que no depende de
+# nada de afuera: el brain nace versionado aunque nunca haya un remoto.
+respaldo_local "$brain" "$language"
 
 if [ -n "$fallidas" ]; then
   printf 'sin crear:%s — cada una con su error arriba. El resto del brain quedó escrito.\n' "$fallidas" >&2

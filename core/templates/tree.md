@@ -11,6 +11,9 @@ reads these lines. Adding a level is adding a line here, not touching scripts.
 The commands that create a level add their glob or their content line. A file that neither of the
 two reaches is a finding of the check, not a case to ignore.
 
+The first `content:` line is the system's user manual, in the language of this brain: it is part of
+the product, it lives at the root so it can be read from Obsidian, and it is never work.
+
 glob: operator.md
 glob: resolver.md
 glob: inbox.md
@@ -26,6 +29,7 @@ glob: orgs/*/decisions.md
 glob: orgs/*/learnings.md
 glob: orgs/*/initiatives/*.md
 
+content: {{MANUAL}}
 content: voice.md
 content: voice/*.md
 content: orgs/*/voice.md

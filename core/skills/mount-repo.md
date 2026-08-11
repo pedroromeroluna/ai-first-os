@@ -2,6 +2,7 @@
 command: mount-repo
 capability: Mount a repo as the body of a node
 description: Give an initiative a body: write the remote into the head's frontmatter, clone the checkout outside the brain, and record the remote-to-local-path row in the machine's environment table. Manually triggered, once per initiative that starts being built.
+description_es: Le da cuerpo a una iniciativa: escribe el remote en el frontmatter de la cabeza, clona el checkout afuera del brain y registra la fila remote → ruta local en la tabla del entorno de la máquina. Se dispara a mano, una vez por iniciativa que empieza a construirse.
 ---
 
 # mount-repo — giving a node a body

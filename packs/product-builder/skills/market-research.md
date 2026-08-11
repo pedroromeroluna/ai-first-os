@@ -2,6 +2,7 @@
 command: market-research
 capability: Research the market with secondary research and size the opportunity
 description: Size the opportunity with secondary research only — directional TAM/SAM/SOM where every number carries its cited source and the assumption that turns it into a number for this product — and write the Market Brief as dated research of the loaded product node. Manually triggered, second station of the discovery pipeline.
+description_es: Dimensiona la oportunidad solo con research secundario — TAM/SAM/SOM direccional donde cada número lleva su fuente citada y el supuesto que lo vuelve un número para este producto — y escribe el Market Brief como research fechado del nodo de producto cargado. Se dispara a mano, segunda estación del pipeline de discovery.
 ---
 
 # market-research — the Market Brief

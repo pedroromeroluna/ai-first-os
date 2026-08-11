@@ -2,6 +2,7 @@
 command: grill
 capability: Pressure the facts before a decision closes
 description: Pressure the facts behind a claim before a decision closes — counter-question with a concrete example, capped attempts, escape hatches, evidence hierarchy — and route what comes out to the loaded node's decisions or backlog. Manually triggered, and also the method any other interviewing tool cites by path.
+description_es: Presiona los hechos detrás de una afirmación antes de que una decisión cierre — contrapregunta con un ejemplo concreto, intentos acotados, escape hatches, jerarquía de evidencia — y rutea lo que salga a las decisiones o al backlog del nodo cargado. Se dispara a mano, y es además el método que cita por ruta cualquier otra herramienta que entreviste.
 ---
 
 # grill — the pressure interview

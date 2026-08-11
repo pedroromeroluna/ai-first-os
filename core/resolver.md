@@ -7,6 +7,8 @@ from the brain: the operator's rows go in `resolver.md`, at the root of the brai
 |---|---|---|
 | Hook up or update the product in a brain | `install.sh` | `.os/core/install.sh` |
 | Create the brain from scratch | `bootstrap` | `.os/core/skills/bootstrap.md` |
+| Finish the brain's remote backup (private repo + push) | `remote-backup.sh` | `.os/core/lib/remote-backup.sh` |
+| Leave the system manual linked at the root of the brain | `manual-link.sh` | `.os/core/lib/manual-link.sh` |
 | Add an organization | `new-org` | `.os/core/skills/new-org.md` |
 | See what is pending | `sweep` | `.os/core/skills/sweep.md` |
 | See what is blocked and why | `sweep` | `.os/core/skills/sweep.md` |

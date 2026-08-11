@@ -2,6 +2,7 @@
 command: new-spec
 capability: Write a new spec
 description: Turn concrete build work that came out of a conversation into a spec file under the target repo's specs/, with runnable evals per criterion, decisions split by who closes them, and effects that escape the system declared. Manually triggered, before delegating implementation to an agent.
+description_es: Convierte en una spec el trabajo de construcción concreto que salió de una conversación, adentro de specs/ del repo destino, con evals ejecutables por criterio, las decisiones separadas por quién las cierra y los efectos que escapan del sistema declarados. Se dispara a mano, antes de delegar la implementación en un agente.
 ---
 
 # new-spec — writing a spec an agent can implement without asking for an opinion

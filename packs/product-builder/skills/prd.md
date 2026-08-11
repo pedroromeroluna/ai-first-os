@@ -2,6 +2,7 @@
 command: prd
 capability: Interview and write the strategic layer of a product
 description: Interview the operator and write the strategic layer of a product —vision, problem, users, scope, competitors, opportunities, open questions, glossary— into the `context/` of its node in the brain, never into the body repo. Manually triggered, last link of the discovery pipeline and the gate before specs.
+description_es: Entrevista al operador y escribe la capa estratégica de un producto —visión, problema, usuarios, alcance, competidores, oportunidades, preguntas abiertas, glosario— en el `context/` de su nodo en el brain, nunca en el repo del cuerpo. Se dispara a mano, último eslabón del pipeline de discovery y la puerta antes de las specs.
 ---
 
 # prd — the strategic layer of a product

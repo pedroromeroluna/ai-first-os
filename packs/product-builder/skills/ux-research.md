@@ -2,6 +2,7 @@
 command: ux-research
 capability: Plan the qualitative or quantitative research round on the riskiest hypothesis
 description: Design one research round against the single riskiest hypothesis — behavioral screening, one modality chosen on purpose, a guide whose every question is tied to a hypothesis or a job dimension — and write the Research Plan as dated research of the loaded product node. Manually triggered, third station of the discovery pipeline.
+description_es: Diseña una ronda de research contra la única hipótesis más riesgosa — screening por comportamiento, una modalidad elegida a propósito, un guión donde cada pregunta cuelga de una hipótesis o de una dimensión del job — y escribe el Plan de Research como research fechado del nodo de producto cargado. Se dispara a mano, tercera estación del pipeline de discovery.
 ---
 
 # ux-research — the Research Plan

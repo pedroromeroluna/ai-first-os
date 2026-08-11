@@ -2,6 +2,7 @@
 command: product-strategy
 capability: Define the problem, the evidence behind it and the prioritized hypotheses of a product
 description: Run the socratic discovery interview that separates the symptom from the cause, grades the evidence, applies the metric gate and prioritizes up to three hypotheses, and write the Discovery Brief as dated research of the loaded product node. Manually triggered, first station of the discovery pipeline.
+description_es: Conduce la entrevista socrática de discovery que separa el síntoma de la causa, califica la evidencia, aplica el gate de métrica y prioriza hasta tres hipótesis, y escribe el Discovery Brief como research fechado del nodo de producto cargado. Se dispara a mano, primera estación del pipeline de discovery.
 ---
 
 # product-strategy — the Discovery Brief

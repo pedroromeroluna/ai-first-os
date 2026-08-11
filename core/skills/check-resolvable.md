@@ -2,6 +2,7 @@
 command: check-resolvable
 capability: Audit the routing of the root
 description: Audit the root's capability-to-tool graph and report the three failures it can have — a tool nothing routes to, a handoff no row provides, and a row pointing at a tool that does not exist. Manually triggered, or hung off a cron; it exits non-zero when it finds something.
+description_es: Audita el grafo capacidad → herramienta de la raíz y reporta las tres fallas que puede tener — una herramienta que nadie rutea, un handoff que ninguna fila provee y una fila que apunta a una herramienta que no existe. Se dispara a mano, o colgada de un cron; sale distinto de cero cuando encuentra algo.
 ---
 
 # check-resolvable — so that no tool stays dark

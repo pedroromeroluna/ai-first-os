@@ -1,11 +1,17 @@
+---
+language: {{LANGUAGE}}
+---
+
 # {{NAME}}
 
-Voice: `voice.md`.
+{{T_OPERATOR_VOICE_POINTER}}
 
-## Profile
+## {{T_OPERATOR_PROFILE_HEADING}}
 
 {{PROFILE}}
 
-## How I want to be answered
+## {{T_OPERATOR_REPLY_HEADING}}
 
-{{REPLY}}
+{{T_OPERATOR_REPLY_MARK}}
+
+{{T_OPERATOR_REPLY_DEFAULT}}

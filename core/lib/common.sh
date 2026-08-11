@@ -115,6 +115,116 @@ os_render() {
   done < "$tpl"
 }
 
+# ---------------------------------------------------------------- el idioma de lo que se escribe
+# Los idiomas que el producto sabe escribir. Única enunciación de la lista.
+OS_LANGUAGES="en es"
+
+# La carpeta de esta librería: de acá cuelgan los templates y el catálogo de strings.
+OS_LIB_DIR=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)
+OS_STRINGS_FILE="$OS_LIB_DIR/../templates/strings.md"
+
+# os_language_valido CODIGO -> 0 si el producto sabe escribir en ese idioma.
+os_language_valido() {
+  local l
+  for l in $OS_LANGUAGES; do
+    [ "$1" = "$l" ] && return 0
+  done
+  return 1
+}
+
+# os_language BRAIN -> el idioma declarado en el frontmatter de `operator.md`, o `en`.
+# El idioma es dato de la raíz, no de cada comando: `new-org` en un brain que ya existe escribe en
+# el mismo idioma que el bootstrap eligió, sin volver a preguntarlo.
+os_language() {
+  fm_read "$1/operator.md"
+  if [ -n "$fm_language" ] && os_language_valido "$fm_language"; then
+    printf '%s' "$fm_language"
+  else
+    printf 'en'
+  fi
+}
+
+# os_lang_load IDIOMA
+# Carga el catálogo `templates/strings.md` en variables `S_<CLAVE>`, y deja las claves leídas en
+# `OS_STRING_KEYS`. Una clave sin su línea en el idioma pedido cae a `en` y lo dice por stderr: un
+# fallback silencioso publica inglés adentro de un archivo en español sin que nadie se entere.
+OS_STRING_KEYS=""
+os_lang_load() {
+  local lang="$1" file="$OS_STRINGS_FILE" line key code value cur dado k nl
+  nl=$(printf '\n.'); nl="${nl%.}"
+  [ -f "$file" ] || os_die "falta el catálogo de strings: $file"
+  OS_STRING_KEYS=""
+  key=""
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      'key: '*)
+        key=$(os_trim "${line#key:}")
+        OS_STRING_KEYS="$OS_STRING_KEYS $key"
+        printf -v "S_${key}_en" '%s' ""
+        printf -v "S_${key}_en_dado" '%s' "0"
+        printf -v "S_${key}_${lang}" '%s' ""
+        printf -v "S_${key}_${lang}_dado" '%s' "0"
+        continue
+        ;;
+    esac
+    [ -n "$key" ] || continue
+    case "$line" in
+      [a-z][a-z]:*|[a-z][a-z]) ;;
+      *) continue ;;
+    esac
+    code="${line%%:*}"
+    [ "$code" = "en" ] || [ "$code" = "$lang" ] || continue
+    case "$line" in
+      "$code:") value="" ;;
+      *) value="${line#$code: }" ;;
+    esac
+    eval "cur=\$S_${key}_${code}; dado=\$S_${key}_${code}_dado"
+    if [ "$dado" = "1" ]; then
+      printf -v "S_${key}_${code}" '%s' "$cur$nl$value"
+    else
+      printf -v "S_${key}_${code}" '%s' "$value"
+      printf -v "S_${key}_${code}_dado" '%s' "1"
+    fi
+  done < "$file"
+
+  for k in $OS_STRING_KEYS; do
+    eval "dado=\$S_${k}_${lang}_dado; cur=\$S_${k}_${lang}"
+    if [ "$dado" = "1" ]; then
+      printf -v "S_$k" '%s' "$cur"
+    else
+      eval "cur=\$S_${k}_en"
+      printf -v "S_$k" '%s' "$cur"
+      [ "$lang" = "en" ] || os_warn "strings.md — $k no tiene línea en $lang: sale en inglés"
+    fi
+  done
+  return 0
+}
+
+# os_manual_file IDIOMA -> el nombre del manual de usuario en ese idioma (spec 022).
+# Única enunciación del par idioma → nombre de archivo: lo leen el bootstrap, el enlazador y los
+# evals. El nombre es legible para quien no programa, en el idioma del manual — el archivo se ve en
+# la raíz del brain, al lado de lo que el operador escribe.
+os_manual_file() {
+  case "$1" in
+    es) printf 'COMO-FUNCIONA.md' ;;
+    *) printf 'HOW-IT-WORKS.md' ;;
+  esac
+}
+
+# os_render_lang TEMPLATE IDIOMA CLAVE=valor ...
+# Igual que os_render, con las claves del catálogo sumadas como `T_<CLAVE>`. Los templates traen la
+# estructura y el catálogo la prosa: el idioma no duplica templates.
+os_render_lang() {
+  local tpl="$1" lang="$2" k v
+  shift 2
+  os_lang_load "$lang"
+  for k in $OS_STRING_KEYS; do
+    eval "v=\$S_$k"
+    set -- "$@" "T_$k=$v"
+  done
+  os_render "$tpl" "$@"
+}
+
 # os_check_identity_cap ARCHIVO
 # Avisa y no bloquea: la salida —resumir, partir a context/— la elige el operador.
 os_check_identity_cap() {
@@ -147,12 +257,12 @@ os_lower() {
 CAP_FRONTMATTER=30
 
 fm_status=""; fm_horizon=""; fm_waiting_on=""; fm_blocked=""; fm_role=""; fm_owner=""
-fm_depends_on=""; fm_repo=""
+fm_depends_on=""; fm_repo=""; fm_language=""
 fm_roto=""
 
 fm_limpiar() {
   fm_status=""; fm_horizon=""; fm_waiting_on=""; fm_blocked=""; fm_role=""; fm_owner=""
-  fm_depends_on=""; fm_repo=""
+  fm_depends_on=""; fm_repo=""; fm_language=""
 }
 
 # fm_read ARCHIVO — deja el resultado en las variables fm_*. `fm_roto` no vacío significa que no se
@@ -188,6 +298,7 @@ fm_read() {
       owner) fm_owner="$value" ;;
       depends_on) fm_depends_on="$value" ;;
       repo) fm_repo="$value" ;;
+      language) fm_language="$value" ;;
     esac
   done < "$file"
   if [ "$primera" = "1" ]; then fm_roto="sin frontmatter"; return 0; fi
@@ -246,23 +357,25 @@ os_tree_content_files() {
   return 0
 }
 
-# os_tree_ensure BRAIN GLOB
+# os_tree_ensure BRAIN GLOB [CLASE]
 # Deja declarado el glob en `tree.md` si faltaba. Es la contracara de que los archivos de solo
 # contenido nazcan con su primer dato: el archivo aparece y ningún glob lo alcanza hasta que el
 # comando que lo creó declara su altura. Los globs los mantienen los comandos que crean niveles.
+# CLASE es `glob` (default, una cabeza) o `content` (alcanzado, nunca leído como cabeza — spec 007).
+# El manual de usuario entra por `content` (spec 022): se ve en la raíz y no es trabajo.
 #   0  lo agregó       1  ya estaba       2  no hay tree.md que mantener
 os_tree_ensure() {
-  local brain="$1" glob="$2" line g
+  local brain="$1" glob="$2" clase="${3:-glob}" line g
   [ -f "$brain/tree.md" ] || return 2
   while IFS= read -r line || [ -n "$line" ]; do
     case "$line" in
-      glob:*) ;;
+      "$clase":*) ;;
       *) continue ;;
     esac
-    g=$(os_trim "${line#glob:}")
+    g=$(os_trim "${line#$clase:}")
     [ "$g" = "$glob" ] && return 1
   done < "$brain/tree.md"
-  printf 'glob: %s\n' "$glob" >> "$brain/tree.md"
+  printf '%s: %s\n' "$clase" "$glob" >> "$brain/tree.md"
   return 0
 }
 
@@ -444,12 +557,19 @@ os_backlog_asegurar() {
   [ -f "$file" ] && return 0
   titulo=$(os_titulo "$brain/orgs/$org/context.md")
   [ -n "$titulo" ] || titulo="$org"
-  {
-    printf '# Backlog de %s\n\n' "$titulo"
-    printf 'Lo que falta y no es de ninguna iniciativa. Una línea por tarea: nada queda sin estado\n'
-    printf 'y lo postergado lleva la fecha en la que resurge.\n\n'
-  } > "$file"
+  os_backlog_cabecera "$brain" "$titulo" > "$file"
   return 1
+}
+
+# os_backlog_cabecera BRAIN TITULO -> la cabecera de un backlog nuevo, en el idioma del brain.
+# El texto sale del catálogo (`templates/strings.md`): un archivo que nace en la sesión sale en el
+# mismo idioma que los que escribió el bootstrap.
+os_backlog_cabecera() {
+  local lang
+  lang=$(os_language "$1")
+  os_lang_load "$lang"
+  printf '# %s %s\n\n' "$S_BACKLOG_TITLE" "$2"
+  printf '%s\n\n' "$S_BACKLOG_INTRO"
 }
 
 # os_root_backlog_asegurar BRAIN
@@ -463,11 +583,7 @@ os_root_backlog_asegurar() {
   [ -f "$file" ] && return 0
   titulo=$(os_titulo "$brain/operator.md")
   [ -n "$titulo" ] || titulo="la raíz"
-  {
-    printf '# Backlog de %s\n\n' "$titulo"
-    printf 'Lo que falta y no es de ninguna iniciativa. Una línea por tarea: nada queda sin estado\n'
-    printf 'y lo postergado lleva la fecha en la que resurge.\n\n'
-  } > "$file"
+  os_backlog_cabecera "$brain" "$titulo" > "$file"
   return 1
 }
 
