@@ -3,8 +3,9 @@
 A product operating system for working with agents. One primitive —the node— repeated at every
 level: every session opens with a scan of your work, you capture whatever comes up on the fly, you
 close the session with a verdict of what got done and what is missing, you mount a repo onto an
-initiative, you get interviewed to write specs ready to delegate. The Product Management pack adds
-the discovery pipeline, the metric brief and the interview that writes a product's strategic layer.
+initiative, you get interviewed to write specs ready to delegate. The craft on top —discovery, the
+metric brief, the interview that writes a product's strategic layer— travels in packs, each one
+published as its own set of skills: see **The Product Builder pack** below.
 
 The skills are written in English. The deliverables come out in the language you work in.
 
@@ -28,18 +29,11 @@ points at the official channel, waits for you to run it, and checks again.
 gives you an auditable history and updates you can undo — so nothing gets written until git is
 there. Install it and say "run bootstrap" again; nothing you already answered is lost.
 
-**If you refuse to install Node** — and only then — there is a path that skips Node. It still needs
-git. It brings the repository down as a tarball with `curl`, which is already on macOS and on
-current Windows:
-
-```
-curl -L https://github.com/pedroromeroluna/ai-first-os/archive/refs/heads/main.tar.gz | tar xz
-```
-
-Then `ai-first-os-main/core/install.sh <brain-path>`, and the interview follows as usual. Its cost,
-said before it is used: installed this way the system does not count in skills.sh, and the copy is a
-plain folder rather than a checkout, so updating it means downloading the tarball again — see
-**Update** below.
+**Node has no path around it either.** The install brings the pack of skills down with the skills.sh
+CLI —`npx`, which is part of Node— and that CLI is the only thing that installs a skill where your
+harness finds it. There is no alternative download: without Node the install stops at the same place
+it stops without git, and for the same reason — a system installed halfway is worse than one not
+installed yet.
 
 ## Install
 
@@ -52,35 +46,18 @@ Save this message and paste it to your agent, once:
 > my brain with a short interview about who I am and which organizations I work in, and then run its
 > installer to hook it into that brain. Ask me whatever the interview needs before writing anything.
 
-You do not have to do anything else. The agent brings the repository down, interviews you and hooks
-up the tools; you only answer the interview.
+You do not have to do anything else. The agent brings the repository down, installs the pack,
+interviews you and hooks up the tools; you only answer the interview.
 
-That is the full install: the session contract, the two resolvers, the three delegation subagents
-and all sixteen skills, hooked in by symlink.
+That is the full install, and it has two halves that arrive together: the session contract, the two
+resolvers, the three delegation subagents and the nine skills of the system, hooked in by symlink;
+and the Product Builder pack, brought down by the skills.sh CLI into `.claude/skills/` of your
+brain, where your harness finds it on its own. The pack is a step of the bootstrap, not homework
+for later.
 
-### Other harnesses
-
-Every skill is also published in the Agent Skills format, one folder per skill under `skills/`, so
-any harness that reads that standard can install them one at a time:
-
-```
-npx skills add pedroromeroluna/ai-first-os --skill <name>
-```
-
-Use the name from the catalog below — for example `npx skills add pedroromeroluna/ai-first-os
---skill new-spec`. Installed this way you get the skill on its own, without the session contract or
-the resolver: the skills that write into a brain expect that structure to exist, so the full install
-above is the one that gives you the system rather than the pieces.
-
-**This is also the way to try the toolkit before trusting it with a system install.** `grill`,
-`product-strategy` or `prd` work on their own, in any project, with nothing else from this
-repository: a small skill, a small blast radius, a real deliverable. If what they do earns your
-trust, the full install above is the system they came from.
-
-`bootstrap` is also in the catalog: installed on its own it can bring the whole system down and
-build your brain. It exists for whoever prefers that route — but if you are new here, start with a
-sample skill or with the full install above, not with an installer from someone you have not read
-yet.
+The nine of the system are not published one at a time, and that is on purpose: each of them writes
+into a brain, so on its own —without the session contract, the resolver and the tree of paths— it
+has nowhere to write. What you can try one at a time is a pack.
 
 ## Update
 
@@ -88,22 +65,25 @@ Paste this to your agent:
 
 > Update the system.
 
-That sentence is enough. The agent goes to the local folder where the repository ended up, brings
-down the newest version and runs the installer from that folder. Your brain —your organizations,
-your decisions, your content— is not touched: the update only refreshes the tools that were hooked
-in. And if the installer were run by mistake through the hook that is already installed, it stops on
-its own with a message before writing anything.
+That sentence is enough, and **this is the only place that says what it does** — the manual in your
+brain and the bootstrap skill point here instead of telling the story again. The tools come from two
+places, so updating them has two halves and both run:
 
-**The tarball copy updates differently, and this is the only place that says how**: it has no
-checkout to pull from, so the agent downloads the tarball again into the same fixed folder,
-replacing it, and runs `core/install.sh` from there. Everything else is identical — your brain is
-still untouched.
+1. **The system.** The agent goes to the local folder where the repository ended up, brings down the
+   newest version and runs `core/install.sh` from that folder.
+2. **The pack.** The agent runs `npx skills add pedroromeroluna/ai-first-product-skills` again, which replaces the skills in
+   `.claude/skills/` with the published version.
+
+Your brain —your organizations, your decisions, your content— is not touched: the update only
+refreshes the tools. And if the installer were run by mistake through the hook that is already
+installed, it stops on its own with a message before writing anything.
 
 ## The catalog
 
-Sixteen skills, in two families. **Workflow skills** run a process and leave a deliverable: they are
-triggered manually, by name — in the full install the index is the resolver, never automatic
-activation. **Knowledge skills** carry a method or a standing craft and are loaded as context.
+Nine skills come with the system itself, in two families. **Workflow skills** run a process and
+leave a deliverable: they are triggered manually, by name — the index is the resolver, never
+automatic activation. **Knowledge skills** carry a method or a standing craft and are loaded as
+context.
 
 ### Workflow skills
 
@@ -118,18 +98,34 @@ activation. **Knowledge skills** carry a method or a standing craft and are load
 | `mount-repo` | Gives an initiative a body: the remote in the head, the checkout outside the brain, the row in the environment table |
 | `grill` | The pressure interview: counter-question with a concrete example, capped attempts, escape hatches, evidence hierarchy |
 | `new-spec` | Writes a spec an agent can implement without asking for an opinion — one runnable eval per criterion |
-| `product-strategy` | The Discovery Brief: symptom separated from cause, graded evidence, metric gate, up to three prioritized hypotheses |
-| `market-research` | The Market Brief: directional TAM/SAM/SOM, every number with its source and its assumption |
-| `ux-research` | The Research Plan: one round against the riskiest hypothesis, behavioral screening, a guide where every question is tied |
-| `synthetic-users` | The Diagnosis + Script v2: pilots the guide against synthetic personas before spending real fieldwork |
-| `product-metrics` | The Metric Brief: candidate North Star, metric tree, one metric per active hypothesis, antimetrics |
-| `prd` | Interviews and writes the strategic layer of a product: vision, problem, users, scope, competitors, glossary |
 
 ### Knowledge skills
 
-| Name | What it does |
-|---|---|
-| `cpo` | The standing craft of a Chief Product Officer: every strategic question answered in four steps, under four golden rules |
+None of them travels with the system: a standing craft belongs to the pack that carries it. The one
+that exists today is `cpo`, in the pack below.
+
+## The Product Builder pack
+
+The craft of building product —discovery from a vague problem to the strategic layer, the metric
+brief, the pressure interview, the standing craft of a CPO— is published as its own set of skills,
+in the Agent Skills format that any harness reading that standard can install:
+
+```
+npx skills add pedroromeroluna/ai-first-product-skills
+```
+
+12 skills plus the pack's own index. **The bootstrap above already runs that command**: this
+section is here for the other two cases — trying the pack before installing the system, and adding
+it to a brain that was born before the pack existed.
+
+One at a time with `--skill <name>` — for example
+`npx skills add pedroromeroluna/ai-first-product-skills --skill product-strategy`.
+
+**Trying one skill is the way to test the toolkit before trusting it with a system install.** They
+work on their own, in any project, with nothing else installed: a small skill, a small blast radius,
+a real deliverable. Installed that way the deliverable is a file in the current folder; installed
+inside the system it lands in the node it belongs to. If what they do earns your trust, the full
+install above is the system they came from.
 
 ## License
 

@@ -385,21 +385,33 @@ os_tree_ensure() {
 # leen del mismo lugar — dos copias de este recorrido se desincronizan la primera vez que cambie
 # dónde vive un oficio.
 #
-# Busca en `.os/core/skills` y `.os/packs/*/skills`, la marca en primera columna: `command: SLUG` en
-# el frontmatter de un `.md`, `# command: SLUG` en un script — el mismo vocabulario que declara un
-# invocable en toda la arquitectura. Se queda con el primer archivo que matchea.
+# Busca en `.os/core/skills`, `.os/packs/*/skills` y `.claude/skills`, la marca en primera columna:
+# `command: SLUG` en el frontmatter de un `.md`, `# command: SLUG` en un script — el mismo
+# vocabulario que declara un invocable en toda la arquitectura. Se queda con el primer archivo que
+# matchea.
+#
+# `.claude/skills` es donde el CLI de skills.sh deja un pack bajado por `npx skills add` (spec 026),
+# y ahí la marca del formato Agent Skills es `name:`, no `command:` — el generador del release la
+# escribe desde el mismo `command:` del fuente. Sin este origen, un `role:` de un oficio del pack
+# se reporta como capacidad no instalada con el oficio instalado al lado.
 #
 # La coincidencia es sin distinción de mayúsculas (spec personal-os#014, Gate 1): `role: CPO` en el
 # nodo activa `command: cpo` del oficio. El slug canónico del archivo sigue siendo minúscula; acá
 # se normaliza el slug de entrada con `os_lower` y se busca con `grep -i`.
 os_buscar_oficio() {
-  local brain="$1" slug="$2" d f rel slug_lc
+  local brain="$1" slug="$2" d f rel slug_lc marca
   slug_lc=$(os_lower "$slug")
-  for d in "$brain/.os/core/skills" "$brain"/.os/packs/*/skills; do
+  for d in "$brain/.os/core/skills" "$brain"/.os/packs/*/skills "$brain/.claude/skills"; do
     [ -d "$d" ] || continue
+    # La marca depende del origen, no del archivo: `name:` solo se acepta donde el formato es el del
+    # CLI. Aceptarla en todos lados volvería invocable cualquier frontmatter con esa clave.
+    case "$d" in
+      "$brain/.claude/skills") marca="^(# )?name: $slug_lc\$" ;;
+      *) marca="^(# )?command: $slug_lc\$" ;;
+    esac
     while IFS= read -r f; do
       [ -n "$f" ] || continue
-      if grep -qiE "^(# )?command: $slug_lc\$" "$f"; then
+      if grep -qiE "$marca" "$f"; then
         rel="${f#$brain/}"
         printf '%s\n' "$rel"
         return 0

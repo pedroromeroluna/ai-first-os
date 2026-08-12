@@ -30,43 +30,59 @@ git --version
 official channel, wait for them to run it, and check again. Anything they decline is a choice, not
 an error: report it and take the branch below that matches.
 
-**git has no path around it.** If it's missing, stop right there — point at the install channel,
-wait for the operator to run it, check again. `bootstrap.sh` itself refuses to write anything
-without git: re-running the same command once it is installed picks the interview up cleanly.
-Node is the only requirement with an alternative branch below; git is not.
+**Neither requirement has a path around it, and there is no alternative branch.** If either is
+missing, stop right there — point at the install channel, wait for the operator to run it, check
+again. Re-running the same command once it is installed picks the interview up cleanly.
+
+- **git has no path around it.** `bootstrap.sh` itself refuses to write anything without git.
+- **Node has no path around it.** Step 1 below installs the pack with the skills.sh CLI, which runs
+  on Node, and that CLI is the only thing that puts a skill where the harness finds it. Without Node
+  there is no pack, and a system installed halfway is worse than one not installed yet.
 
 ### Bringing the product down
 
 Everything below assumes the product is hooked into the brain (`.os/core` resolves). If it does
-not — you were installed standalone, e.g. from skills.sh — install it first:
+not, install it first:
 
 1. Clone `github.com/pedroromeroluna/ai-first-os` to a fixed local folder outside the brain (the
    operator will need it to update later).
 2. Run `<clone>/core/install.sh <brain-path>` — idempotent; it hooks the session contract, the
-   resolvers, the subagents and all sixteen skills by symlink.
-3. Continue with the interview below.
+   resolvers, the subagents and the nine skills of the system by symlink. The packs are not in
+   that repository: each one is published as its own set of skills, and Step 1 below installs one.
+3. Continue with Step 1.
 
-**The download without a clone.** Cloning needs git, but the clone is not what the tarball avoids —
-Node is. This branch is taken under one condition and only this one:
+There is one way in and only one: the clone above. If `.os/core` already resolves, skip this step
+entirely.
 
-- **Node.js is missing and the operator refuses to install it.** Say the cost before going ahead:
-  installed this way the system does not count in skills.sh.
+## Step 1 — install the pack
 
-git is still required either way — the preflight above already stopped if it were missing, so by
-the time you reach this step it is there.
+**This runs after the system is hooked in and before the interview, and it is part of the install,
+not a suggestion for later.** Run it from the brain, which is where the CLI leaves the skills:
 
 ```
-curl -L https://github.com/pedroromeroluna/ai-first-os/archive/refs/heads/main.tar.gz | tar xz
+npx skills add pedroromeroluna/ai-first-product-skills
 ```
 
-Unpack it in the same fixed folder outside the brain, run `ai-first-os-main/core/install.sh
-<brain-path>`, and continue with the interview. This leaves a plain folder rather than a checkout, so
-it updates by downloading the tarball again — the procedure is written once, in the repository's
-`README.md` under **Update**, and is not restated here.
+**Ask before running it and say what it does**: it downloads the CLI and the pack's skills from the
+public registry, leaves them in `.claude/skills/` of the brain, and counts the install upstream.
+`npx` may ask to confirm the download the first time — the operator is right here, so answer it with
+them; nothing here needs a non-interactive flag.
 
-Never offer this branch first: it is the alternative to a refusal, not an option on the menu.
+What lands: one folder per skill under `.claude/skills/`, plus the pack's own index
+(`<pack>-resolver`), which is what the session contract reads to route a request to the pack. The
+harness also offers those skills natively, because that is where it looks for them.
 
-If `.os/core` already resolves, skip this step entirely.
+**If it fails —no network, registry down, the operator says no— the flow does not stop.** Retry once;
+if it fails again, carry the pending forward and, once the interview has created the brain, write it
+into the root backlog with the exact command:
+
+```
+- [ ] Install the Product Builder pack: `npx skills add pedroromeroluna/ai-first-product-skills` from the brain folder
+```
+
+Then say it out loud when the bootstrap closes: the system works without the pack —every skill of
+the system is already hooked in— and the craft on top arrives when that line gets run. A bootstrap
+aborted halfway because a download failed is the worse outcome of the two.
 
 ## The interview
 
@@ -162,5 +178,10 @@ folders break them.
 - If the script reports `sin dato:` or `sin crear:`, pass it through whole and ask again for what is
   missing. A gap nobody names is a gap nobody fills.
 - Say whether the brain is versioned and whether the remote is resolved or pending.
+- **Say whether the pack landed.** If Step 1 succeeded, name what it added and that the harness
+  offers it directly. If it did not, say the pending line is in the root backlog and that everything
+  else works without it.
+- **How the operator updates all of this is written once**, in the repository's `README.md` under
+  **Update**, and is not restated here. Point at it; do not retell it.
 - Handoff: if the operator wants to add another organization, the **add an organization** capability
   is needed. If it is not available, say so and continue.

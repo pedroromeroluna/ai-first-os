@@ -28,9 +28,12 @@ Before answering the first message, in this order:
       the scope is the root, these two steps do not apply: it has no `context.md` of its own, and
       its `resolver.md` is the one in the next step.
    3. `.os/core/resolver.md` — the root resolver, product origin: capability → tool.
-   4. `resolver.md` — the operator's root resolver. Its rows win over the product's when both cover
-      the same capability.
-   5. If the scan printed a line `rol activo: <slug> · <path>`, read that path — it is the standing
+   4. `.claude/skills/*-resolver/SKILL.md` — the index of every installed pack, one file per pack,
+      left there by `npx skills add`. **Packs are optional**: with none installed nothing matches
+      and nothing is missing. This is the only place the reading order is written down.
+   5. `resolver.md` — the operator's root resolver. Its rows win over the product's and over any
+      pack's when they cover the same capability.
+   6. If the scan printed a line `rol activo: <slug> · <path>`, read that path — it is the standing
       role's craft file, activated by the node's `role:`. Without that line, there is no craft file
       to read. With the root as scope it never appears: the operator declares no `role:`.
 

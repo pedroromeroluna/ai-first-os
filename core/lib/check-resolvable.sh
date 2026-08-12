@@ -38,9 +38,14 @@ done
 brain=$(cd "$brain" && pwd)
 
 # Los orígenes del resolver de la raíz, en orden de lectura. Soportar un origen más es agregar
-# una entrada acá, no cambiar código. `.os/packs/*/resolver.md` es un glob: cada pack instalado
-# trae su propio resolver (spec 017). El del operador va último: sus filas ganan.
-RESOLVERS=".os/core/resolver.md .os/packs/*/resolver.md resolver.md"
+# una entrada acá, no cambiar código. El del operador va último: sus filas ganan.
+#
+# Dos globs de pack, porque hay dos formas de tener un pack instalado:
+#   `.os/packs/*/resolver.md`                 el pack enganchado por symlink desde el producto (017)
+#   `.claude/skills/*-resolver/SKILL.md`      el pack bajado por el CLI de skills.sh (026)
+# Un glob que no matchea no aporta filas: un brain sin ningún pack audita exactamente igual que
+# antes. El orden de lectura completo se enuncia en `core/CLAUDE.md`, no acá.
+RESOLVERS=".os/core/resolver.md .os/packs/*/resolver.md .claude/skills/*-resolver/SKILL.md resolver.md"
 
 hallazgos=""
 n_hallazgos=0
