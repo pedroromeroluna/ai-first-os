@@ -102,8 +102,10 @@ of them by name.
 
 Those nine run the system. **The craft —building product, and whatever comes next— arrives in
 packs**, and a pack is installed separately, with its own command, into `.claude/skills/` of this
-folder. The install you already ran brought one down; adding another one, or putting one back, is a
-single request to any session: **"install the pack called `<name>`"**.
+folder. **A pack is offered, never required**: the install ended by asking whether you wanted one
+now or later, and if you said later the task is in your backlog with the command in it. Adding
+another one, putting one back, or taking the one you postponed is a single request to any session:
+**"install the pack called `<name>`"**.
 
 **This manual does not list what a pack contains, on purpose.** Every pack ships its own index, and
 that index arrives with it — so the list you read is always the list you have, never the one the

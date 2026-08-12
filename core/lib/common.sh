@@ -423,6 +423,28 @@ FILES
   return 1
 }
 
+# os_pack_hint BRAIN -> el ofrecimiento del pack en una línea, o vacío.
+# La demanda dispara la oferta (spec 029): cuando algo pide una capacidad que no está y en el brain
+# no hay ningún skill instalado por el CLI, lo que falta puede ser justamente lo que trae el pack, y
+# el aviso lleva el comando al lado en vez de dejar al operador buscándolo.
+#
+# Con algo ya instalado en `.claude/skills` no se ofrece nada: ahí el pack está, y lo que falte es
+# otro problema — ofrecer una instalación hecha es ruido en cada arranque.
+#
+# El comando exacto lo imprime `pack-install.sh --line`, único lugar donde el generador inyecta el
+# nombre del repo del pack. Sin ese archivo —un brain instalado desde una versión anterior— la
+# función no dice nada: un aviso que no puede nombrar el comando no agrega información.
+os_pack_hint() {
+  local brain="$1" d linea
+  for d in "$brain"/.claude/skills/*/SKILL.md; do
+    [ -f "$d" ] && return 0
+  done
+  [ -x "$brain/.os/core/lib/pack-install.sh" ] || return 0
+  linea=$("$brain/.os/core/lib/pack-install.sh" --brain "$brain" --line 2>/dev/null) || return 0
+  [ -n "$linea" ] || return 0
+  printf ' — %s' "$linea"
+}
+
 # ---------------------------------------------------------------- el formato de línea del backlog
 # Una tarea es una línea:
 #

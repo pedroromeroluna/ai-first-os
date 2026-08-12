@@ -13,14 +13,14 @@ This document is written for your agent to execute, not for you to follow step b
 
 ## Requirements
 
-**Two requirements, checked before running anything, and neither one is optional.** An agent that
+**Installing the system takes one thing: git.** It is checked before anything runs — an agent that
 installs first and reads the error afterwards leaves you with `command not found` instead of an
 answer.
 
-| What | How the agent checks it | Where it comes from if it is missing |
-|---|---|---|
-| Node.js | `node --version` | The LTS installer at nodejs.org |
-| git | `git --version` | macOS: `xcode-select --install` · Windows: git-scm.com |
+| What | When it is needed | How the agent checks it | Where it comes from if it is missing |
+|---|---|---|---|
+| git | To install the system | `git --version` | macOS: `xcode-select --install` · Windows: git-scm.com |
+| Node.js | Only for the pack of skills, offered at the end of the install | `node --version` | The LTS installer at nodejs.org |
 
 **The agent guides; you install.** System software is never installed by the agent on its own: it
 points at the official channel, waits for you to run it, and checks again.
@@ -29,11 +29,10 @@ points at the official channel, waits for you to run it, and checks again.
 gives you an auditable history and updates you can undo — so nothing gets written until git is
 there. Install it and say "run bootstrap" again; nothing you already answered is lost.
 
-**Node has no path around it either.** The install brings the pack of skills down with the skills.sh
-CLI —`npx`, which is part of Node— and that CLI is the only thing that installs a skill where your
-harness finds it. There is no alternative download: without Node the install stops at the same place
-it stops without git, and for the same reason — a system installed halfway is worse than one not
-installed yet.
+**Node is not a requirement of the system, and the install never runs `npx`.** It belongs to one
+optional step at the very end: the pack of skills, which travels through the skills.sh CLI —`npx`,
+which is part of Node—. Without Node the system installs completely anyway; the pack stays as a task
+in your backlog with the exact command in it, and you run it the day you want the craft on top.
 
 ## Install
 
@@ -46,14 +45,17 @@ Save this message and paste it to your agent, once:
 > my brain with a short interview about who I am and which organizations I work in, and then run its
 > installer to hook it into that brain. Ask me whatever the interview needs before writing anything.
 
-You do not have to do anything else. The agent brings the repository down, installs the pack,
-interviews you and hooks up the tools; you only answer the interview.
+You do not have to do anything else. The agent brings the repository down, interviews you and hooks
+up the tools; you only answer the interview.
 
-That is the full install, and it has two halves that arrive together: the session contract, the two
-resolvers, the three delegation subagents and the nine skills of the system, hooked in by symlink;
-and the Product Builder pack, brought down by the skills.sh CLI into `.claude/skills/` of your
-brain, where your harness finds it on its own. The pack is a step of the bootstrap, not homework
-for later.
+That is the full install: the session contract, the two resolvers, the three delegation subagents
+and the nine skills of the system, hooked in by symlink. Nothing is downloaded from a registry and
+nothing asks you to confirm an install in the middle.
+
+**The pack comes at the end, as a question with two answers.** With the brain already built, the
+agent offers the Product Builder pack —the craft on top— and you take it now or later. Now: it needs
+Node, and the download asks you to confirm once. Later: the exact command stays as a task in your
+backlog, and any session runs it the day you want it. Either way the system is already yours.
 
 The nine of the system are not published one at a time, and that is on purpose: each of them writes
 into a brain, so on its own —without the session contract, the resolver and the tree of paths— it
@@ -71,8 +73,9 @@ places, so updating them has two halves and both run:
 
 1. **The system.** The agent goes to the local folder where the repository ended up, brings down the
    newest version and runs `core/install.sh` from that folder.
-2. **The pack.** The agent runs `npx skills add pedroromeroluna/ai-first-product-skills` again, which replaces the skills in
-   `.claude/skills/` with the published version.
+2. **The pack**, if you installed it. The agent runs
+   `npx skills add pedroromeroluna/ai-first-product-skills` again, which replaces the skills in `.claude/skills/` with the
+   published version. With no pack installed there is nothing to refresh, and this half is skipped.
 
 Your brain —your organizations, your decisions, your content— is not touched: the update only
 refreshes the tools. And if the installer were run by mistake through the hook that is already
@@ -114,9 +117,10 @@ in the Agent Skills format that any harness reading that standard can install:
 npx skills add pedroromeroluna/ai-first-product-skills
 ```
 
-12 skills plus the pack's own index. **The bootstrap above already runs that command**: this
-section is here for the other two cases — trying the pack before installing the system, and adding
-it to a brain that was born before the pack existed.
+11 skills plus the pack's own index. **The bootstrap above offers that command at its close**,
+and leaves it in your backlog if you take it later: this section is here for the other two cases —
+trying the pack before installing the system, and adding it to a brain that was born before the pack
+existed.
 
 One at a time with `--skill <name>` — for example
 `npx skills add pedroromeroluna/ai-first-product-skills --skill product-strategy`.

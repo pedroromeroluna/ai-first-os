@@ -142,6 +142,10 @@ key: FIRST_COMMIT
 en: the brain is born
 es: nace el brain
 
+key: PACK_TASK
+en: Product Builder pack pending: install it from the brain folder with
+es: Pack Product Builder pendiente: instalarlo desde la carpeta del brain con
+
 key: BACKUP_TASK
 en: Remote backup pending: create the account at github.com (the operator creates it, never the agent), run `gh auth login`, and then ask any session to run `.os/core/lib/remote-backup.sh --brain .`
 es: Respaldo remoto pendiente: crear la cuenta en github.com (la crea el operador, nunca el agente), correr `gh auth login`, y después pedirle a cualquier sesión que corra `.os/core/lib/remote-backup.sh --brain .`

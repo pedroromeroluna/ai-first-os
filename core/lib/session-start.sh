@@ -276,7 +276,9 @@ if [ "$root" = "0" ]; then
       :
     else
       rol_ruta=""
-      push_chequeo "capacidad no instalada: rol de posición \"$role\""
+      # El ofrecimiento del pack va pegado al aviso (spec 029): un oficio que no resuelve es la
+      # demanda, y sin ningún pack instalado el comando que lo trae es la respuesta.
+      push_chequeo "capacidad no instalada: rol de posición \"$role\"$(os_pack_hint "$brain")"
     fi
   fi
 fi

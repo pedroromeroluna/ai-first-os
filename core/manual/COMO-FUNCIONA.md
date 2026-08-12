@@ -100,8 +100,10 @@ invocar cualquiera por su nombre.
 
 Esas nueve hacen andar el sistema. **El oficio —construir producto, y lo que venga después— llega en
 packs**, y un pack se instala aparte, con su propio comando, adentro de `.claude/skills/` de esta
-carpeta. La instalación que ya corriste bajó uno; sumar otro, o volver a poner uno, es un pedido a
-cualquier sesión: **"instalá el pack `<nombre>`"**.
+carpeta. **Un pack se ofrece, nunca se exige**: la instalación terminó preguntándote si lo querías
+ahora o después, y si dijiste después la tarea está en tu backlog con el comando adentro. Sumar
+otro, volver a poner uno, o tomar el que postergaste es un pedido a cualquier sesión: **"instalá el
+pack `<nombre>`"**.
 
 **Este manual no lista qué trae un pack, a propósito.** Cada pack viaja con su propio índice, y ese
 índice llega con él — así la lista que leés es siempre la que tenés, nunca la que el manual se

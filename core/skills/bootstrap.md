@@ -15,29 +15,28 @@ activated per initiative, not per user.
 
 ### The preflight
 
-**Check the requirements before running anything.** Do not run `npx`, do not clone, do not read an
-error to find out what is missing:
+**Check the requirement before running anything.** Do not clone, do not read an error to find out
+what is missing:
 
 ```
-node --version
 git --version
 ```
 
-- **Node.js missing**: point the operator at the LTS installer on nodejs.org.
 - **git missing**: macOS, `xcode-select --install`; Windows, git-scm.com.
 
 **You guide; the operator installs.** You never install system software on your own — you name the
 official channel, wait for them to run it, and check again. Anything they decline is a choice, not
 an error: report it and take the branch below that matches.
 
-**Neither requirement has a path around it, and there is no alternative branch.** If either is
-missing, stop right there — point at the install channel, wait for the operator to run it, check
-again. Re-running the same command once it is installed picks the interview up cleanly.
+**git has no path around it, and there is no alternative branch.** If it is missing, stop right
+there — point at the install channel, wait for the operator to run it, check again.
+`bootstrap.sh` itself refuses to write anything without git, and re-running the same command once
+it is installed picks the interview up cleanly.
 
-- **git has no path around it.** `bootstrap.sh` itself refuses to write anything without git.
-- **Node has no path around it.** Step 1 below installs the pack with the skills.sh CLI, which runs
-  on Node, and that CLI is the only thing that puts a skill where the harness finds it. Without Node
-  there is no pack, and a system installed halfway is worse than one not installed yet.
+**Nothing else is checked here, and Node is not checked here on purpose.** Installing the system
+needs git and nothing more: no `npx`, no download from a registry, no npm prompt in the middle of an
+install that has not written a single file yet. Node is the requirement of one later step —the pack,
+offered at the close of this bootstrap— and it gets checked there, when it is the thing being done.
 
 ### Bringing the product down
 
@@ -48,41 +47,12 @@ not, install it first:
    operator will need it to update later).
 2. Run `<clone>/core/install.sh <brain-path>` — idempotent; it hooks the session contract, the
    resolvers, the subagents and the nine skills of the system by symlink. The packs are not in
-   that repository: each one is published as its own set of skills, and Step 1 below installs one.
-3. Continue with Step 1.
+   that repository: each one is published as its own set of skills, and the step at the close of
+   this bootstrap offers one.
+3. Continue with the interview.
 
 There is one way in and only one: the clone above. If `.os/core` already resolves, skip this step
 entirely.
-
-## Step 1 — install the pack
-
-**This runs after the system is hooked in and before the interview, and it is part of the install,
-not a suggestion for later.** Run it from the brain, which is where the CLI leaves the skills:
-
-```
-npx skills add pedroromeroluna/ai-first-product-skills
-```
-
-**Ask before running it and say what it does**: it downloads the CLI and the pack's skills from the
-public registry, leaves them in `.claude/skills/` of the brain, and counts the install upstream.
-`npx` may ask to confirm the download the first time — the operator is right here, so answer it with
-them; nothing here needs a non-interactive flag.
-
-What lands: one folder per skill under `.claude/skills/`, plus the pack's own index
-(`<pack>-resolver`), which is what the session contract reads to route a request to the pack. The
-harness also offers those skills natively, because that is where it looks for them.
-
-**If it fails —no network, registry down, the operator says no— the flow does not stop.** Retry once;
-if it fails again, carry the pending forward and, once the interview has created the brain, write it
-into the root backlog with the exact command:
-
-```
-- [ ] Install the Product Builder pack: `npx skills add pedroromeroluna/ai-first-product-skills` from the brain folder
-```
-
-Then say it out loud when the bootstrap closes: the system works without the pack —every skill of
-the system is already hooked in— and the craft on top arrives when that line gets run. A bootstrap
-aborted halfway because a download failed is the worse outcome of the two.
 
 ## The interview
 
@@ -167,6 +137,43 @@ guaranteed present by the preflight in Step 0 — there is no unversioned brain 
 Synced folders (iCloud, Drive) are not offered as backup: the system runs on symlinks and those
 folders break them.
 
+## The pack — offered at the close, taken now or later
+
+**This step runs last, with the brain already born and its backlog already there.** Whichever way it
+goes, the bootstrap already succeeded: the system is installed and every skill of the system works.
+
+Run the offer, which reads what is already in `.claude/skills/` and prints the exact command:
+
+```
+.os/core/lib/pack-install.sh --brain .
+```
+
+**Ask one question with two exits, and say what each one costs:**
+
+> The craft on top —discovery, the metric brief, the interview that writes a product's strategic
+> layer— travels in a pack of skills. Do you want it now or later? Now: it needs Node.js, and the
+> download asks you to confirm once. Later: the exact command stays in your backlog and you run it
+> the day you need something from the pack.
+
+- **Now.** Check Node (`node --version`). Missing: point at the LTS installer on nodejs.org, wait,
+  check again — you guide, the operator installs, and a no is an answer, not an error. With Node
+  present, run the command the offer printed, from the brain folder, with the operator's yes. `npx`
+  may ask to confirm the download the first time; the operator is right here, so answer it with them.
+  What lands: one folder per skill under `.claude/skills/`, plus the pack's own index
+  (`<pack>-resolver`), which is what the session contract reads to route a request to the pack. The
+  harness also offers those skills natively, because that is where it looks for them.
+- **Later.** Run `.os/core/lib/pack-install.sh --brain . --defer`: the task lands in the root backlog
+  with the exact command inside it, and any later session can run it. This is the same offer any
+  session makes when something asks for a capability of the pack that is not installed.
+
+**The command brings down only what is missing, and nobody has to name what that is.** What the
+system already provides travels marked internal in the pack, and the CLI skips it on its own — there
+is no list to keep here, and nothing is ever installed and then deleted.
+
+**If it fails —no network, registry down, the operator says no— the flow does not stop.** Retry once;
+if it fails again, take the later exit above so the pending is written down, and say it out loud. A
+bootstrap aborted halfway because a download failed is the worse outcome of the two.
+
 ## When it finishes
 
 - Show the tree created and what each file answers, in outcomes and not in canonical names.
@@ -178,9 +185,9 @@ folders break them.
 - If the script reports `sin dato:` or `sin crear:`, pass it through whole and ask again for what is
   missing. A gap nobody names is a gap nobody fills.
 - Say whether the brain is versioned and whether the remote is resolved or pending.
-- **Say whether the pack landed.** If Step 1 succeeded, name what it added and that the harness
-  offers it directly. If it did not, say the pending line is in the root backlog and that everything
-  else works without it.
+- **Say whether the pack landed.** If it was installed, name what it added and that the harness
+  offers it directly. If it was left for later, say the pending line is in the root backlog with the
+  command inside it, and that everything else works without it.
 - **How the operator updates all of this is written once**, in the repository's `README.md` under
   **Update**, and is not restated here. Point at it; do not retell it.
 - Handoff: if the operator wants to add another organization, the **add an organization** capability
