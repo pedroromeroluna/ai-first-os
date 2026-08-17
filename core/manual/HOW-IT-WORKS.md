@@ -91,7 +91,7 @@ of them by name.
 - **`check-resolvable`** — Audit the root's capability-to-tool graph and report the three failures it can have — a tool nothing routes to, a handoff no row provides, and a row pointing at a tool that does not exist.
 - **`close-session`** — Close a session by distributing what it produced —decisions, learnings, pending items, what stayed waiting, where to resume— into the loaded node's canonical files, and end with a four-part verdict that names what was not captured.
 - **`grill`** — Pressure the facts behind a claim before a decision closes — counter-question with a concrete example, capped attempts, escape hatches, evidence hierarchy — and route what comes out to the loaded node's decisions or backlog.
-- **`mount-repo`** — Give an initiative a body: write the remote into the head's frontmatter, clone the checkout outside the brain, and record the remote-to-local-path row in the machine's environment table.
+- **`mount-repo`** — Give an initiative a body: write the remote into the head's frontmatter, clone the checkout outside the brain —or, with --new, give birth to the repo from the product's scaffold when it does not exist yet— and record the remote-to-local-path row in the machine's environment table.
 - **`new-org`** — Add an organization to an existing brain.
 - **`new-spec`** — Turn concrete build work that came out of a conversation into a spec file under the target repo's specs/, with runnable evals per criterion, decisions split by who closes them, and effects that escape the system declared.
 - **`sweep`** — Run one of the three global scans over every organization plus the root's own work — what is pending, what is blocked and why, or how the roadmap is going — reading frontmatter only.
@@ -119,8 +119,8 @@ helm — it never changes folders and never loses your context.
 
 - **`scout`** — reads sources (code, documentation, another spec) and comes back with a synthesis.
   It writes nothing: the tool it runs with cannot touch a file.
-- **`spec-completa`** — implements a spec where every criterion has its runnable check.
-- **`spec-ambigua`** — implements a spec with open decisions, where judgment is needed.
+- **`complete-spec`** — implements a spec where every criterion has its runnable check.
+- **`ambiguous-spec`** — implements a spec with open decisions, where judgment is needed.
 
 The supervision pattern has **two human gates and one autonomous stretch in the middle**: a person
 approves the spec (**gate 1**) → the agent implements it on a branch, never on the main branch and
@@ -137,8 +137,10 @@ built.
 When that happens, two capabilities wake up:
 
 - **`mount-repo`** — gives an initiative a body: it points the head at the code repository, leaves
-  the checkout outside your folder, and records where it landed on this machine. From there, that
-  initiative has somewhere to build.
+  the checkout outside your folder, and records where it landed on this machine. If the repository
+  does not exist yet, the same command gives birth to it —with its constitution, its folders and its
+  first commit— and hands you the command to create the remote. From there, that initiative has
+  somewhere to build.
 - **`new-spec`** — turns build work that came out of a conversation into a spec: what has to be
   true, how each criterion gets checked, which decisions are already closed and which ones are
   still open with who closes them. That spec is what an agent then implements, with the two gates

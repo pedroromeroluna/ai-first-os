@@ -49,6 +49,13 @@ done
 command -v git > /dev/null 2>&1 \
   || os_die "falta git: instalalo desde el canal oficial (macOS: correr \`xcode-select --install\`; Windows: bajarlo de git-scm.com — lo instala el operador, nunca el agente) y volvé a correr este mismo comando — el bootstrap no escribió nada"
 
+# python3 es requisito duro junto a git (spec 030): mount-repo lo necesita para autorizar el
+# checkout que monta. Mismo patrón y mismo momento que el chequeo de git — la segunda verificación,
+# todavía antes de crear ningún archivo. Con git ausente el mensaje de arriba ya frenó, así que este
+# chequeo solo se alcanza con git presente.
+command -v python3 > /dev/null 2>&1 \
+  || os_die "falta python3: instalalo desde el canal oficial (macOS: correr \`xcode-select --install\`, el mismo comando que trae git; Windows: bajarlo de python.org; Linux: el gestor de paquetes de la distro) y volvé a correr este mismo comando — el bootstrap no escribió nada"
+
 name=""
 language=""
 profile=""

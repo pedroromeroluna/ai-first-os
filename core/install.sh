@@ -133,6 +133,29 @@ for pack in "$product"/packs/*; do
 done
 
 mkdir -p "$brain/.claude/agents"
+
+# Removes dangling symlinks from a previous install: a renamed agent (spec 033) leaves its old
+# symlink behind, which `ln -sfn` does not overwrite because the file name changed, not the
+# content. It only gets removed if both conditions hold at once:
+#   1. it is dangling — `[ -e ]` on the symlink follows the link and is false if the target does
+#      not exist. A live symlink (the agent is still there, or the operator points somewhere else
+#      on purpose) is never touched.
+#   2. the link's text — unresolved, exactly as `ln` wrote it — ends in `/core/agents/<name>.md`.
+#      It does not require resolving INSIDE this checkout: if the whole product moved folders, or
+#      the brain was installed from a different checkout of this same product, the old symlink
+#      points at a `core/agents/` that is no longer there — resolving it by physical path would
+#      give nothing and it would stay dangling next to the new one. The raw text is still
+#      recognizable even when the path no longer exists.
+# A real file never enters here: the first check is `[ -L ]`.
+for existing in "$brain/.claude/agents"/*; do
+  [ -L "$existing" ] || continue
+  [ -e "$existing" ] && continue
+  raw=$(readlink "$existing") || continue
+  case "$raw" in
+    */core/agents/*.md) rm -f "$existing" ;;
+  esac
+done
+
 for agent in "$core"/agents/*.md; do
   [ -f "$agent" ] || continue
   ln -sfn "$agent" "$brain/.claude/agents/$(basename "$agent")"

@@ -33,15 +33,23 @@ it is asked.
 
 ```
 ---
-estado: pendiente
-depende_de: []
+status: pendiente
+depends_on: []
 ---
 ```
 
-`estado` is `pendiente | esperando Gate 1 | en curso | implementada`. `depende_de` is an **inline**
+`status` is `pendiente | esperando Gate 1 | en curso | implementada`. `depends_on` is an **inline**
 list of references to other specs (`[]` if it depends on none) — spread over several lines, a `grep`
 returns the first and loses the rest. The reader reports this field; it does not change it just
 because a dependency closed.
+
+No script in `core/` parses a spec's frontmatter today — `status`/`depends_on` is a documentary
+convention read by whoever opens the file, not by a lib. Specs already written in `specs/done/`
+keep `estado`/`depende_de`; they are not rewritten (spec 033).
+
+**Whatever a spec builds inside `core/`, `public/` or `evals/` is written in English** — the rule
+lives once, at the top of the product's `CLAUDE.md` (`.os/core/../CLAUDE.md` from a brain); this
+skill does not repeat it.
 
 **The spec opens by saying what is going to be done**: after the title, one or two plain sentences,
 free of system jargon, before any detail. A spec that cannot be understood at a glance does not get
@@ -83,11 +91,11 @@ proposed default at every gap — correcting a default is faster than drafting f
 ## 4. Write, validate and deliver
 
 1. Show the complete spec before writing it and wait for the go-ahead.
-2. Write it in `specs/NNN-short-name.md` with `estado: pendiente`.
+2. Write it in `specs/NNN-short-name.md` with `status: pendiente`.
 3. Close by returning:
    - The exact trigger to implement it: "implement spec NNN".
-   - Which agent it belongs to: `spec-completa` if every criterion has its eval and no decision was
-     left open; `spec-ambigua` if unknowns or open decisions remain, or it is design-first.
+   - Which agent it belongs to: `complete-spec` if every criterion has its eval and no decision was
+     left open; `ambiguous-spec` if unknowns or open decisions remain, or it is design-first.
    - That implementation is delegated from this same session (Agent tool) over the mounted repo:
      there is no need to open a separate session in that folder.
 

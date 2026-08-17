@@ -146,6 +146,550 @@ key: PACK_TASK
 en: Product Builder pack pending: install it from the brain folder with
 es: Pack Product Builder pendiente: instalarlo desde la carpeta del brain con
 
+key: SESSION_WAITING_TITLE
+en: Waiting for your decision
+es: Espera tu decisión
+
+key: SESSION_WAITING_EMPTY
+en: nothing is waiting on you
+es: nada espera tu decisión
+
+key: SESSION_INPROGRESS_TITLE
+en: In progress
+es: En curso
+
+key: SESSION_INPROGRESS_EMPTY
+en: nothing in progress
+es: nada en curso
+
+key: SESSION_QUEUE_TITLE
+en: Queued
+es: En cola
+
+key: SESSION_CHECKS_TITLE
+en: Checks
+es: Chequeos
+
+key: SESSION_CHECKS_EMPTY
+en: no findings
+es: sin hallazgos
+
+key: SESSION_MORE
+en: and %s more
+es: y %s más
+
+key: SESSION_CHECK_UNCOMMITTED
+en: uncommitted: %s files · %s
+es: sin commitear: %s archivos · %s
+
+key: SESSION_CHECK_NO_TREE
+en: missing tree.md — the scan does not know which paths to walk
+es: falta tree.md — el barrido no sabe qué rutas recorrer
+
+key: SESSION_CHECK_LANGUAGE_NOT_DECLARED
+en: language not declared in operator.md — assuming en
+es: language: no declarado en operator.md — se asume en
+
+key: SESSION_CHECK_MOUNTS_TABLE_MISSING
+en: declared table not found: %s — the scan covers only the brain
+es: tabla declarada no encontrada: %s — el arranque cubre solo el brain
+
+key: SESSION_CHECK_MOUNT_ROW_UNREADABLE
+en: unreadable row: %s — could not read the mount
+es: fila ilegible: %s — no se pudo leer el montaje
+
+key: SESSION_CHECK_MOUNT_UNREACHED
+en: mount not reached: %s — declared at %s, no local checkout
+es: montaje no alcanzado: %s — declarado en %s, sin checkout local
+
+key: SESSION_CHECK_MISSING_FILE
+en: missing %s
+es: falta %s
+
+key: SESSION_IDENTITY_DIAG
+en: identity %s/%s · resolver %s rows
+es: identidad %s/%s · resolver %s filas
+
+key: SESSION_IDENTITY_SIMPLE
+en: identity %s/%s
+es: identidad %s/%s
+
+key: SESSION_WAITING_IDENTITY_OVER
+en: %s — %s · summarize the history or split into context/
+es: %s — %s · resumir la historia o partir a context/
+
+key: SESSION_CHECK_ROLE_NOT_ACTIVATED
+en: %s: %s — the role does not activate
+es: %s: %s — el rol no se activa
+
+key: SESSION_CHECK_CAPABILITY_MISSING
+en: capability not installed: position role "%s"%s
+es: capacidad no instalada: rol de posición "%s"%s
+
+key: SESSION_UNKNOWN_STATUS
+en: unknown status: %s
+es: estado desconocido: %s
+
+key: SESSION_MISSING_HORIZON
+en: no horizon
+es: sin horizon
+
+key: SESSION_MISSING_STATUS
+en: no status
+es: sin status
+
+key: SESSION_UNCLASSIFIED
+en: unclassified (%s): %s
+es: sin clasificar (%s): %s
+
+key: SESSION_WAITING_GATE
+en: waiting %s
+es: espera %s
+
+key: SESSION_WAITING_YOU
+en: waiting on you
+es: te espera a vos
+
+key: SESSION_BLOCKED_WITH_REASON
+en: blocked: %s
+es: trabada: %s
+
+key: SESSION_BLOCKED
+en: blocked
+es: trabada
+
+key: SESSION_WAITING_ON
+en: waiting on %s
+es: espera a %s
+
+key: SESSION_NO_HORIZON_LABEL
+en: no horizon
+es: sin horizonte
+
+key: SESSION_NO_STATUS_LABEL
+en: no status
+es: sin estado
+
+key: SESSION_ROUTE_NOT_REACHED
+en: %s:%s — not reached: %s
+es: %s:%s — no se alcanza: %s
+
+key: SESSION_OUTSIDE_TREE
+en: no glob in tree.md reaches (%s): %s
+es: ningún glob de tree.md alcanza (%s): %s
+
+key: SESSION_BACKLOG_READY
+en: backlog: %s ready of %s pending
+es: backlog: %s listas de %s pendientes
+
+key: SESSION_OLD_MARKER_LINE
+en: (line %s)
+es: (línea %s)
+
+key: SESSION_INBOX_UNCLASSIFIED
+en: inbox: %s unclassified
+es: inbox: %s sin clasificar
+
+key: SESSION_ORG_NOT_FOUND
+en: the organization "%s" does not exist. Here's what there is:
+es: la organización "%s" no existe. Las que hay:
+
+key: SESSION_NO_ORGS
+en: (none)
+es: (ninguna)
+
+key: SESSION_NODE_COUNT
+en: %s nodes · %s
+es: %s nodos · %s
+
+key: FM_NO_FRONTMATTER
+en: no frontmatter
+es: sin frontmatter
+
+key: FM_UNCLOSED
+en: frontmatter left open
+es: frontmatter sin cerrar
+
+key: FM_TOO_LONG
+en: frontmatter too long
+es: frontmatter demasiado largo
+
+key: BACKLOG_OLD_MARKER
+en: old-format marker: %s
+es: marcador en formato viejo: %s
+
+key: OLD_KEY_LINE
+en: old key: %s → %s
+es: clave vieja: %s → %s
+
 key: BACKUP_TASK
 en: Remote backup pending: create the account at github.com (the operator creates it, never the agent), run `gh auth login`, and then ask any session to run `.os/core/lib/remote-backup.sh --brain .`
 es: Respaldo remoto pendiente: crear la cuenta en github.com (la crea el operador, nunca el agente), correr `gh auth login`, y después pedirle a cualquier sesión que corra `.os/core/lib/remote-backup.sh --brain .`
+
+key: REPO_INTRO
+en: The body of an initiative: the specs, the decisions and the as-built of what gets built here.
+en: The head —what it is for and what state it is in— lives in the brain that mounted this repo.
+en: This repo reads on its own: nothing here assumes the brain is within reach.
+es: El cuerpo de una iniciativa: las specs, las decisiones y el as-built de lo que se construye acá.
+es: La cabeza —para qué es y en qué estado está— vive en el brain que montó este repo. Este repo se
+es: lee solo: nada de acá asume que el brain esté al alcance.
+
+key: REPO_LAYOUT_HEADING
+en: Where each thing lives
+es: Dónde está cada cosa
+
+key: REPO_LAYOUT
+en: | Question | Where | Lifecycle |
+en: |---|---|---|
+en: | How it is built | `ARCHITECTURE.md` (the as-built) | Live, overwritten |
+en: | What is missing | `specs/` (+ `done/`) | Transient |
+en: | What was decided and why | `decisions.md` | **Append-only**, never corrected |
+en: | What we learned | `learnings/` | Live: updated or deleted |
+en: | What broke, and why | `docs/postmortems/` | Dated, not overwritten |
+en: | Research evidence | `docs/research/` | Dated, not overwritten |
+en: | The check for each criterion | `evals/run.sh` | Live: one check per criterion |
+es: | Pregunta | Dónde | Ciclo de vida |
+es: |---|---|---|
+es: | Cómo está construido | `ARCHITECTURE.md` (el as-built) | Vivo, se pisa |
+es: | Qué falta | `specs/` (+ `done/`) | Transitorio |
+es: | Qué se decidió y por qué | `decisions.md` | **Append-only**, nunca se corrige |
+es: | Qué aprendimos | `learnings/` | Vivo: se actualiza o se borra |
+es: | Qué se rompió, y por qué | `docs/postmortems/` | Fechado, no se pisa |
+es: | Evidencia de investigación | `docs/research/` | Fechada, no se pisa |
+es: | El chequeo de cada criterio | `evals/run.sh` | Vivo: un chequeo por criterio |
+
+key: REPO_GATES
+en: - **Gate 1**: no implementation starts without an approved spec.
+en: - **Gate 2**: a person merges. Agents work on branches, never push to `main` and never merge:
+en:   `.claude/settings.json` denies them both commands.
+en: - The PR carries the evidence of the evals. Whoever reviews it reports nothing they cannot quote
+en:   literally with `file:line`, and nothing without naming what breaks.
+es: - **Gate 1**: ninguna implementación arranca sin spec aprobada.
+es: - **Gate 2**: el merge lo hace una persona. Los agentes trabajan en ramas, nunca pushean a `main`
+es:   ni mergean: `.claude/settings.json` les niega los dos comandos.
+es: - El PR lleva la evidencia de los evals. El que lo revisa no reporta nada que no pueda citar
+es:   textualmente con `archivo:línea`, ni nada sin nombrar qué se rompe.
+
+key: REPO_DOD
+en: - The spec's criteria pass their evals, with the evidence recorded. Claiming with no evidence is
+en:   not done.
+en: - No regression on the critical path.
+en: - No code from abandoned attempts in the diff.
+en: - No secrets in code, docs or commits.
+en: - `ARCHITECTURE.md` updated if it changed; new decisions in `decisions.md`; whatever serves the
+en:   next time, in `learnings/`.
+en: - Spec archived in `specs/done/`. Ready to ASK for the merge — never autonomous.
+es: - Los criterios de la spec pasan sus evals, con la evidencia registrada. Afirmar sin evidencia no
+es:   es done.
+es: - Sin regresión del camino crítico.
+es: - Sin código de intentos abandonados en el diff.
+es: - Sin secretos en código, docs ni commits.
+es: - `ARCHITECTURE.md` actualizado si cambió; decisiones nuevas en `decisions.md`; lo que sirva para
+es:   la próxima vez, en `learnings/`.
+es: - Spec archivada en `specs/done/`. Listo para PEDIR el merge — nunca autónomo.
+
+key: REPO_WRITING_HEADING
+en: How it is written
+es: Cómo se escribe
+
+key: REPO_WRITING
+en: **The primary reader of these documents is an agent in another session, with nothing of the
+en: conversation that produced them.**
+en:
+en: 1. **Each rule is stated in a single place.** The other documents reference it by path.
+en: 2. **Numbers and checks go isolated**, never embedded in a sentence.
+en: 3. **No narrative connectors**: they do not instruct and they take up context.
+en:
+en: A decision has four fields and no more:
+en:
+en: ```
+en: ## DATE · [scope] Title that states the rule, not the topic
+en:
+en: **What is decided**: one or two lines. The rule, with no argument.
+en: **Why**: one paragraph. One.
+en: **Replaces**: only if it applies, naming the previous decision.
+en: **What would invalidate it**: the condition that would make it false.
+en: ```
+en:
+en: File names, commands and code in English. The product's language rule is stated once, in the
+en: constitution of the product repo that ships `.os/core` — `CLAUDE.md` at its root — and is not
+en: repeated here.
+es: **El lector primario de estos documentos es un agente en otra sesión, sin nada de la conversación
+es: que los produjo.**
+es:
+es: 1. **Cada regla se enuncia en un solo lugar.** Los demás documentos la referencian por ruta.
+es: 2. **Los números y los chequeos van aislados**, nunca embebidos en una oración.
+es: 3. **Sin conectores narrativos**: no instruyen y ocupan contexto.
+es:
+es: Una decisión tiene cuatro campos y ninguno más:
+es:
+es: ```
+es: ## FECHA · [ámbito] Título que enuncia la regla, no el tema
+es:
+es: **Qué se decide**: una o dos líneas. La regla, sin argumento.
+es: **Por qué**: un párrafo. Uno.
+es: **Reemplaza a**: solo si aplica, nombrando la decisión anterior.
+es: **La invalidaría**: la condición que la haría falsa.
+es: ```
+es:
+es: Nombres de archivo, comandos y código en inglés. La regla del idioma del producto se enuncia una
+es: sola vez, en la constitución del repo del producto que publica `.os/core` —`CLAUDE.md` en su
+es: raíz— y no se repite acá.
+
+key: REPO_GOTCHAS
+en: <!-- What trips you up and cannot be deduced by opening a file goes here, one line each. What an
+en:      `ls` already answers does not. It is born empty on purpose. -->
+es: <!-- Lo que hace tropezar y no se deduce abriendo un archivo va acá, una línea cada cosa. Lo que
+es:      un `ls` ya contesta, no. Nace vacío a propósito. -->
+
+key: REPO_ARCHITECTURE_TITLE
+en: Architecture (as-built)
+es: Arquitectura (as-built)
+
+key: REPO_ARCHITECTURE_INTRO
+en: > Newborn repo: this gets written when the first implementation exists. It describes what is
+en: > built, never what is planned — what is missing lives in `specs/`.
+es: > Repo recién nacido: se escribe cuando exista la primera implementación. Describe lo construido,
+es: > nunca lo planeado — lo que falta vive en `specs/`.
+
+key: REPO_DECISIONS_TITLE
+en: Decisions
+es: Decisiones
+
+key: REPO_DECISIONS_INTRO
+en: > Append-only: nothing here gets corrected. Four fields per decision — the format is in
+en: > `CLAUDE.md`.
+en: >
+en: > It is born with no entries.
+es: > Append-only: acá no se corrige nada. Cuatro campos por decisión — el formato está en
+es: > `CLAUDE.md`.
+es: >
+es: > Nace sin entradas.
+
+key: REPO_EVALS_INTRO
+en: The repo's evals — one check per acceptance criterion of each spec. Run: `evals/run.sh`
+es: Los evals del repo — un chequeo por criterio de aceptación de cada spec. Se corre: `evals/run.sh`
+
+key: REPO_EVALS_SLOT
+en: Each spec adds its checks here, one function per criterion, and calls them below.
+es: Cada spec suma acá sus chequeos, una función por criterio, y los llama abajo.
+
+key: REPO_EVALS_SUMMARY
+en: %s pass · %s fail
+es: %s pasan · %s fallan
+
+key: REPO_FIRST_COMMIT
+en: the repo is born
+es: nace el repo
+
+key: MOUNT_NOTHING_WRITTEN
+en: nothing was written.
+es: no se escribió nada.
+
+key: MOUNT_NO_PYTHON3
+en: python3 is missing: install it from the official channel (macOS: run `xcode-select --install`, the same command that brings git; Windows: python.org; Linux: your distro's package manager) and run this same command again.
+es: falta python3: instalalo desde el canal oficial (macOS: correr `xcode-select --install`, el mismo comando que trae git; Windows: python.org; Linux: el gestor de paquetes de la distro) y volvé a correr este mismo comando.
+
+key: MOUNT_HEAD_ABSOLUTE
+en: the head is named relative to the brain: %s
+es: la cabeza se nombra relativa al brain: %s
+
+key: MOUNT_HEAD_ESCAPES
+en: the head cannot leave the brain: %s
+es: la cabeza no puede salir del brain: %s
+
+key: MOUNT_HEAD_MISSING
+en: the head does not exist: %s
+en: mount-repo mounts a repo onto a head that already exists; it does not invent one.
+es: no existe la cabeza: %s
+es: mount-repo monta un repo sobre una cabeza que ya existe; no la inventa.
+
+key: MOUNT_HEAD_FM_BROKEN
+en: %s: %s — nothing gets written over a frontmatter that cannot be understood
+es: %s: %s — no se escribe sobre un frontmatter que no se entiende
+
+key: MOUNT_HEAD_REPO_CONFLICT
+en: conflict: %s already declares repo: %s
+es: conflicto: %s ya declara repo: %s
+
+key: MOUNT_HEAD_REPO_CONFLICT_TAIL
+en: the remote asked for is %s. Which one stays belongs to the operator: nothing was written.
+es: el remote pedido es %s. Cuál queda es del operador: no se escribió nada.
+
+key: MOUNT_REMOTE_DOWN
+en: the remote does not answer: %s
+es: el remote no responde: %s
+
+key: MOUNT_CLONE_ROOT_DECLARED
+en: the clone root was already declared: %s — that one is used and --clone-root is ignored
+es: la raíz de clonado ya estaba declarada: %s — se usa esa y se ignora --clone-root
+
+key: MOUNT_CLONE_ROOT_MISSING
+en: the clone root is missing: where this machine's checkouts live.
+en: It is asked once and stays written in %s. There is no default: nothing was written.
+es: falta la raíz de clonado: dónde viven los checkouts de esta máquina.
+es: Se pregunta una vez y queda escrita en %s. No hay default: no se escribió nada.
+
+key: MOUNT_CLONE_ROOT_RELATIVE
+en: the clone root belongs to the environment and goes absolute: %s
+es: la raíz de clonado es del entorno y va absoluta: %s
+
+key: MOUNT_CLONE_ROOT_IN_BRAIN
+en: the clone root falls inside the brain: %s
+en: the body is cloned flat and outside. Nothing was written.
+es: la raíz de clonado cae adentro del brain: %s
+es: el cuerpo se clona plano y afuera. No se escribió nada.
+
+key: MOUNT_CLONE_ROOT_IN_REPO
+en: the clone root falls inside another repo: %s
+en: the body is cloned flat, never nested. Nothing was written.
+es: la raíz de clonado cae adentro de otro repo: %s
+es: el cuerpo se clona plano, nunca anidado. No se escribió nada.
+
+key: MOUNT_NAME_UNDERIVABLE
+en: the checkout name could not be derived from the remote: %s
+es: no se pudo derivar el nombre del checkout desde el remote: %s
+
+key: MOUNT_TITLE
+en: Mount
+es: Montaje
+
+key: MOUNT_CHECKOUT_ALREADY
+en:   checkout: it was already at %s — it is not cloned again
+es:   checkout: ya estaba en %s — no se vuelve a clonar
+
+key: MOUNT_CHECKOUT
+en:   checkout: %s
+es:   checkout: %s
+
+key: MOUNT_DEST_NOT_REPO
+en: the checkout path exists and is not a repo: %s
+es: la ruta del checkout existe y no es un repo: %s
+
+key: MOUNT_CLONE_ROOT_UNWRITABLE
+en: the clone root could not be created: %s
+es: no se pudo crear la raíz de clonado: %s
+
+key: MOUNT_CLONE_FAILED
+en: cloning %s into %s failed
+es: falló el clonado de %s en %s
+
+key: MOUNT_HEAD_REPO_ALREADY
+en:   %s: repo: was already there
+es:   %s: repo: ya estaba
+
+key: MOUNT_HEAD_REPO_WRITTEN
+en:   %s: repo: %s
+es:   %s: repo: %s
+
+key: MOUNT_HEAD_REPO_WRITE_FAILED
+en: repo: could not be written into %s
+es: no se pudo escribir repo: en %s
+
+key: MOUNT_TABLE_CLONE_ROOT_ADDED
+en:   %s: clone-root: %s — the table did not declare it
+es:   %s: clone-root: %s — la tabla no lo declaraba
+
+key: MOUNT_TABLE_MANY_ROWS
+en:   %s: %s rows: %s — the last one is used
+es:   %s: %s filas: %s — se usa la última
+
+key: MOUNT_TABLE_LINE_LIST
+en: line %s
+es: línea %s
+
+key: MOUNT_TABLE_LINE_AND
+en: and
+es: y
+
+key: MOUNT_TABLE_ROW_ALREADY
+en:   %s: the row was already there (line %s)
+es:   %s: la fila ya estaba (línea %s)
+
+key: MOUNT_TABLE_BORN
+en:   %s was born with this piece of data
+es:   %s nació con este dato
+
+key: MOUNT_SETTINGS_ADDED
+en:   %s: additionalDirectories: %s
+es:   %s: additionalDirectories: %s
+
+key: MOUNT_SETTINGS_ALREADY
+en:   %s: additionalDirectories: was already there
+es:   %s: additionalDirectories: ya estaba
+
+key: MOUNT_SETTINGS_INVALID
+en:   %s: not valid JSON — it was not modified (%s)
+es:   %s: no es JSON válido — no se modificó (%s)
+
+key: MOUNT_GITIGNORE_DECLARED
+en:   .gitignore — entry declared: %s
+es:   .gitignore — entrada declarada: %s
+
+key: MOUNT_TREE_GLOB_DECLARED
+en:   tree.md — glob declared: %s
+es:   tree.md — glob declarado: %s
+
+key: MOUNT_TREE_MISSING
+en:   tree.md is missing — the glob "%s" was left undeclared
+es:   falta tree.md — el glob "%s" quedó sin declarar
+
+key: MOUNT_NEW_HINT
+en: the repo does not exist yet? --new creates it from the product's scaffold and mounts it, in a single run.
+es: ¿el repo todavía no existe? --new lo crea desde la plantilla del producto y lo monta, en una sola corrida.
+
+key: MOUNT_NEW_ALREADY_BORN_HINT
+en: the repo is already born locally at %s: what is missing is creating the remote and pushing it.
+es: el repo ya nació local en %s: falta crear el remoto y pushearlo.
+
+key: MOUNT_NEW_REMOTE_ALIVE
+en: the remote answers: %s — there is nothing to create: it is mounted without --new.
+es: el remote responde: %s — no hay nada que crear: se monta sin --new.
+
+key: MOUNT_NEW_DEST_EXISTS
+en: the checkout path already exists and it is not this remote's repo: %s — --new does not write over what is already there.
+es: la ruta del checkout ya existe y no es el repo de este remote: %s — --new no escribe sobre lo que ya está.
+
+key: MOUNT_NEW_ROW_ELSEWHERE
+en: %s points this remote at %s (line %s), outside the clone root — with --new the repo is born at %s. Fix the row and run it again.
+es: %s apunta este remote a %s (línea %s), fuera de la raíz de clonado — con --new el repo nace en %s. Corregí la fila y volvé a correrlo.
+
+key: MOUNT_NEW_FAILED
+en: the birth of the repo failed: %s
+es: falló el nacimiento del repo: %s
+
+key: MOUNT_NEW_CLEANED
+en: what had been created in %s was removed.
+es: se borró lo que se había creado en %s.
+
+key: MOUNT_NEW_LEFTOVER
+en: %s could not be removed: that is what the failed birth left behind.
+es: no se pudo borrar %s: eso es lo que quedó del nacimiento fallido.
+
+key: MOUNT_NEW_BORN
+en:   born: %s — scaffold, first commit on main, origin declared
+es:   nació: %s — plantilla, primer commit en main, origin declarado
+
+key: MOUNT_NEW_ALREADY_BORN
+en:   born: it was already at %s with this origin — it is not born again
+es:   nació: ya estaba en %s con este origin — no vuelve a nacer
+
+key: MOUNT_NEW_GENERIC_IDENTITY
+en:   first commit signed with a generic identity — configure git (user.name, user.email) for the ones that follow
+es:   primer commit firmado con una identidad genérica — configurá git (user.name, user.email) para los que siguen
+
+key: MOUNT_NEW_REMOTE_GH
+en:   the remote does not exist yet: gh is authenticated — these two are run by the operator, never by this script
+es:   el remoto todavía no existe: gh autenticado — estos dos los corre el operador, nunca este script
+
+key: MOUNT_NEW_REMOTE_GH_CREATE
+en:     gh repo create %s --private
+es:     gh repo create %s --private
+
+key: MOUNT_NEW_REMOTE_MANUAL
+en:   the remote does not exist yet: create it at your provider as %s (private), and then push it
+es:   el remoto todavía no existe: crealo en tu proveedor como %s (privado), y después pusheálo
+
+key: MOUNT_NEW_REMOTE_PUSH
+en:     git -C '%s' push -u origin main
+es:     git -C '%s' push -u origin main

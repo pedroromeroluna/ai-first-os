@@ -13,21 +13,23 @@ This document is written for your agent to execute, not for you to follow step b
 
 ## Requirements
 
-**Installing the system takes one thing: git.** It is checked before anything runs — an agent that
-installs first and reads the error afterwards leaves you with `command not found` instead of an
-answer.
+**Installing the system takes two things: git and python3.** They are checked before anything runs
+— an agent that installs first and reads the error afterwards leaves you with `command not found`
+instead of an answer.
 
 | What | When it is needed | How the agent checks it | Where it comes from if it is missing |
 |---|---|---|---|
 | git | To install the system | `git --version` | macOS: `xcode-select --install` · Windows: git-scm.com |
+| python3 | To install the system — `mount-repo` uses it to authorize a checkout for the agent | `python3 --version` | macOS: `xcode-select --install` (same command as git) · Windows: python.org · Linux: your distro's package manager |
 | Node.js | Only for the pack of skills, offered at the end of the install | `node --version` | The LTS installer at nodejs.org |
 
 **The agent guides; you install.** System software is never installed by the agent on its own: it
 points at the official channel, waits for you to run it, and checks again.
 
-**git has no path around it.** Every brain is versioned from the moment it exists — that is what
-gives you an auditable history and updates you can undo — so nothing gets written until git is
-there. Install it and say "run bootstrap" again; nothing you already answered is lost.
+**git has no path around it, and neither does python3.** Every brain is versioned from the moment
+it exists — that is what gives you an auditable history and updates you can undo — and mounting a
+repo needs python3 to authorize it for the agent, so nothing gets written until both are there.
+Install what is missing and say "run bootstrap" again; nothing you already answered is lost.
 
 **Node is not a requirement of the system, and the install never runs `npx`.** It belongs to one
 optional step at the very end: the pack of skills, which travels through the skills.sh CLI —`npx`,
@@ -98,7 +100,7 @@ context.
 | `check-resolvable` | Audits the capability-to-tool graph and reports dark tools, broken links and rows pointing nowhere |
 | `capture` | Files what you throw in mid-conversation into the right backlog, without opening a discussion |
 | `close-session` | Closes the session with a four-part verdict: captured, not captured, candidate resolver row, where to resume |
-| `mount-repo` | Gives an initiative a body: the remote in the head, the checkout outside the brain, the row in the environment table |
+| `mount-repo` | Gives an initiative a body: the remote in the head, the checkout outside the brain (or the repo born from the scaffold, with `--new`), the row in the environment table |
 | `grill` | The pressure interview: counter-question with a concrete example, capped attempts, escape hatches, evidence hierarchy |
 | `new-spec` | Writes a spec an agent can implement without asking for an opinion — one runnable eval per criterion |
 

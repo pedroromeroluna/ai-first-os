@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Funciones compartidas por los comandos de core/. Interno: no es invocable.
-# Bash 3.2 en adelante. Sin dependencias fuera de bash + coreutils.
+# Bash 3.2 en adelante. Sin dependencias fuera de bash + coreutils, con una excepción: `python3`
+# —requisito duro del producto junto a `git`, spec 030— lo usa `os_settings_authorize` para leer y
+# escribir JSON.
 
 # Tope de identidad, en líneas. Única enunciación del número en el código distribuido.
 OS_IDENTITY_CAP=40
@@ -135,11 +137,21 @@ os_language_valido() {
 # os_language BRAIN -> el idioma declarado en el frontmatter de `operator.md`, o `en`.
 # El idioma es dato de la raíz, no de cada comando: `new-org` en un brain que ya existe escribe en
 # el mismo idioma que el bootstrap eligió, sin volver a preguntarlo.
+#
+# `en` is the default with no `language:` declared (there is no `operator.md` yet, or the file does
+# not carry the key) — silent, because not declaring it is a legitimate choice. A declared
+# `language:` the product cannot write (`fr`, `ES`) also falls back to `en`, but warns on stderr:
+# falling back in silence would publish English inside a brain that asked for something else
+# without anyone noticing — same criterion `os_lang_load` already uses for a key with no
+# translation.
 os_language() {
   fm_read "$1/operator.md"
   if [ -n "$fm_language" ] && os_language_valido "$fm_language"; then
     printf '%s' "$fm_language"
   else
+    if [ -n "$fm_language" ]; then
+      os_warn "operator.md — language: $fm_language is not supported: falling back to en"
+    fi
     printf 'en'
   fi
 }
@@ -786,6 +798,24 @@ os_mounts_clone_root() {
   return 0
 }
 
+# os_git_sucio BRAIN -> las rutas modificadas o sin trackear que reporta `git status --porcelain`,
+# una por línea, relativas al brain. Lector único de la spec 031: lo comparten `close-session.sh`
+# (para saber qué queda ajeno a la sesión) y `session-start.sh` (para avisarlo en Chequeos).
+#
+# Un brain es "repo git" si tiene `.git` en su propia raíz — nunca se resuelve subiendo el árbol con
+# `git rev-parse`, porque un brain de prueba (o cualquier brain) puede vivir adentro de otro repo sin
+# ser uno él mismo, y ese ancestro ajeno no es el repo que este comando commitea.
+#   Exit 1  el brain no es un repo git — sin salida.
+os_git_sucio() {
+  local brain="$1"
+  [ -e "$brain/.git" ] || return 1
+  git -C "$brain" status --porcelain 2>/dev/null | while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    printf '%s\n' "${line:3}"
+  done
+  return 0
+}
+
 # os_gitignore_ensure BRAIN ENTRADA
 # Deja la entrada declarada en el `.gitignore` del brain. Lo personal se aísla por posición, y la
 # tabla del entorno no puede aislarse así —vive en la raíz del brain—: el gitignore es su frontera, y
@@ -808,6 +838,60 @@ os_gitignore_ensure() {
   fi
   printf '%s\n' "$2" >> "$file"
   return 0
+}
+
+# El nombre del archivo de permisos del harness, relativo al brain (spec 030). `python3` lo lee y
+# escribe: es requisito duro del producto junto a `git` desde la spec 030 (en macOS los dos llegan
+# con las mismas Command Line Tools; `bootstrap.sh` y `mount-repo.sh` lo chequean antes de escribir).
+OS_SETTINGS_ARCHIVO=".claude/settings.local.json"
+
+# os_settings_authorize BRAIN RUTA
+# Deja RUTA (absoluta) declarada en `permissions.additionalDirectories` de
+# `<BRAIN>/.claude/settings.local.json` — el mecanismo que el harness lee para tratar otro
+# directorio como el de trabajo: lectura sin prompt, edición según el modo vigente (doc de
+# permisos de Claude Code, sección "Working directories"). Preserva byte a byte, por valor
+# parseado, cualquier otra clave que el archivo ya traiga.
+#   0  la agregó (el archivo pudo nacer o ya existir)
+#   1  ya estaba
+#   2  el archivo existe y no es JSON válido — no se tocó
+os_settings_authorize() {
+  local brain="$1" ruta="$2" archivo
+  archivo="$brain/$OS_SETTINGS_ARCHIVO"
+  mkdir -p "$(dirname "$archivo")" 2>/dev/null
+  python3 - "$archivo" "$ruta" <<'PY'
+import json
+import os
+import sys
+
+archivo, ruta = sys.argv[1], sys.argv[2]
+data = {}
+if os.path.exists(archivo):
+    with open(archivo, "r", encoding="utf-8") as f:
+        crudo = f.read()
+    if crudo.strip():
+        try:
+            data = json.loads(crudo)
+        except ValueError:
+            sys.exit(2)
+        if not isinstance(data, dict):
+            sys.exit(2)
+
+permisos = data.setdefault("permissions", {})
+if not isinstance(permisos, dict):
+    sys.exit(2)
+directorios = permisos.setdefault("additionalDirectories", [])
+if not isinstance(directorios, list):
+    sys.exit(2)
+if ruta in directorios:
+    sys.exit(1)
+directorios.append(ruta)
+
+with open(archivo, "w", encoding="utf-8") as f:
+    json.dump(data, f, indent=2, ensure_ascii=False)
+    f.write("\n")
+sys.exit(0)
+PY
+  return $?
 }
 
 # os_now_ms -> milisegundos desde epoch.

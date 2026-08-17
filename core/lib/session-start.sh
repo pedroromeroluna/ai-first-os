@@ -20,8 +20,14 @@
 # Cada sección tiene tope propio y declara lo que no entró: con 12 o con 40 iniciativas la salida
 # mide lo mismo.
 #
+# Chequeos suma, cuando el brain es un repo git y el árbol no está limpio, una línea `sin commitear:
+# N archivos · ruta, ruta` (spec 031) — lo que `close-session.sh` no pudo commitear en el cierre
+# anterior, o lo que otra sesión dejó a medias. Con el árbol limpio, o sin `.git`, la línea no existe.
+#
 # Exit: 0 siempre que el ámbito exista — un chequeo avisa y no bloquea. 2 si la organización no
 # existe.
+# 1 if the install is broken: `templates/strings.md` (the bilingual catalog, spec 033) is missing,
+# which `os_lang_load` requires to print anything — `os_die` says so on stderr before it dies.
 #
 # Sin `set -e` a propósito: un chequeo que falla no puede abortar el arranque de una sesión.
 
@@ -68,6 +74,36 @@ fi
 [ -d "$brain" ] || os_die "no existe el brain: $brain"
 brain=$(cd "$brain" && pwd)
 
+# All the fixed or template text this script prints for the operator comes out of the bilingual
+# catalog (spec 021/033): with `language: en` in `operator.md` it comes out in English, and with
+# `es` (or no `operator.md` yet, `os_language` falls back to `en` — Checks says so, further down)
+# it comes out exactly like it did before this spec — the catalog's `es:` column carries the same
+# prose.
+lang=$(os_language "$brain")
+os_lang_load "$lang"
+
+# translate_fm_broken VALUE -> the same `fm_roto`/`bl_roto` value (always in Spanish: common.sh
+# returns it, and it does not know the scan's language) translated with the catalog already loaded
+# above. Does not touch `common.sh`: `sweep.sh` and `check-resolvable.sh` keep reading those values
+# as-is, without the full catalog loaded, and are not affected by this local translation.
+translate_fm_broken() {
+  case "$1" in
+    'sin frontmatter') printf '%s' "$S_FM_NO_FRONTMATTER" ;;
+    'frontmatter sin cerrar') printf '%s' "$S_FM_UNCLOSED" ;;
+    'frontmatter demasiado largo') printf '%s' "$S_FM_TOO_LONG" ;;
+    *) printf '%s' "$1" ;;
+  esac
+}
+
+# translate_bl_broken VALUE -> the same, for `bl_roto` (from `os_backlog_lee` in common.sh).
+translate_bl_broken() {
+  case "$1" in
+    'marcador en formato viejo: '*)
+      printf "$S_BACKLOG_OLD_MARKER" "${1#marcador en formato viejo: }" ;;
+    *) printf '%s' "$1" ;;
+  esac
+}
+
 # ---------------------------------------------------------------- el ámbito se valida contra el listado
 # El slug se compara byte a byte contra los nombres reales de `orgs/`, nunca con `-d`. Un test de
 # directorio acepta lo que el filesystem acepte: en un FS que no distingue mayúsculas `--org Acme`
@@ -87,11 +123,11 @@ if [ "$root" = "0" ]; then
 $(os_org_slugs "$brain")
 SLUGS
   if [ "$org_existe" = "0" ]; then
-    printf 'la organización "%s" no existe. Las que hay:\n' "$org" >&2
+    printf "$S_SESSION_ORG_NOT_FOUND\n" "$org" >&2
     if [ -n "$org_slugs" ]; then
       printf '%s' "$org_slugs" >&2
     else
-      printf '  (ninguna)\n' >&2
+      printf '  %s\n' "$S_SESSION_NO_ORGS" >&2
     fi
     exit 2
   fi
@@ -120,6 +156,25 @@ push_chequeo() {
 leidos=0
 marcar_leido() { leidos=$(( leidos + 1 )); }
 
+# ---------------------------------------------------------------- estado de git del brain (spec 031)
+# `close-session.sh` commitea lo que la sesión escribió; lo que sigue sucio al arrancar la próxima es
+# de otra sesión o de una escritura fuera del cierre. Decirlo acá evita que se lea como ruido cuando
+# `git status` ya lo muestra aparte.
+if sucios=$(os_git_sucio "$brain"); then
+  git_n=0
+  git_lista=""
+  while IFS= read -r r || [ -n "$r" ]; do
+    [ -n "$r" ] || continue
+    git_n=$(( git_n + 1 ))
+    if [ -z "$git_lista" ]; then git_lista="$r"; else git_lista="$git_lista, $r"; fi
+  done <<SUCIOS
+$sucios
+SUCIOS
+  if [ "$git_n" -gt 0 ]; then
+    push_chequeo "$(printf "$S_SESSION_CHECK_UNCOMMITTED" "$git_n" "$git_lista")"
+  fi
+fi
+
 # ---------------------------------------------------------------- el árbol se lee, no se infiere
 # La lectura de frontmatter (`fm_read`) y la expansión de los globs (`os_tree_files`) viven en
 # common.sh: las comparten este arranque y los barridos globales.
@@ -127,7 +182,7 @@ tree_files=""
 if matches=$(os_tree_files "$brain"); then
   [ -n "$matches" ] && tree_files="$matches$nl"
 else
-  push_chequeo "falta tree.md — el barrido no sabe qué rutas recorrer"
+  push_chequeo "$S_SESSION_CHECK_NO_TREE"
 fi
 
 # Lo que un `content:` alcanza (spec 007) cuenta como alcanzado por el árbol —nunca aparece en
@@ -163,18 +218,18 @@ if [ -z "$mounts" ]; then
 fi
 if [ ! -f "$mounts" ]; then
   if [ "$mounts_declarada" = "1" ]; then
-    push_chequeo "tabla declarada no encontrada: $mounts — el arranque cubre solo el brain"
+    push_chequeo "$(printf "$S_SESSION_CHECK_MOUNTS_TABLE_MISSING" "$mounts")"
   fi
 else
   tabla="${mounts##*/}"
   while IFS="$sep" read -r n remote ruta || [ -n "$n" ]; do
     [ -n "$n" ] || continue
     if [ -z "$remote" ] || [ -z "$ruta" ]; then
-      push_chequeo "fila ilegible: $tabla:$n — no se pudo leer el montaje"
+      push_chequeo "$(printf "$S_SESSION_CHECK_MOUNT_ROW_UNREADABLE" "$tabla:$n")"
       continue
     fi
     if [ ! -d "$ruta" ]; then
-      push_chequeo "montaje no alcanzado: $remote — declarado en $tabla:$n, sin checkout local"
+      push_chequeo "$(printf "$S_SESSION_CHECK_MOUNT_UNREACHED" "$remote" "$tabla:$n")"
       continue
     fi
     ruta=$(cd "$ruta" && pwd)
@@ -231,25 +286,26 @@ else
   ctx="$brain/orgs/$org/context.md"
   res_org="$brain/orgs/$org/resolver.md"
 
-  if [ -f "$ctx" ]; then marcar_leido; else push_chequeo "falta orgs/$org/context.md"; fi
-  if [ -f "$res_org" ]; then marcar_leido; else push_chequeo "falta orgs/$org/resolver.md"; fi
+  if [ -f "$ctx" ]; then marcar_leido; else push_chequeo "$(printf "$S_SESSION_CHECK_MISSING_FILE" "orgs/$org/context.md")"; fi
+  if [ -f "$res_org" ]; then marcar_leido; else push_chequeo "$(printf "$S_SESSION_CHECK_MISSING_FILE" "orgs/$org/resolver.md")"; fi
   if [ -f "$brain/resolver.md" ]; then marcar_leido; fi
 
   ident=$(contar_lineas "$ctx")
   filas=$(contar_filas_resolver "$res_org")
-  diagnostico="identidad $ident/$OS_IDENTITY_CAP · resolver $filas filas"
+  diagnostico=$(printf "$S_SESSION_IDENTITY_DIAG" "$ident" "$OS_IDENTITY_CAP" "$filas")
 
   if [ "$ident" -gt "$OS_IDENTITY_CAP" ]; then
-    push_espera "orgs/$org/context.md — $diagnostico · resumir la historia o partir a context/"
+    push_espera "$(printf "$S_SESSION_WAITING_IDENTITY_OVER" "orgs/$org/context.md" "$diagnostico")"
   fi
 fi
 
 ident_op=$(contar_lineas "$brain/operator.md")
 if [ "$root" = "1" ]; then
-  diagnostico="identidad $ident_op/$OS_IDENTITY_CAP · resolver $filas filas"
+  diagnostico=$(printf "$S_SESSION_IDENTITY_DIAG" "$ident_op" "$OS_IDENTITY_CAP" "$filas")
 fi
 if [ "$ident_op" -gt "$OS_IDENTITY_CAP" ]; then
-  push_espera "operator.md — identidad $ident_op/$OS_IDENTITY_CAP · resumir la historia o partir a context/"
+  push_espera "$(printf "$S_SESSION_WAITING_IDENTITY_OVER" "operator.md" \
+    "$(printf "$S_SESSION_IDENTITY_SIMPLE" "$ident_op" "$OS_IDENTITY_CAP")")"
 fi
 
 # ---------------------------------------------------------------- rol activado por el nodo
@@ -258,7 +314,7 @@ fi
 # el `role:` en silencio y devolver "sin hallazgos" es un barrido incompleto presentado como completo.
 #
 # La búsqueda del oficio es una sola (`os_buscar_oficio` en common.sh): la mitad negativa —el aviso
-# de acá abajo— y la positiva —la línea `rol activo:` al final de la salida (spec 009)— leen del
+# de acá abajo— y la positiva —la línea `active-role:` al final de la salida (spec 009)— leen del
 # mismo lugar, para no tener dos copias del mismo recorrido.
 #
 # La raíz no activa rol: el operador no es una posición (fuera de alcance de la spec 018), y no tiene
@@ -268,7 +324,8 @@ rol_ruta=""
 if [ "$root" = "0" ]; then
   fm_read "$ctx"
   if [ -n "$fm_roto" ]; then
-    push_chequeo "orgs/$org/context.md: $fm_roto — el rol no se activa"
+    push_chequeo "$(printf "$S_SESSION_CHECK_ROLE_NOT_ACTIVATED" "orgs/$org/context.md" \
+      "$(translate_fm_broken "$fm_roto")")"
   fi
   role="$fm_role"
   if [ -n "$role" ]; then
@@ -278,7 +335,10 @@ if [ "$root" = "0" ]; then
       rol_ruta=""
       # El ofrecimiento del pack va pegado al aviso (spec 029): un oficio que no resuelve es la
       # demanda, y sin ningún pack instalado el comando que lo trae es la respuesta.
-      push_chequeo "capacidad no instalada: rol de posición \"$role\"$(os_pack_hint "$brain")"
+      # `os_pack_hint` always returns its text in Spanish — translating it means touching
+      # `pack-install.sh`, which generates the line, and is out of this spec's scope (documented
+      # gap).
+      push_chequeo "$(printf "$S_SESSION_CHECK_CAPABILITY_MISSING" "$role" "$(os_pack_hint "$brain")")"
     fi
   fi
 fi
@@ -342,8 +402,9 @@ while IFS="$sep" read -r raiz f || [ -n "$raiz" ]; do
     # archivo no se sabe, y adivinarlo es fabricar estado.
     sin_clasificar=$(( sin_clasificar + 1 ))
     if [ "$sin_clasificar" -le "$CAP_NOMBRES" ]; then
-      [ -n "$nombres_sin" ] && nombres_sin="$nombres_sin, $nombre ($fm_roto)" \
-        || nombres_sin="$nombre ($fm_roto)"
+      fm_roto_tr=$(translate_fm_broken "$fm_roto")
+      [ -n "$nombres_sin" ] && nombres_sin="$nombres_sin, $nombre ($fm_roto_tr)" \
+        || nombres_sin="$nombre ($fm_roto_tr)"
     fi
     continue
   fi
@@ -358,15 +419,16 @@ while IFS="$sep" read -r raiz f || [ -n "$raiz" ]; do
   if [ -n "$fm_status" ] && ! os_estado_valido "$fm_status"; then
     sin_clasificar=$(( sin_clasificar + 1 ))
     if [ "$sin_clasificar" -le "$CAP_NOMBRES" ]; then
-      [ -n "$nombres_sin" ] && nombres_sin="$nombres_sin, $nombre (estado desconocido: $fm_status)" \
-        || nombres_sin="$nombre (estado desconocido: $fm_status)"
+      estado_desc=$(printf "$S_SESSION_UNKNOWN_STATUS" "$fm_status")
+      [ -n "$nombres_sin" ] && nombres_sin="$nombres_sin, $nombre ($estado_desc)" \
+        || nombres_sin="$nombre ($estado_desc)"
     fi
     continue
   fi
 
-  [ -n "$fm_horizon" ] || falta="sin horizon"
+  [ -n "$fm_horizon" ] || falta="$S_SESSION_MISSING_HORIZON"
   if [ -z "$fm_status" ]; then
-    [ -n "$falta" ] && falta="$falta, sin status" || falta="sin status"
+    [ -n "$falta" ] && falta="$falta, $S_SESSION_MISSING_STATUS" || falta="$S_SESSION_MISSING_STATUS"
   fi
   if [ -n "$falta" ]; then
     sin_clasificar=$(( sin_clasificar + 1 ))
@@ -388,10 +450,10 @@ while IFS="$sep" read -r raiz f || [ -n "$raiz" ]; do
   if [ -n "$fm_waiting_on" ]; then
     wo_low=$(os_lower "$fm_waiting_on")
     case "$wo_low" in
-      gate-*) etiqueta="espera $fm_waiting_on" ;;
-      operador) etiqueta="te espera a vos" ;;
+      gate-*) etiqueta=$(printf "$S_SESSION_WAITING_GATE" "$fm_waiting_on") ;;
+      operador) etiqueta="$S_SESSION_WAITING_YOU" ;;
       *)
-        if [ -n "$op_low" ] && [ "$wo_low" = "$op_low" ]; then etiqueta="te espera a vos"; fi
+        if [ -n "$op_low" ] && [ "$wo_low" = "$op_low" ]; then etiqueta="$S_SESSION_WAITING_YOU"; fi
         ;;
     esac
   fi
@@ -401,12 +463,12 @@ while IFS="$sep" read -r raiz f || [ -n "$raiz" ]; do
   fi
 
   senal=""
-  [ -n "$fm_blocked" ] && senal="trabada: $fm_blocked"
-  if [ -z "$senal" ] && [ "$fm_status" = "blocked" ]; then senal="trabada"; fi
-  if [ -z "$senal" ] && [ -n "$fm_waiting_on" ]; then senal="espera a $fm_waiting_on"; fi
+  [ -n "$fm_blocked" ] && senal=$(printf "$S_SESSION_BLOCKED_WITH_REASON" "$fm_blocked")
+  if [ -z "$senal" ] && [ "$fm_status" = "blocked" ]; then senal="$S_SESSION_BLOCKED"; fi
+  if [ -z "$senal" ] && [ -n "$fm_waiting_on" ]; then senal=$(printf "$S_SESSION_WAITING_ON" "$fm_waiting_on"); fi
 
   if [ "$fm_horizon" = "now" ] || [ -n "$senal" ]; then
-    linea="$nombre · ${fm_horizon:-sin horizonte} · ${fm_status:-sin estado}"
+    linea="$nombre · ${fm_horizon:-$S_SESSION_NO_HORIZON_LABEL} · ${fm_status:-$S_SESSION_NO_STATUS_LABEL}"
     [ -n "$senal" ] && linea="$linea · $senal"
     push_curso "$linea"
   fi
@@ -416,11 +478,11 @@ CABEZAS
 
 if [ "$sin_clasificar" -gt 0 ]; then
   resto=$(( sin_clasificar - CAP_NOMBRES ))
+  msg=$(printf "$S_SESSION_UNCLASSIFIED" "$sin_clasificar" "$nombres_sin")
   if [ "$resto" -gt 0 ]; then
-    push_chequeo "sin clasificar ($sin_clasificar): $nombres_sin y $resto más"
-  else
-    push_chequeo "sin clasificar ($sin_clasificar): $nombres_sin"
+    msg="$msg $(printf "$S_SESSION_MORE" "$resto")"
   fi
+  push_chequeo "$msg"
 fi
 
 # ---------------------------------------------------------------- rutas declaradas que no se alcanzan
@@ -438,7 +500,7 @@ revisar_rutas() {
         *) continue ;;
       esac
       if [ ! -e "$brain/$tok" ]; then
-        push_chequeo "$rel:$n — no se alcanza: $tok"
+        push_chequeo "$(printf "$S_SESSION_ROUTE_NOT_REACHED" "$rel" "$n" "$tok")"
       fi
     done <<TOKENS
 $(os_backticks "$line")
@@ -485,11 +547,11 @@ $listado
 FUERA
 if [ "$n_fuera" -gt 0 ]; then
   resto=$(( n_fuera - CAP_NOMBRES ))
+  msg=$(printf "$S_SESSION_OUTSIDE_TREE" "$n_fuera" "$fuera")
   if [ "$resto" -gt 0 ]; then
-    push_chequeo "ningún glob de tree.md alcanza ($n_fuera): $fuera y $resto más"
-  else
-    push_chequeo "ningún glob de tree.md alcanza ($n_fuera): $fuera"
+    msg="$msg $(printf "$S_SESSION_MORE" "$resto")"
   fi
+  push_chequeo "$msg"
 fi
 
 # ---------------------------------------------------------------- la cola
@@ -522,18 +584,18 @@ if [ -f "$backlog" ]; then
     # que el marcador perdido deja de perderse en silencio.
     if [ -n "$bl_roto" ]; then
       b_viejos=$(( b_viejos + 1 ))
-      [ -n "$b_viejo_linea" ] || b_viejo_linea="$bl_roto (línea $b_n)"
+      [ -n "$b_viejo_linea" ] || b_viejo_linea="$(translate_bl_broken "$bl_roto") $(printf "$S_SESSION_OLD_MARKER_LINE" "$b_n")"
     fi
     [ "$bl_hecha" = "0" ] || continue
     b_pend=$(( b_pend + 1 ))
     if os_backlog_lista "$hoy"; then b_listas=$(( b_listas + 1 )); fi
   done < "$backlog"
-  push_cola "backlog: $b_listas listas de $b_pend pendientes"
+  push_cola "$(printf "$S_SESSION_BACKLOG_READY" "$b_listas" "$b_pend")"
   if [ "$b_viejos" -gt 0 ]; then
     if [ "$b_viejos" = "1" ]; then
       push_chequeo "$backlog_rel — $b_viejo_linea"
     else
-      push_chequeo "$backlog_rel — $b_viejo_linea y $(( b_viejos - 1 )) más"
+      push_chequeo "$backlog_rel — $b_viejo_linea $(printf "$S_SESSION_MORE" "$(( b_viejos - 1 ))")"
     fi
   fi
 fi
@@ -542,7 +604,7 @@ if [ -f "$brain/inbox.md" ]; then
   marcar_leido
   i_n=$(grep -c '^- ' "$brain/inbox.md")
   i_n=$(printf '%s' "$i_n" | tr -d ' ')
-  push_cola "inbox: $i_n sin clasificar"
+  push_cola "$(printf "$S_SESSION_INBOX_UNCLASSIFIED" "$i_n")"
 fi
 
 # ---------------------------------------------------------------- salida
@@ -554,37 +616,39 @@ imprimir() {
   else
     printf '%s' "$2"
     resto=$(( $3 - $4 ))
-    if [ "$resto" -gt 0 ]; then printf '  y %s más\n' "$resto"; fi
+    if [ "$resto" -gt 0 ]; then printf "  $S_SESSION_MORE\n" "$resto"; fi
   fi
 }
 
-imprimir "Espera tu decisión" "$s_espera" "$n_espera" "$CAP_ESPERA" "nada espera tu decisión"
+imprimir "$S_SESSION_WAITING_TITLE" "$s_espera" "$n_espera" "$CAP_ESPERA" "$S_SESSION_WAITING_EMPTY"
 printf '\n'
-imprimir "En curso" "$s_curso" "$n_curso" "$CAP_CURSO" "nada en curso"
+imprimir "$S_SESSION_INPROGRESS_TITLE" "$s_curso" "$n_curso" "$CAP_CURSO" "$S_SESSION_INPROGRESS_EMPTY"
 printf '\n'
-printf 'En cola\n'
+printf '%s\n' "$S_SESSION_QUEUE_TITLE"
 printf '%s' "$s_cola"
 printf '\n'
-printf 'Chequeos\n'
+printf '%s\n' "$S_SESSION_CHECKS_TITLE"
 printf '  %s\n' "$diagnostico"
 if [ "$n_chequeos" = "0" ]; then
-  printf '  sin hallazgos\n'
+  printf '  %s\n' "$S_SESSION_CHECKS_EMPTY"
 else
   printf '%s' "$s_chequeos"
   resto=$(( n_chequeos - CAP_CHEQUEOS ))
-  if [ "$resto" -gt 0 ]; then printf '  y %s más\n' "$resto"; fi
+  if [ "$resto" -gt 0 ]; then printf "  $S_SESSION_MORE\n" "$resto"; fi
 fi
 
 
-# ---------------------------------------------------------------- rol activo
+# ---------------------------------------------------------------- active-role
 # Al final de la salida, antes del cierre — formato aprobado en el Gate 1 de la spec 009. Solo
 # aparece con `role:` declarado y el oficio instalado; sin `role:`, la línea no existe y la salida
 # queda idéntica a la de antes de esta spec.
 if [ -n "$rol_ruta" ]; then
   printf '\n'
-  printf 'rol activo: %s · %s\n' "$role" "$rol_ruta"
+  # Fixed marker, in English, the same in both languages (spec 033): core/CLAUDE.md matches it as
+  # a structural identifier, not as translatable prose.
+  printf 'active-role: %s · %s\n' "$role" "$rol_ruta"
 fi
 
 t_fin=$(os_now_ms)
-printf '%s nodos · %s\n' "$leidos" "$(os_elapsed "$t_inicio" "$t_fin")"
+printf "$S_SESSION_NODE_COUNT\n" "$leidos" "$(os_elapsed "$t_inicio" "$t_fin")"
 exit 0

@@ -40,24 +40,32 @@ You write the material with whatever came out of the two questions —one key pe
 identity (`operator.md`) is already loaded in any session.
 
 ```
-decision:     Title
-que:          What is decided
-porque:       Why
-reemplaza:    Which decision it replaces      (optional)
-invalidaria:  What would make it false        (optional)
-learning:     Title
-cuerpo:       The body
-provisional:  Title
-cuerpo:       The body
-pending:      Text of the task
-pending-de:   initiative | Text of the task
-waiting:      initiative | who unblocks it
-sin-fila:     destination | content you filed there
-no-capturado: What you could not file, and why
-retomar:      Where the next session picks up
+decision:      Title
+what:          What is decided
+why:           Why
+replaces:      Which decision it replaces      (optional)
+invalidates:   What would make it false        (optional)
+learning:      Title
+body:          The body
+provisional:   Title
+body:          The body
+pending:       Text of the task
+pending-from:  initiative | Text of the task
+waiting:       initiative | who unblocks it
+unrouted:      destination | content you filed there
+not-captured:  What you could not file, and why
+touched:       Path relative to the scope        a file the session edited by hand, to commit
+resume:        Where the next session picks up
 ```
 
-The keys are the input format the script reads: they are written exactly as shown.
+The keys are the input format the script reads: they are written exactly as shown. The script also
+still accepts the old Spanish keys (`que`, `porque`, `reemplaza`, `invalidaria`, `cuerpo`,
+`pending-de`, `sin-fila`, `no-capturado`, `tocado`, `retomar`) during this version — the verdict
+names each old key used, once per close (spec 033), as an indented note under the header, in the
+operator's language, followed by a blank line before "Captured".
+
+`touched:` names a file the session edited directly — not through this script — that belongs in the
+same commit as the rest of the close. One line per file.
 
 **The operator's text always goes at the end of its line and is filed whole.** After the key there
 is at most one structural field —an initiative, a path— ending in `|`; whatever follows is free text
@@ -66,7 +74,7 @@ it**: if a sentence carries a `|`, it goes through as is. One record closes when
 starts.
 
 **Everything you write in the material comes from the operator, not from you.** A decision they did
-not make is not a decision: it is an inference, and it goes as `no-capturado` so they can see it.
+not make is not a decision: it is an inference, and it goes as `not-captured` so they can see it.
 
 `waiting:` is written when the session leaves an initiative waiting on something — a gate, a person,
 a third party. The value says who unblocks it: that is what puts it at the top of the next session
@@ -74,10 +82,20 @@ start.
 
 ## The verdict
 
-**It is shown exactly as it came out.** The four parts are fixed: captured, not captured, candidate
-row, and the pointer to resume. **It never closes with a bare "done"**: a close that only says it
-finished cannot be told apart from one that lost something.
+**It is shown exactly as it came out.** The five parts are fixed: captured, not captured, candidate
+row, what stayed uncommitted, and the pointer to resume. **It never closes with a bare "done"**: a
+close that only says it finished cannot be told apart from one that lost something.
 
 If the verdict offers a candidate row for the resolver, you show it to the operator and write it
 only if they say yes. The resolver grows by exception found; a row they did not approve is an edge
 nobody is going to use.
+
+## The close commits
+
+Closing and committing are the same act. The close stages and commits, in the brain's own git repo,
+what this script wrote plus every `touched:` that exists and is modified — never `git add -A`: a
+file that is neither of those two is somebody else's session in progress, and it is named under
+"Uncommitted (not from this session)" instead of being touched. Without a git repo at the brain's
+root, nothing is committed and the fifth part says so. If the commit itself fails — git identity
+never configured, a hook in the brain — the close does not abort or bypass anything: it says so and
+what would have been committed shows up uncommitted, same as an edit from another session.

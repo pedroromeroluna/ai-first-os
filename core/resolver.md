@@ -17,6 +17,6 @@ from the brain: the operator's rows go in `resolver.md`, at the root of the brai
 | Audit the routing of the root | `check-resolvable` | `.os/core/skills/check-resolvable.md` |
 | Capture something on the fly | `capture` | `.os/core/skills/capture.md` |
 | Close the session without losing anything | `close-session` | `.os/core/skills/close-session.md` |
-| Mount a repo as the body of a node | `mount-repo` | `.os/core/skills/mount-repo.md` |
+| Mount a repo as the body of a node, or give birth to it if it does not exist yet | `mount-repo` | `.os/core/skills/mount-repo.md` |
 | Pressure the facts before a decision closes | `grill` | `.os/core/skills/grill.md` |
 | Write a new spec | `new-spec` | `.os/core/skills/new-spec.md` |

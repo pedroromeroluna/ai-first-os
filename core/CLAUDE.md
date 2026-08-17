@@ -19,7 +19,8 @@ Before answering the first message, in this order:
    .os/core/lib/session-start.sh --brain . --root
    ```
 
-   If it exits non-zero, the organization does not exist: show the slugs it listed and ask.
+   If it exits non-zero, the organization does not exist: show the slugs it listed and ask — or the
+   installation is broken (its bilingual catalog is missing), and the error message says which.
 
 2. Read in this order:
    1. `operator.md` — who the operator is and how to answer them — and `voice.md` — their voice.
@@ -33,11 +34,17 @@ Before answering the first message, in this order:
       and nothing is missing. This is the only place the reading order is written down.
    5. `resolver.md` — the operator's root resolver. Its rows win over the product's and over any
       pack's when they cover the same capability.
-   6. If the scan printed a line `rol activo: <slug> · <path>`, read that path — it is the standing
+   6. If the scan printed a line `active-role: <slug> · <path>`, read that path — it is the standing
       role's craft file, activated by the node's `role:`. Without that line, there is no craft file
       to read. With the root as scope it never appears: the operator declares no `role:`.
 
 If any of them is missing, say so and continue degraded. Its content is never assumed.
+
+English is the source language of every new component of the system; Spanish exists as a
+translation for what a person reads. The rule is written once, at the top of the product's
+`CLAUDE.md`, and this file references it by path instead of repeating it: `.os/core/../CLAUDE.md`
+from the brain (`.os/core` is a symlink to the product's `core/`, so `..` reaches the product's own
+root, which is where its `CLAUDE.md` lives — the product's root is never mounted on its own).
 
 **The scan output is the state.** It is shown exactly as it came out —four sections, always the
 four— and it is not recomputed, nor completed with inferences, nor summarized. Above it goes **one**
@@ -61,12 +68,25 @@ never on its main branch and never with a push → **Gate 2** a person reads the
 The brain session **supervises without changing folders**: it delegates to the agent over the
 mounted repo and keeps reading the result from here.
 
+**Every implementing agent works in its own git worktree of the mounted repo, one worktree per
+agent, never in the shared checkout.** Two agents sharing a checkout is a collision waiting to
+happen — the same edit window, no signal for either that the other exists.
+
+**Before resuming or reinstructing an agent, the brain checks which agents are still alive.** A
+clean tree and a "done" notification are not proof that nothing is running: a just-spawned child has
+not written yet. List the live agents before acting on either signal.
+
+**An agent that reports "another agent is implementing" delegated its own work — that is the bug,
+not a status update.** The fix is to stop the child, not to launch a second implementer. Reinstructing
+the parent with "do it yourself" while an unseen child is still writing is how two agents end up in
+the same tree at once.
+
 Which agent a spec belongs to is decided by its state:
 
 | State of the spec | Agent |
 |---|---|
-| Every criterion has its eval, no open decision | `spec-completa` |
-| Unknowns, open decisions, or design-first | `spec-ambigua` |
+| Every criterion has its eval, no open decision | `complete-spec` |
+| Unknowns, open decisions, or design-first | `ambiguous-spec` |
 
 A third agent, `scout`, does not implement: it reads sources —code, documentation, another spec—
 and returns a synthesis. It is used before writing the spec, never to touch a repo.

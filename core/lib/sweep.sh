@@ -55,6 +55,10 @@ done
 [ -d "$brain" ] || os_die "no existe el brain: $brain"
 brain=$(cd "$brain" && pwd)
 
+# Only the Checks title and its empty message go through the catalog (spec 033), reusing
+# `session-start.sh`'s keys — the rest of this sweep stays in Spanish: the spec did not ask for it.
+os_lang_load "$(os_language "$brain")" > /dev/null 2>&1
+
 case "$mode" in
   pending|blocked|roadmap) ;;
   *) os_die "modo desconocido: $mode — pending, blocked o roadmap" ;;
@@ -349,9 +353,9 @@ else
   printf '%s' "$sin_clasificar"
 fi
 
-printf '\nChequeos\n'
+printf '\n%s\n' "$S_SESSION_CHECKS_TITLE"
 if [ -z "$s_chequeos" ]; then
-  printf '  sin hallazgos\n'
+  printf '  %s\n' "$S_SESSION_CHECKS_EMPTY"
 else
   printf '%s' "$s_chequeos"
 fi

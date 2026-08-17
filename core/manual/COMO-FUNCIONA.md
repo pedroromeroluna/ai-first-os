@@ -89,7 +89,7 @@ invocar cualquiera por su nombre.
 - **`check-resolvable`** — Audita el grafo capacidad → herramienta de la raíz y reporta las tres fallas que puede tener — una herramienta que nadie rutea, un handoff que ninguna fila provee y una fila que apunta a una herramienta que no existe.
 - **`close-session`** — Cierra la sesión repartiendo lo que produjo —decisiones, aprendizajes, pendientes, lo que quedó esperando, por dónde retomar— en los archivos canónicos del nodo cargado, y termina con un veredicto de cuatro partes que nombra lo que no se capturó.
 - **`grill`** — Presiona los hechos detrás de una afirmación antes de que una decisión cierre — contrapregunta con un ejemplo concreto, intentos acotados, escape hatches, jerarquía de evidencia — y rutea lo que salga a las decisiones o al backlog del nodo cargado.
-- **`mount-repo`** — Le da cuerpo a una iniciativa: escribe el remote en el frontmatter de la cabeza, clona el checkout afuera del brain y registra la fila remote → ruta local en la tabla del entorno de la máquina.
+- **`mount-repo`** — Le da cuerpo a una iniciativa: escribe el remote en el frontmatter de la cabeza, clona el checkout afuera del brain —o, con --new, hace nacer el repo desde la plantilla del producto cuando todavía no existe— y registra la fila remote → ruta local en la tabla del entorno de la máquina.
 - **`new-org`** — Suma una organización a un brain que ya existe.
 - **`new-spec`** — Convierte en una spec el trabajo de construcción concreto que salió de una conversación, adentro de specs/ del repo destino, con evals ejecutables por criterio, las decisiones separadas por quién las cierra y los efectos que escapan del sistema declarados.
 - **`sweep`** — Corre uno de los tres barridos globales sobre todas las organizaciones más el trabajo propio de la raíz — qué hay pendiente, qué está trabado y por qué, o cómo va el roadmap — leyendo solo frontmatter.
@@ -117,8 +117,8 @@ queda al timón — nunca se muda de carpeta ni pierde tu contexto.
 
 - **`scout`** — lee fuentes (código, documentación, otra spec) y vuelve con una síntesis. No escribe
   nada: las herramientas con las que corre no le permiten tocar un archivo.
-- **`spec-completa`** — implementa una spec donde cada criterio tiene su chequeo ejecutable.
-- **`spec-ambigua`** — implementa una spec con decisiones abiertas, donde hace falta juicio.
+- **`complete-spec`** — implementa una spec donde cada criterio tiene su chequeo ejecutable.
+- **`ambiguous-spec`** — implementa una spec con decisiones abiertas, donde hace falta juicio.
 
 El patrón de supervisión tiene **dos gates humanos y un tramo autónomo en el medio**: una persona
 aprueba la spec (**gate 1**) → el agente la implementa en una rama, nunca sobre la rama principal y
@@ -135,8 +135,9 @@ construye.
 Cuando eso pasa, se despiertan dos capacidades:
 
 - **`mount-repo`** — le da cuerpo a una iniciativa: apunta la cabeza al repositorio de código, deja
-  el checkout afuera de tu carpeta y registra dónde quedó en esta máquina. A partir de ahí, esa
-  iniciativa tiene dónde construirse.
+  el checkout afuera de tu carpeta y registra dónde quedó en esta máquina. Si el repositorio todavía
+  no existe, el mismo comando lo hace nacer —con su constitución, sus carpetas y su primer commit— y
+  te deja el comando para crear el remoto. A partir de ahí, esa iniciativa tiene dónde construirse.
 - **`new-spec`** — convierte en spec el trabajo de construcción que salió de una conversación: qué
   tiene que ser cierto, cómo se verifica cada criterio, qué decisiones ya están cerradas y cuáles
   siguen abiertas con quién las cierra. Esa spec es lo que después implementa un agente, con los dos
