@@ -103,3 +103,10 @@ in the product's root resolver.
   and then requested.
 - **Whatever the AI writes is marked**: 📌 literal with `file:line` · 🔍 inference · ❓ gap.
 - **Whatever is missing is recorded as open, with who closes it.** It is never invented.
+- **The brain works on `main` and commits as it goes.** Every file created or edited in the brain
+  during a session —a draft, a sketch, a note— is committed and pushed in the same turn it appears;
+  nothing of the brain's own work waits for the close to be committed, and no draft is added to
+  `.gitignore` to hide it. This is not development work: it goes through no review, so a branch or
+  an uncommitted file adds nothing but confusion. **It applies to the brain only.** A mounted repo
+  is code, and code follows the pattern above: a branch per spec, no push, a person merges. What
+  the close finds uncommitted is another session's work in progress and is left alone.
