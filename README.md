@@ -85,27 +85,45 @@ installed, it stops on its own with a message before writing anything.
 
 ## Layout
 
-The repository is the chassis. Everything under `core/` is what `install.sh` hooks into your brain
-by symlink; nothing here is copied, so an update to the folder is an update to every brain that
-points at it.
+This is what the install leaves you with once the interview is answered: a folder —your brain—
+versioned with git, that every session opens by scanning. Everything in it is a plain text file
+you can read in any editor. The tools are not copied in: they are symlinks to the repository you
+brought down, so an update refreshes every brain that points at it.
 
 ```
-ai-first-os/
-├── README.md
-├── LICENSE
-└── core/                        # The chassis: what install.sh hooks into a brain by symlink
-    ├── CLAUDE.md                # Session contract — becomes the brain's CLAUDE.md
-    ├── resolver.md              # Root resolver of the product: capability → tool
-    ├── install.sh               # Hooks core/ into a brain: CLAUDE.md, .os/core, one link per agent in .claude/agents/
-    ├── agents/                  # The three delegation subagents: complete-spec, ambiguous-spec, scout
-    ├── skills/                  # The nine workflow skills, one file each (bootstrap, new-org, sweep, …)
-    ├── lib/                     # The shell behind the skills: session-start.sh, bootstrap.sh, capture.sh, mount-repo.sh, …
-    ├── manual/                  # HOW-IT-WORKS.md / COMO-FUNCIONA.md — the user manual linked into every brain
-    └── templates/               # What bootstrap and new-org write: operator.md, voice.md, tree.md, node folders, repo scaffold, strings.md (one translation per string)
+my-brain/
+├── CLAUDE.md                    # Symlink to the session contract: what the agent does at every start
+├── HOW-IT-WORKS.md              # The user manual, symlinked in your language (COMO-FUNCIONA.md in Spanish)
+├── operator.md                  # Who you are and how you want to be answered — written by the interview
+├── voice.md                     # How you write, so what the agent drafts in your name sounds like you
+├── resolver.md                  # Your root resolver: capability → tool; its rows win over the product's
+├── tree.md                      # Which paths a scan walks — a level of the system is a line here
+├── backlog.md                   # Your own tasks, one line each, in priority order (born on first capture)
+├── inbox.md                     # Transit for what could not be filed yet — never a destination
+├── mounts.md                    # Which repos are mounted onto which initiatives (born on first mount-repo)
+├── decisions.md                 # Your own decisions: what, why, and what would invalidate them
+├── learnings.md                 # Live: updated or deleted, never archived
+├── initiatives/                 # Your own initiatives, one file each, with status/horizon/owner up top
+├── orgs/                        # One folder per organization — the isolation boundary
+│   └── <org>/
+│       ├── context.md           # Its identity, and the `role:` it activates (cpo, cto)
+│       ├── resolver.md          # Where whatever gets written in this organization goes
+│       ├── backlog.md           # Its tasks
+│       ├── decisions.md         # Its decisions
+│       ├── learnings.md         # Its learnings
+│       └── initiatives/         # Its initiatives; a repo mounted on one gives it a folder
+├── .os/
+│   ├── core -> …/ai-first-os/core        # The chassis, by symlink
+│   └── packs/<pack> -> …                 # Each installed pack, by symlink
+└── .claude/
+    ├── agents/                  # complete-spec, ambiguous-spec, scout — one symlink each
+    └── skills/                  # The pack's skills, left here by `npx skills add`
 ```
 
-The pack is not here: it lives in its own repository (`pedroromeroluna/ai-first-product-skills`) and is installed as a set of
-skills, see below.
+The interview writes `operator.md`, `voice.md`, `resolver.md`, `tree.md` and one `orgs/<slug>/`
+per organization you named. The rest is born the first time it is needed: `backlog.md` on the
+first capture, `mounts.md` on the first mounted repo, `decisions.md` and `learnings.md` when there
+is something to record.
 
 ## The catalog
 
