@@ -83,6 +83,30 @@ Your brain —your organizations, your decisions, your content— is not touched
 refreshes the tools. And if the installer were run by mistake through the hook that is already
 installed, it stops on its own with a message before writing anything.
 
+## Layout
+
+The repository is the chassis. Everything under `core/` is what `install.sh` hooks into your brain
+by symlink; nothing here is copied, so an update to the folder is an update to every brain that
+points at it.
+
+```
+ai-first-os/
+├── README.md
+├── LICENSE
+└── core/                        # The chassis: what install.sh hooks into a brain by symlink
+    ├── CLAUDE.md                # Session contract — becomes the brain's CLAUDE.md
+    ├── resolver.md              # Root resolver of the product: capability → tool
+    ├── install.sh               # Hooks core/ into a brain: CLAUDE.md, .os/core, one link per agent in .claude/agents/
+    ├── agents/                  # The three delegation subagents: complete-spec, ambiguous-spec, scout
+    ├── skills/                  # The nine workflow skills, one file each (bootstrap, new-org, sweep, …)
+    ├── lib/                     # The shell behind the skills: session-start.sh, bootstrap.sh, capture.sh, mount-repo.sh, …
+    ├── manual/                  # HOW-IT-WORKS.md / COMO-FUNCIONA.md — the user manual linked into every brain
+    └── templates/               # What bootstrap and new-org write: operator.md, voice.md, tree.md, node folders, repo scaffold, strings.md (one translation per string)
+```
+
+The pack is not here: it lives in its own repository (`pedroromeroluna/ai-first-product-skills`) and is installed as a set of
+skills, see below.
+
 ## The catalog
 
 Nine skills come with the system itself, in two families. **Workflow skills** run a process and
@@ -106,14 +130,18 @@ context.
 
 ### Knowledge skills
 
-None of them travels with the system: a standing craft belongs to the pack that carries it. The one
-that exists today is `cpo`, in the pack below.
+None of them travels with the system: a standing craft belongs to the pack that carries it. Two
+exist today, both in the pack below: `cpo`, the standing craft of a Chief Product Officer, and
+`cto`, the standing craft of a Chief Technology Officer, written for a builder who directs an agent
+but cannot read a diff. `cto` never opines on models, prices or capabilities from memory: it
+verifies the state of the art live before answering, so it stays current with the latest in AI
+without anyone editing the file.
 
 ## The Product Builder pack
 
 The craft of building product —discovery from a vague problem to the strategic layer, the metric
-brief, the pressure interview, the standing craft of a CPO— is published as its own set of skills,
-in the Agent Skills format that any harness reading that standard can install:
+brief, the pressure interview, the standing crafts of a CPO and a CTO— is published as its own set
+of skills, in the Agent Skills format that any harness reading that standard can install:
 
 ```
 npx skills add pedroromeroluna/ai-first-product-skills
