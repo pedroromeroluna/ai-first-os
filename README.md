@@ -5,7 +5,7 @@ level: every session opens with a scan of your work, you capture whatever comes 
 close the session with a verdict of what got done and what is missing, you mount a repo onto an
 initiative, you get interviewed to write specs ready to delegate. The craft on top —discovery, the
 metric brief, the interview that writes a product's strategic layer— travels in packs, each one
-published as its own set of skills: see **The Product Builder pack** below.
+published as its own set of skills: see **The AI First Product Skills pack** below.
 
 The skills are written in English. The deliverables come out in the language you work in.
 
@@ -55,7 +55,7 @@ and the nine skills of the system, hooked in by symlink. Nothing is downloaded f
 nothing asks you to confirm an install in the middle.
 
 **The pack comes at the end, as a question with two answers.** With the brain already built, the
-agent offers the Product Builder pack —the craft on top— and you take it now or later. Now: it needs
+agent offers the AI First Product Skills pack —the craft on top— and you take it now or later. Now: it needs
 Node, and the download asks you to confirm once. Later: the exact command stays as a task in your
 backlog, and any session runs it the day you want it. Either way the system is already yours.
 
@@ -155,7 +155,7 @@ but cannot read a diff. `cto` never opines on models, prices or capabilities fro
 verifies the state of the art live before answering, so it stays current with the latest in AI
 without anyone editing the file.
 
-## The Product Builder pack
+## The AI First Product Skills pack
 
 The craft of building product —discovery from a vague problem to the strategic layer, the metric
 brief, the pressure interview, the standing crafts of a CPO and a CTO— is published as its own set
