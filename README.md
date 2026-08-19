@@ -113,7 +113,7 @@ my-brain/
 │       ├── learnings.md         # Its learnings
 │       └── initiatives/         # Its initiatives; a repo mounted on one gives it a folder
 ├── .os/
-│   ├── core -> …/ai-first-os/core        # The chassis, by symlink
+│   ├── core -> …/ai-first-os/core        # The chassis by symlink: the nine system skills in core/skills/, the shell in core/lib/
 │   └── packs/<pack> -> …                 # Each installed pack, by symlink
 └── .claude/
     ├── agents/                  # complete-spec, ambiguous-spec, scout — one symlink each
@@ -124,6 +124,13 @@ The interview writes `operator.md`, `voice.md`, `resolver.md`, `tree.md` and one
 per organization you named. The rest is born the first time it is needed: `backlog.md` on the
 first capture, `mounts.md` on the first mounted repo, `decisions.md` and `learnings.md` when there
 is something to record.
+
+**Where the skills live.** The nine skills of the system are not copied into your brain: they live
+in `.os/core/skills/`, a symlink to the `core/` of the repository you brought down, and the agent
+reaches them through the resolver. The skills of the pack are what `npx skills add` installs: one
+folder per skill under `.claude/skills/<name>/SKILL.md` — the place your harness reads skills from,
+which is why they show up as `/cpo`, `/prd` and so on — plus `product-builder-resolver`, the pack's
+index. Your own skills, if you write any, go next to them as plain folders in `.claude/skills/`.
 
 ## The catalog
 

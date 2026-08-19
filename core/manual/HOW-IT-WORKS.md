@@ -67,6 +67,12 @@ The tools —skills, scripts, agents— live in `.os/` and `.claude/`. Those two
 Obsidian and visible from the terminal, and they are **links** to the installed product: updating
 the system never touches your data, and your data never travels inside the product.
 
+**Where the skills live**, since it is the first thing everyone asks: the nine skills of the
+system are in `.os/core/skills/`, one file each, reached through the resolver — not copied into
+this folder, linked to the product. The skills of a pack are in `.claude/skills/<name>/SKILL.md`,
+one folder per skill, which is where your harness reads skills from and why they answer to their
+name. Any skill you write yourself goes next to them, as a plain folder in `.claude/skills/`.
+
 To update, ask any session: **"update the system"**. That sentence is all you need, and it covers
 both halves of what is installed — the system and the packs. What it does step by step is written
 once, in the `README.md` of the product's folder under **Update**; this manual points at it instead

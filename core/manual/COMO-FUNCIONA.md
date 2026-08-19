@@ -65,6 +65,13 @@ Las herramientas —skills, scripts, agentes— viven en `.os/` y `.claude/`. Es
 ocultas en Obsidian y se ven desde la terminal, y son **enlaces** al producto instalado: actualizar
 el sistema no toca tus datos, y tus datos nunca viajan adentro del producto.
 
+**Dónde viven los skills**, porque es lo primero que todo el mundo pregunta: los nueve skills del
+sistema están en `.os/core/skills/`, un archivo cada uno, y se llega a ellos por el resolver — no
+están copiados en esta carpeta, están enlazados al producto. Los skills de un pack están en
+`.claude/skills/<nombre>/SKILL.md`, una carpeta por skill, que es de donde tu harness lee los skills
+y por eso responden a su nombre. Cualquier skill que escribas vos va al lado, como carpeta común en
+`.claude/skills/`.
+
 Para actualizar, pedile a cualquier sesión: **"actualizá el sistema"**. Con esa frase alcanza, y
 cubre las dos mitades de lo que está instalado — el sistema y los packs. Qué hace paso a paso está
 escrito una sola vez, en el `README.md` de la carpeta del producto bajo **Update**; este manual
