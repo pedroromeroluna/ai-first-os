@@ -210,6 +210,10 @@ key: SESSION_CHECK_MISSING_FILE
 en: missing %s
 es: falta %s
 
+key: SESSION_READ_MISSING
+en: missing: %s
+es: falta: %s
+
 key: SESSION_IDENTITY_DIAG
 en: identity %s/%s · resolver %s rows
 es: identidad %s/%s · resolver %s filas
