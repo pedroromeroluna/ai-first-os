@@ -297,6 +297,19 @@ else
   if [ "$ident" -gt "$OS_IDENTITY_CAP" ]; then
     push_espera "$(printf "$S_SESSION_WAITING_IDENTITY_OVER" "orgs/$org/context.md" "$diagnostico")"
   fi
+
+  # La identidad de cada producto de la organización entra al mismo chequeo (spec 036): un producto
+  # es memoria y su cabeza puede crecer igual que la de la organización. Mismo mecanismo
+  # (contar_lineas + OS_IDENTITY_CAP), una línea por producto que lo pasa, nada si ninguno lo pasa —
+  # sin resolver propio que reportar acá, misma forma que operator.md usa abajo.
+  for prod_ctx in "$brain/orgs/$org/products/"*/context.md; do
+    [ -f "$prod_ctx" ] || continue
+    ident_prod=$(contar_lineas "$prod_ctx")
+    if [ "$ident_prod" -gt "$OS_IDENTITY_CAP" ]; then
+      push_espera "$(printf "$S_SESSION_WAITING_IDENTITY_OVER" "${prod_ctx#$brain/}" \
+        "$(printf "$S_SESSION_IDENTITY_SIMPLE" "$ident_prod" "$OS_IDENTITY_CAP")")"
+    fi
+  done
 fi
 
 ident_op=$(contar_lineas "$brain/operator.md")
@@ -366,9 +379,19 @@ while IFS="$sep" read -r raiz f || [ -n "$raiz" ]; do
   fi
   base=$(basename "$f")
   propio=0
-  for p in $propios; do
-    [ "$base" = "$p" ] && propio=1
-  done
+  if [ "$root" = "1" ]; then
+    for p in $propios; do [ "$base" = "$p" ] && propio=1; done
+  else
+    # El nombre propio solo cuenta a la altura directa de la organización: un archivo debajo de una
+    # subcarpeta (`products/<slug>/context.md`) puede compartir basename con un canónico de la
+    # organización sin serlo — comparar solo por basename lo excluía del conteo de nodos aunque el
+    # árbol lo alcance con su propio `glob:` (Q-12 del nodo de producto).
+    resto="${f#orgs/$org/}"
+    case "$resto" in
+      */*) ;;
+      *) for p in $propios; do [ "$resto" = "$p" ] && propio=1; done ;;
+    esac
+  fi
   [ "$propio" = "1" ] && continue
   cabezas="$cabezas$raiz$sep$f$nl"
 done <<TREE
@@ -393,6 +416,15 @@ while IFS="$sep" read -r raiz f || [ -n "$raiz" ]; do
   fm_read "$raiz/$f"
   base=$(basename "$f")
   nombre="${base%.md}"
+
+  # Un nodo de producto es memoria, no estado (spec 036): ya sumó al conteo de nodos con
+  # `marcar_leido` de arriba, pero no entra a ninguna de las cuatro secciones. No tiene
+  # `status`/`horizon` que reportar, y tratarlo como "sin status" sería ruido fijo en cada arranque,
+  # nunca un hallazgo real.
+  case "$f" in
+    orgs/*/products/*/context.md|orgs/*/products/*/resolver.md|orgs/*/products/*/decisions.md)
+      continue ;;
+  esac
 
   # Lo que no se pudo clasificar se declara. Un barrido incompleto presentado como completo es peor
   # que uno latente: el operador confía de más y nada le avisa.

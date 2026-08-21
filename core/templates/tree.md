@@ -28,6 +28,9 @@ glob: orgs/*/backlog.md
 glob: orgs/*/decisions.md
 glob: orgs/*/learnings.md
 glob: orgs/*/initiatives/*.md
+glob: orgs/*/products/*/context.md
+glob: orgs/*/products/*/resolver.md
+glob: orgs/*/products/*/decisions.md
 
 content: {{MANUAL}}
 content: voice.md

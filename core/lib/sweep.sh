@@ -160,9 +160,14 @@ while IFS= read -r linea || [ -n "$linea" ]; do
       esac
       org="${resto%%/*}"
       propio=0
-      for p in $OS_ORG_PROPIOS; do
-        [ "$base" = "$p" ] && propio=1
-      done
+      # Mismo criterio que `session-start.sh`: el nombre propio solo cuenta a la altura directa de
+      # la organización — una subcarpeta (`products/<slug>/context.md`) puede compartir basename con
+      # un canónico sin serlo (Q-12 del nodo de producto).
+      resto2="${resto#$org/}"
+      case "$resto2" in
+        */*) ;;
+        *) for p in $OS_ORG_PROPIOS; do [ "$resto2" = "$p" ] && propio=1; done ;;
+      esac
       [ "$propio" = "1" ] && continue
       ;;
     *)
@@ -179,6 +184,13 @@ while IFS= read -r linea || [ -n "$linea" ]; do
   nombre="${base%.md}"
   fm_read "$raiz/$f"
   leidos=$(( leidos + 1 ))
+  # Un nodo de producto es memoria, no estado (spec 036): cuenta para el total de nodos —ya sumado
+  # arriba— pero no entra a ninguna clasificación. No tiene `status`/`horizon` que reportar, y
+  # tratarlo como "sin status" sería ruido fijo en cada corrida, nunca un hallazgo real.
+  case "$f" in
+    orgs/*/products/*/context.md|orgs/*/products/*/resolver.md|orgs/*/products/*/decisions.md)
+      continue ;;
+  esac
   registros="$registros$org$sep$nombre$sep$fm_status$sep$fm_horizon$sep$fm_waiting_on$sep$fm_blocked$sep$fm_depends_on$sep$fm_roto$nl"
   [ -n "$fm_roto" ] || indice="$indice$org#$nombre=$fm_status$nl"
 done <<RECORRIDO

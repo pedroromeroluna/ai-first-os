@@ -51,7 +51,7 @@ You do not have to do anything else. The agent brings the repository down, inter
 up the tools; you only answer the interview.
 
 That is the full install: the session contract, the two resolvers, the three delegation subagents
-and the nine skills of the system, hooked in by symlink. Nothing is downloaded from a registry and
+and the ten skills of the system, hooked in by symlink. Nothing is downloaded from a registry and
 nothing asks you to confirm an install in the middle.
 
 **The pack comes at the end, as a question with two answers.** With the brain already built, the
@@ -59,7 +59,7 @@ agent offers the AI First Product Skills pack —the craft on top— and you tak
 Node, and the download asks you to confirm once. Later: the exact command stays as a task in your
 backlog, and any session runs it the day you want it. Either way the system is already yours.
 
-The nine of the system are not published one at a time, and that is on purpose: each of them writes
+The ten of the system are not published one at a time, and that is on purpose: each of them writes
 into a brain, so on its own —without the session contract, the resolver and the tree of paths— it
 has nowhere to write. What you can try one at a time is a pack.
 
@@ -111,9 +111,11 @@ my-brain/
 │       ├── backlog.md           # Its tasks
 │       ├── decisions.md         # Its decisions
 │       ├── learnings.md         # Its learnings
-│       └── initiatives/         # Its initiatives; a repo mounted on one gives it a folder
+│       ├── initiatives/         # Its initiatives; a repo mounted on one gives it a folder
+│       └── products/<slug>/     # What it is, for whom, what is known — memory, not state
+│           └── context.md       # Born with `new-product`; `context/` (its strategic layer) is filled by `prd`
 ├── .os/
-│   ├── core -> …/ai-first-os/core        # The chassis by symlink: the nine system skills in core/skills/, the shell in core/lib/
+│   ├── core -> …/ai-first-os/core        # The chassis by symlink: the ten system skills in core/skills/, the shell in core/lib/
 │   └── packs/<pack> -> …                 # Each installed pack, by symlink
 └── .claude/
     ├── agents/                  # complete-spec, ambiguous-spec, scout — one symlink each
@@ -125,7 +127,7 @@ per organization you named. The rest is born the first time it is needed: `backl
 first capture, `mounts.md` on the first mounted repo, `decisions.md` and `learnings.md` when there
 is something to record.
 
-**Where the skills live.** The nine skills of the system are not copied into your brain: they live
+**Where the skills live.** The ten skills of the system are not copied into your brain: they live
 in `.os/core/skills/`, a symlink to the `core/` of the repository you brought down, and the agent
 reaches them through the resolver. The skills of the pack are what `npx skills add` installs: one
 folder per skill under `.claude/skills/<name>/SKILL.md` — the place your harness reads skills from,
@@ -134,7 +136,7 @@ index. Your own skills, if you write any, go next to them as plain folders in `.
 
 ## The catalog
 
-Nine skills come with the system itself, in two families. **Workflow skills** run a process and
+Ten skills come with the system itself, in two families. **Workflow skills** run a process and
 leave a deliverable: they are triggered manually, by name — the index is the resolver, never
 automatic activation. **Knowledge skills** carry a method or a standing craft and are loaded as
 context.
@@ -145,6 +147,7 @@ context.
 |---|---|
 | `bootstrap` | Creates the brain from scratch: identity, voice, root resolver, the tree of paths a scan walks, one folder per organization |
 | `new-org` | Adds an organization — the isolation boundary — with its identity, its resolver and its initiatives |
+| `new-product` | Adds a product to an organization — memory: what it is, for whom, what is known — with its identity |
 | `sweep` | The three global scans: what is pending, what is blocked and why, how the roadmap is going |
 | `check-resolvable` | Audits the capability-to-tool graph and reports dark tools, broken links and rows pointing nowhere |
 | `capture` | Files what you throw in mid-conversation into the right backlog, without opening a discussion |

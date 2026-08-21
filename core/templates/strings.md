@@ -71,6 +71,10 @@ key: ORG_IDENTITY_PLACEHOLDER
 en: What it is, for whom, and how it makes money. Three or four lines.
 es: Qué es, para quién y cómo gana plata. Tres o cuatro líneas.
 
+key: PRODUCT_IDENTITY_PLACEHOLDER
+en: What it is and who it is for. Two or three lines.
+es: Qué es y para quién. Dos o tres líneas.
+
 key: RESOLVER_TITLE_HEAD
 en: Resolver of
 es: Resolver de

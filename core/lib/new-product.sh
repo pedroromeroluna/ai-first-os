@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+# Deterministic half of `new-product`: writes the head of a product node.
+# The interview is conducted by core/skills/new-product.md. Internal: not invocable.
+#
+# Usage: new-product.sh --brain DIR --org SLUG --name NAME --owner PERSON
+#                       [--slug SLUG] [--identity-file FILE]
+#
+# A product node is memory — what it is, for whom, what is known — never state: it never gets
+# `role:` (that activates an oficio per organization, spec 009) and never `repo:` (mount-repo writes
+# that once a body exists, and mount-repo mounts onto an initiative, never onto a product). Only the
+# head is born here: `context/`, `resolver.md` and `decisions.md` are born with their first piece of
+# data, same as every other canonical file in this product.
+
+set -eu
+
+here=$(cd "$(dirname "$0")" && pwd)
+. "$here/common.sh"
+
+brain=""
+org=""
+name=""
+owner=""
+slug=""
+identity_file=""
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --brain) brain="$2"; shift 2 ;;
+    --org) org="$2"; shift 2 ;;
+    --name) name="$2"; shift 2 ;;
+    --owner) owner="$2"; shift 2 ;;
+    --slug) slug="$2"; shift 2 ;;
+    --identity-file) identity_file="$2"; shift 2 ;;
+    *) os_die "argumento desconocido: $1" ;;
+  esac
+done
+
+[ -n "$brain" ] || os_die "falta --brain"
+[ -n "$org" ] || os_die "falta --org"
+[ -n "$name" ] || os_die "falta --name"
+[ -n "$owner" ] || os_die "falta --owner"
+[ -d "$brain" ] || os_die "no existe el brain: $brain"
+
+# El idioma es dato de la raíz (spec 021): lo declara `operator.md` y no se vuelve a preguntar.
+language=$(os_language "$brain")
+os_lang_load "$language"
+
+# El ámbito se valida contra el listado real de `orgs/`, byte a byte — mismo criterio que
+# `session-start.sh` (spec 002/003): sin la organización, el comando no escribe nada y lista las
+# que hay, con el mismo par de claves del catálogo que ya usa el arranque de sesión.
+if ! os_org_existe "$brain" "$org"; then
+  printf "$S_SESSION_ORG_NOT_FOUND\n" "$org" >&2
+  found=0
+  while IFS= read -r s || [ -n "$s" ]; do
+    [ -n "$s" ] || continue
+    found=1
+    printf '  %s\n' "$s" >&2
+  done <<SLUGS
+$(os_org_slugs "$brain")
+SLUGS
+  [ "$found" = "1" ] || printf '  %s\n' "$S_SESSION_NO_ORGS" >&2
+  exit 2
+fi
+
+[ -n "$slug" ] || slug=$(os_slugify "$name")
+[ -n "$slug" ] || os_die "el nombre no produce un slug utilizable: $name"
+
+dir="$brain/orgs/$org/products/$slug"
+if [ -e "$dir" ]; then
+  os_die "ya existe: orgs/$org/products/$slug"
+fi
+
+identity="$S_PRODUCT_IDENTITY_PLACEHOLDER"
+if [ -n "$identity_file" ]; then
+  [ -f "$identity_file" ] || os_die "no existe el archivo de identidad: $identity_file"
+  identity=$(cat "$identity_file")
+fi
+
+templates="$here/../templates/node-product"
+today=$(date +%Y-%m-%d)
+
+mkdir -p "$dir"
+os_render_lang "$templates/context.md" "$language" \
+  "NAME=$name" "OWNER=$owner" "DATE=$today" "IDENTITY=$identity" \
+  > "$dir/context.md"
+
+os_check_identity_cap "$dir/context.md"
+
+# Los tres globs del nivel llegan de fábrica en `core/templates/tree.md`; acá se agregan a un brain
+# que ya existía antes de esta spec, sin duplicar (mismo patrón que `capture.sh`/`close-session.sh`
+# con los archivos que nacen con su primer dato).
+os_tree_ensure "$brain" "orgs/*/products/*/context.md" || true
+os_tree_ensure "$brain" "orgs/*/products/*/resolver.md" || true
+os_tree_ensure "$brain" "orgs/*/products/*/decisions.md" || true
+
+printf 'orgs/%s/products/%s — context.md\n' "$org" "$slug"

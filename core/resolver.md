@@ -11,6 +11,7 @@ from the brain: the operator's rows go in `resolver.md`, at the root of the brai
 | Leave the system manual linked at the root of the brain | `manual-link.sh` | `.os/core/lib/manual-link.sh` |
 | Install the Product Builder pack | `pack-install.sh` | `.os/core/lib/pack-install.sh` |
 | Add an organization | `new-org` | `.os/core/skills/new-org.md` |
+| Add a product | `new-product` | `.os/core/skills/new-product.md` |
 | See what is pending | `sweep` | `.os/core/skills/sweep.md` |
 | See what is blocked and why | `sweep` | `.os/core/skills/sweep.md` |
 | See how the roadmap is going | `sweep` | `.os/core/skills/sweep.md` |
