@@ -124,6 +124,19 @@ OS_LANGUAGES="en es"
 # La carpeta de esta librería: de acá cuelgan los templates y el catálogo de strings.
 OS_LIB_DIR=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)
 OS_STRINGS_FILE="$OS_LIB_DIR/../templates/strings.md"
+# The product version, one plain line `X.Y.Z` in `core/VERSION` (spec 038). Same resolution as the
+# strings catalog: relative to this library, never to the caller's cwd.
+OS_VERSION_FILE="$OS_LIB_DIR/../VERSION"
+
+# os_version -> the version in `core/VERSION`, empty if the file is not there. An install hooked to
+# an older `core/` has no VERSION file: whoever prints it leaves the version out and keeps going.
+os_version() {
+  local line=""
+  [ -f "$OS_VERSION_FILE" ] || return 0
+  IFS= read -r line < "$OS_VERSION_FILE" || true
+  line="${line%$'\r'}"
+  printf '%s' "$(os_trim "$line")"
+}
 
 # os_language_valido CODIGO -> 0 si el producto sabe escribir en ese idioma.
 os_language_valido() {

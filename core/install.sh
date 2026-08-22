@@ -179,3 +179,49 @@ for agent in "$core"/agents/*.md; do
   [ -f "$agent" ] || continue
   printf '.claude/agents/%s -> %s\n' "$(basename "$agent")" "$agent"
 done
+
+# ---------------------------------------------------------------- la versión que quedó instalada
+# Última línea: el nombre del producto y la versión de `core/VERSION` (spec 038). El texto sale del
+# catálogo (`core/templates/strings.md`, clave `INSTALL_VERSION_LINE`), nunca escrito acá: hasta el
+# rename, el nombre que viaja adentro del producto vive en una clave y cambiarlo es un cambio de
+# catálogo. La lectura es un grep propio, sin `lib/`: el instalador es lo primero que se corre y no
+# puede depender del layout de lo que instala. Sin VERSION o sin la clave, no hay línea.
+catalogo_linea() {
+  local key="$1" lang="$2" file="$core/templates/strings.md" line dentro=0 valor=""
+  [ -f "$file" ] || return 0
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      "key: $key") dentro=1; continue ;;
+      'key: '*) [ "$dentro" = "1" ] && break; continue ;;
+    esac
+    [ "$dentro" = "1" ] || continue
+    case "$line" in
+      "$lang: "*) valor="${line#$lang: }"; break ;;
+      'en: '*) [ -n "$valor" ] || valor="${line#en: }" ;;
+    esac
+  done < "$file"
+  printf '%s' "$valor"
+}
+
+version=""
+[ -f "$core/VERSION" ] && { IFS= read -r version < "$core/VERSION" || true; }
+# Mismo saneo que `os_version` en `lib/common.sh`: un `\r` de fin de línea o un espacio de más en el
+# archivo haría que el instalador imprima una versión y el barrido otra.
+version="${version%$'\r'}"
+while [ "${version# }" != "$version" ]; do version="${version# }"; done
+while [ "${version% }" != "$version" ]; do version="${version% }"; done
+if [ -n "$version" ]; then
+  lang="en"
+  if [ -f "$brain/operator.md" ]; then
+    while IFS= read -r line || [ -n "$line" ]; do
+      case "$line" in
+        'language: '*)
+          case "${line#language: }" in en) lang="en" ;; es) lang="es" ;; esac
+          break
+          ;;
+      esac
+    done < "$brain/operator.md"
+  fi
+  formato=$(catalogo_linea INSTALL_VERSION_LINE "$lang")
+  [ -n "$formato" ] && printf "$formato\n" "$version"
+fi

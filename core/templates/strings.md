@@ -310,6 +310,10 @@ key: SESSION_NODE_COUNT
 en: %s nodes · %s
 es: %s nodos · %s
 
+key: INSTALL_VERSION_LINE
+en: AI First OS v%s
+es: AI First OS v%s
+
 key: FM_NO_FRONTMATTER
 en: no frontmatter
 es: sin frontmatter

@@ -682,5 +682,15 @@ if [ -n "$rol_ruta" ]; then
 fi
 
 t_fin=$(os_now_ms)
-printf "$S_SESSION_NODE_COUNT\n" "$leidos" "$(os_elapsed "$t_inicio" "$t_fin")"
+# The closing line carries the product version as a suffix of the line that already exists, never as
+# a line of its own (spec 038): the output keeps its line count and the ` nodes · ` substring the
+# other specs match on. The suffix is fixed and the same in both languages, like `active-role:`
+# above — it is a structural marker, not translatable prose. With no `core/VERSION` (an install
+# hooked to an older core/), the line comes out exactly as before.
+version=$(os_version)
+if [ -n "$version" ]; then
+  printf "$S_SESSION_NODE_COUNT · v%s\n" "$leidos" "$(os_elapsed "$t_inicio" "$t_fin")" "$version"
+else
+  printf "$S_SESSION_NODE_COUNT\n" "$leidos" "$(os_elapsed "$t_inicio" "$t_fin")"
+fi
 exit 0

@@ -1,5 +1,7 @@
 # AI First OS
 
+Latest version and what changed in it: [Releases](https://github.com/pedroromeroluna/ai-first-os/releases) · [CHANGELOG.md](CHANGELOG.md).
+
 A product operating system for working with agents. One primitive —the node— repeated at every
 level: every session opens with a scan of your work, you capture whatever comes up on the fly, you
 close the session with a verdict of what got done and what is missing, you mount a repo onto an
