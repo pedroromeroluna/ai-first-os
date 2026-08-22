@@ -5,6 +5,22 @@ Every published version of AI First OS, newest first. The format follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html): *major* when an already installed brain
 needs a manual step to keep working, *minor* for a new capability, *patch* for a fix.
 
+## [1.1.0] — 2026-08-22
+
+### Added
+
+- `rename-workspaces`, a command run only at the operator's request: adopts the current name of the
+  workspaces folder on a brain born before this rename, rewriting the prefix everywhere the system
+  reads it as structure or routing and listing what it leaves untouched for review.
+
+### Changed
+
+- The isolation boundary is named **workspace** everywhere the operator reads it — the interview,
+  the manual, the README — replacing "organization". A brain already installed keeps working with
+  no change: the folder name is read from its own tree, never assumed, and the previous name stays
+  valid indefinitely. The command that creates one is now `new-workspace`; `--org` keeps working
+  everywhere, with `--workspace` as its exact synonym.
+
 ## [1.0.0] — 2026-08-21
 
 ### Added
@@ -14,7 +30,7 @@ needs a manual step to keep working, *minor* for a new capability, *patch* for a
 - The session contract: every session opens with a scan of what waits on you, what is in progress
   and what is queued, plus the checks, and with the startup read of the files that give it context.
 - Ten skills of the system, reached through the resolver and never activated on their own:
-  `bootstrap`, `new-org`, `new-product`, `sweep`, `check-resolvable`, `capture`, `close-session`,
+  `bootstrap`, `new-workspace`, `new-product`, `sweep`, `check-resolvable`, `capture`, `close-session`,
   `mount-repo`, `grill` and `new-spec`.
 - Organizations as the isolation boundary, with their own identity, resolver, backlog, decisions,
   learnings, initiatives and products.

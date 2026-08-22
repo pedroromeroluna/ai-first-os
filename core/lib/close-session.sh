@@ -4,12 +4,15 @@
 #
 # Uso: close-session.sh --brain DIR --org SLUG --material ARCHIVO
 #                       [--session-org SLUG] [--load-context]
+#      close-session.sh --brain DIR --workspace SLUG --material ARCHIVO
+#                       [--session-org SLUG] [--load-context]
 #      close-session.sh --brain DIR --root --material ARCHIVO
 #
-# Con `--root` distribuye a los canónicos de la raíz (spec 018) en vez de a los de una organización:
-# `backlog.md`, `decisions.md`, `learnings.md` y `initiatives/<nombre>.md`, todos en la raíz del
-# brain. `--org` y `--root` son excluyentes, y la raíz no exige `--session-org` ni `--load-context` —
-# su identidad (`operator.md`) ya está cargada en cualquier sesión.
+# `--workspace` es sinónimo exacto de `--org` (spec 039). Con `--root` distribuye a los canónicos
+# de la raíz (spec 018) en vez de a los de una organización: `backlog.md`, `decisions.md`,
+# `learnings.md` y `initiatives/<nombre>.md`, todos en la raíz del brain. `--org`/`--workspace` y
+# `--root` son excluyentes, y la raíz no exige `--session-org` ni `--load-context` — su identidad
+# (`operator.md`) ya está cargada en cualquier sesión.
 #
 # Formato del material — una clave por línea, `clave: valor`.
 #
@@ -68,6 +71,7 @@ nl="${nl%x}"
 
 brain=""
 org=""
+workspace=""
 root=0
 material=""
 session_org=""
@@ -77,6 +81,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --brain) brain="${2:-}"; shift 2 ;;
     --org) org="${2:-}"; shift 2 ;;
+    --workspace) workspace="${2:-}"; shift 2 ;;
     --root) root=1; shift ;;
     --material) material="${2:-}"; shift 2 ;;
     --session-org) session_org="${2:-}"; shift 2 ;;
@@ -85,16 +90,27 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+# `--workspace` es sinónimo exacto de `--org` (P3, spec 039).
+if [ -n "$org" ] && [ -n "$workspace" ] && [ "$org" != "$workspace" ]; then
+  os_die "--org y --workspace con valores distintos: $org / $workspace"
+fi
+[ -n "$org" ] || org="$workspace"
+
 [ -n "$brain" ] || os_die "falta --brain"
 if [ "$root" = "1" ]; then
-  [ -z "$org" ] || os_die "--root y --org son excluyentes"
+  [ -z "$org" ] || os_die "--root y --org/--workspace son excluyentes"
 else
-  [ -n "$org" ] || os_die "falta --org o --root"
+  [ -n "$org" ] || os_die "falta --org, --workspace o --root"
 fi
 [ -n "$material" ] || os_die "falta --material"
 [ -d "$brain" ] || os_die "no existe el brain: $brain"
 [ -f "$material" ] || os_die "no existe el material de la sesión: $material"
 brain=$(cd "$brain" && pwd)
+
+# Layout inválido frena acá, antes de cualquier $(...) que arme una ruta con el nombre de la
+# carpeta (P2, spec 039).
+os_ws_check "$brain"
+wsdir=$(os_ws_dir "$brain")
 
 # Only the "old key" note goes through the bilingual catalog (spec 033) — the rest of the verdict
 # stays in Spanish: that is not what this spec asked to translate.
@@ -117,14 +133,14 @@ fi
 # La raíz no tiene este candado: su identidad (`operator.md`) está cargada en cualquier sesión, a
 # cualquier ámbito — no hay `context` cross-nodo que custodiar.
 #
-# `orgprefix` es la única diferencia de ruta entre los dos ámbitos: "orgs/<slug>/" para una
+# `orgprefix` es la única diferencia de ruta entre los dos ámbitos: "<wsdir>/<slug>/" para una
 # organización, vacío para la raíz. Todo lo que sigue arma sus rutas con este prefijo en vez de
 # repetir el condicional en cada canónico.
 if [ "$root" = "1" ]; then
   orgprefix=""
   ambito_nombre="raíz"
 else
-  orgprefix="orgs/$org/"
+  orgprefix="$wsdir/$org/"
   ambito_nombre="$org"
   ctx="${orgprefix}context.md"
   res="${orgprefix}resolver.md"
@@ -197,7 +213,7 @@ declarar_glob() {
 # ---------------------------------------------------------------- los canónicos del nodo
 # Un archivo que solo guarda contenido nace con su primer dato. `decisions` y `learnings` son dos de
 # las cinco preguntas del nodo: en un nodo carpeta, cada una es su archivo. Con `--root` son dos de
-# las cuatro preguntas propias de la raíz (spec 018) — mismo formato, sin `orgs/<slug>/` adelante.
+# las cuatro preguntas propias de la raíz (spec 018) — mismo formato, sin `<wsdir>/<slug>/` adelante.
 nace_canonico() {
   # nace_canonico ARCHIVO TITULO SUBTITULO
   local file="$brain/${orgprefix}$1" glob
@@ -207,7 +223,7 @@ nace_canonico() {
     printf '%s\n\n' "$3"
   } > "$file"
   push_capturado "${orgprefix}$1 nació con su primer dato"
-  if [ "$root" = "1" ]; then glob="$1"; else glob="orgs/*/$1"; fi
+  if [ "$root" = "1" ]; then glob="$1"; else glob="$wsdir/*/$1"; fi
   declarar_glob "$glob"
   return 0
 }
@@ -359,7 +375,7 @@ CAMPOS
       if [ "$rc" = "0" ]; then
         detalle=$(os_trim "$(printf '%s\n' "$salida" | grep 'backlog.md — ' | head -1)")
         push_capturado "pendiente → $detalle"
-        if [ "$root" = "1" ]; then marcar_escrito "backlog.md"; else marcar_escrito "orgs/$org/backlog.md"; fi
+        if [ "$root" = "1" ]; then marcar_escrito "backlog.md"; else marcar_escrito "$wsdir/$org/backlog.md"; fi
       else
         push_no_capturado "pendiente no archivado: $texto"
       fi
@@ -455,7 +471,7 @@ if [ -n "$puntero" ]; then
     glob="backlog.md"
   else
     os_backlog_asegurar "$brain" "$org" || nacio=1
-    glob="orgs/*/backlog.md"
+    glob="$wsdir/*/backlog.md"
   fi
   backlog="$brain/${orgprefix}backlog.md"
   tmp="$backlog.os-tmp"

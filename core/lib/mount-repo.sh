@@ -4,7 +4,7 @@
 #
 # Uso: mount-repo.sh --brain DIR --head RUTA --remote REMOTE [--clone-root RUTA] [--new]
 #
-#   --head        la cabeza, relativa al brain: `orgs/<slug>/initiatives/<nombre>.md`
+#   --head        la cabeza, relativa al brain: `workspaces/<slug>/initiatives/<nombre>.md`
 #   --remote      lo que se escribe en `repo:` — el remote textual, nunca una ruta local
 #   --clone-root  la raíz de clonado de esta máquina. Se pregunta una sola vez: si `mounts.md` ya la
 #                 declara, esa gana y el argumento se ignora diciéndolo.
@@ -68,6 +68,9 @@ done
 [ -n "$head_rel" ] || os_die "falta --head"
 [ -n "$remote" ] || os_die "falta --remote"
 [ -d "$brain" ] || os_die "no existe el brain: $brain"
+
+# Layout inválido frena acá, antes de escribir nada (P2, spec 039).
+os_ws_check "$brain"
 
 # ---------------------------------------------------------------- lo que se lee del remote
 # remote_repo_name REMOTE -> the checkout name, the same one `git clone` uses with no destination

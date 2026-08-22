@@ -1,9 +1,9 @@
 ---
 command: bootstrap
 capability: Create the brain from scratch
-handoff: Add an organization
-description: Create the brain from scratch — the gateway skill. If AI First OS is not present it installs the complete system first, then runs a five-question interview —language first, then name, role, voice and organization— writes the minimum node structure, and leaves the brain versioned with its first commit and its remote backup resolved or pending. Manually triggered, once per brain, before any other tool.
-description_es: Crea el brain desde cero — la skill de entrada. Si AI First OS no está, instala el sistema completo primero, después conduce una entrevista de cinco preguntas —idioma primero, y después nombre, rol, voz y organización—, escribe la estructura mínima de nodos y deja el brain versionado con su primer commit y su respaldo remoto resuelto o pendiente. Se dispara a mano, una vez por brain, antes que cualquier otra herramienta.
+handoff: Add a workspace
+description: Create the brain from scratch — the gateway skill. If AI First OS is not present it installs the complete system first, then runs a five-question interview —language first, then name, role, voice and workspace— writes the minimum node structure, and leaves the brain versioned with its first commit and its remote backup resolved or pending. Manually triggered, once per brain, before any other tool.
+description_es: Crea el brain desde cero — la skill de entrada. Si AI First OS no está, instala el sistema completo primero, después conduce una entrevista de cinco preguntas —idioma primero, y después nombre, rol, voz y espacio de trabajo—, escribe la estructura mínima de nodos y deja el brain versionado con su primer commit y su respaldo remoto resuelto o pendiente. Se dispara a mano, una vez por brain, antes que cualquier otra herramienta.
 ---
 
 # bootstrap — create the brain
@@ -77,11 +77,11 @@ is answered in a line. Whatever the system can learn with use is not asked.
 3. **Your role**, in one line (example: "Senior PM at a fintech").
 4. **Your voice**: tone, and words you would never use. **Optional** — say so when asking: if the
    operator does not know, "later" is an answer and the file says it is pending.
-5. **Your organization**: where you work and what it does. For the typical case —one person, one
-   employer— that is one. Ask **what it does** and **what you do there**. What you do there is a
-   title — identity, written to the body of `context.md`, never to `role:`. `role:` activates an
-   oficio from the pack (today: `cpo`) and is born empty; filling it in is a separate, deliberate
-   step, not part of this interview.
+5. **Your workspace.** A workspace is each company or client you work for; a course case is one
+   too. For the typical case —one person, one employer— that is one. Ask **what it does** and
+   **what you do there**. What you do there is a title — identity, written to the body of
+   `context.md`, never to `role:`. `role:` activates an oficio from the pack (today: `cpo`) and is
+   born empty; filling it in is a separate, deliberate step, not part of this interview.
 
 **"How do you want to be answered" is not asked.** `operator.md` is born with a default —the answer
 first, short, no process narration— marked as a section that is learned with use. It gets corrected
@@ -114,13 +114,13 @@ see the interview above.
 
 The result is `operator.md`, `voice.md`, `resolver.md`, `tree.md`, the system manual at the root of
 the brain —`HOW-IT-WORKS.md` or `COMO-FUNCIONA.md`, in the chosen language— and one folder per
-organization.
+workspace.
 `voice.md` is the operator's voice — one identity, two questions, never the same sentence in both.
 Nothing else: the inbox, the root's own work (initiatives, backlog, decisions, learnings) and the
 environment table are born with their first piece of data, like any node.
 
 **It runs once per brain.** If the root pieces already exist, the script stops instead of rewriting
-them. Adding an organization to a brain that already exists is `new-org`'s job.
+them. Adding a workspace to a brain that already exists is `new-workspace`'s job.
 
 ## The backup, in two halves
 
@@ -197,5 +197,5 @@ bootstrap aborted halfway because a download failed is the worse outcome of the 
   command inside it, and that everything else works without it.
 - **How the operator updates all of this is written once**, in the repository's `README.md` under
   **Update**, and is not restated here. Point at it; do not retell it.
-- Handoff: if the operator wants to add another organization, the **add an organization** capability
+- Handoff: if the operator wants to add another workspace, the **add a workspace** capability
   is needed. If it is not available, say so and continue.

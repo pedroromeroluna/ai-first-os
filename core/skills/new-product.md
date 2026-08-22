@@ -1,8 +1,8 @@
 ---
 command: new-product
 capability: Add a product
-description: Add a product to an organization that already exists. Two questions —what the product is, and for whom— and it writes the head of the node. Manually triggered, once per product.
-description_es: Suma un producto a una organización que ya existe. Dos preguntas —qué es el producto y para quién— y escribe la cabeza del nodo. Se dispara a mano, una vez por producto.
+description: Add a product to a workspace that already exists. Two questions —what the product is, and for whom— and it writes the head of the node. Manually triggered, once per product.
+description_es: Suma un producto a un espacio de trabajo que ya existe. Dos preguntas —qué es el producto y para quién— y escribe la cabeza del nodo. Se dispara a mano, una vez por producto.
 ---
 
 # new-product — create a product
@@ -11,7 +11,8 @@ A product is memory: what it is, for whom, what is known about it. It is not an 
 initiative is push: state, horizon, when it closes. A product can outlive every initiative built for
 it, and an initiative never needs a product to exist.
 
-The product hangs off the organization that owns it, never off the root: `orgs/<org>/products/<slug>/`.
+The product hangs off the organization that owns it, never off the root:
+`workspaces/<org>/products/<slug>/`.
 
 ## The interview
 
@@ -31,12 +32,12 @@ Two questions. Nothing else.
   [--identity-file <file>]
 ```
 
-Leaves `orgs/<org>/products/<slug>/context.md` with the identity. Nothing else: `context/`
+Leaves `workspaces/<org>/products/<slug>/context.md` with the identity. Nothing else: `context/`
 (the strategic layer `prd` writes), `resolver.md` and `decisions.md` are born with their first piece
 of data, same as every other canonical file in this system.
 
-`--owner` comes from the title of `operator.md`, same as `new-org`: the product is created by the
-operator, so they are the owner unless someone else runs it.
+`--owner` comes from the title of `operator.md`, same as `new-workspace`: the product is created by
+the operator, so they are the owner unless someone else runs it.
 
 **The head never gets `role:` and never gets `repo:`.** `role:` activates a standing oficio and that
 activation is per organization, not per product — a `role:` on a product's head would be a promise

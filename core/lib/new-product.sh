@@ -4,6 +4,7 @@
 #
 # Usage: new-product.sh --brain DIR --org SLUG --name NAME --owner PERSON
 #                       [--slug SLUG] [--identity-file FILE]
+# `--workspace` is an exact synonym of `--org` (spec 039).
 #
 # A product node is memory — what it is, for whom, what is known — never state: it never gets
 # `role:` (that activates an oficio per organization, spec 009) and never `repo:` (mount-repo writes
@@ -18,6 +19,7 @@ here=$(cd "$(dirname "$0")" && pwd)
 
 brain=""
 org=""
+workspace=""
 name=""
 owner=""
 slug=""
@@ -27,6 +29,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --brain) brain="$2"; shift 2 ;;
     --org) org="$2"; shift 2 ;;
+    --workspace) workspace="$2"; shift 2 ;;
     --name) name="$2"; shift 2 ;;
     --owner) owner="$2"; shift 2 ;;
     --slug) slug="$2"; shift 2 ;;
@@ -35,19 +38,31 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+# `--workspace` es sinónimo exacto de `--org` (P3, spec 039).
+if [ -n "$org" ] && [ -n "$workspace" ] && [ "$org" != "$workspace" ]; then
+  os_die "--org y --workspace con valores distintos: $org / $workspace"
+fi
+[ -n "$org" ] || org="$workspace"
+
 [ -n "$brain" ] || os_die "falta --brain"
-[ -n "$org" ] || os_die "falta --org"
+[ -n "$org" ] || os_die "falta --org o --workspace"
 [ -n "$name" ] || os_die "falta --name"
 [ -n "$owner" ] || os_die "falta --owner"
 [ -d "$brain" ] || os_die "no existe el brain: $brain"
+
+# Layout inválido frena acá, antes de cualquier $(...) que arme una ruta con el nombre de la
+# carpeta (P2, spec 039).
+os_ws_check "$brain"
+wsdir=$(os_ws_dir "$brain")
 
 # El idioma es dato de la raíz (spec 021): lo declara `operator.md` y no se vuelve a preguntar.
 language=$(os_language "$brain")
 os_lang_load "$language"
 
-# El ámbito se valida contra el listado real de `orgs/`, byte a byte — mismo criterio que
-# `session-start.sh` (spec 002/003): sin la organización, el comando no escribe nada y lista las
-# que hay, con el mismo par de claves del catálogo que ya usa el arranque de sesión.
+# El ámbito se valida contra el listado real de la carpeta de espacios de trabajo, byte a byte —
+# mismo criterio que `session-start.sh` (spec 002/003): sin el espacio de trabajo, el comando no
+# escribe nada y lista los que hay, con el mismo par de claves del catálogo que ya usa el arranque
+# de sesión.
 if ! os_org_existe "$brain" "$org"; then
   printf "$S_SESSION_ORG_NOT_FOUND\n" "$org" >&2
   found=0
@@ -65,9 +80,9 @@ fi
 [ -n "$slug" ] || slug=$(os_slugify "$name")
 [ -n "$slug" ] || os_die "el nombre no produce un slug utilizable: $name"
 
-dir="$brain/orgs/$org/products/$slug"
+dir="$brain/$wsdir/$org/products/$slug"
 if [ -e "$dir" ]; then
-  os_die "ya existe: orgs/$org/products/$slug"
+  os_die "ya existe: $wsdir/$org/products/$slug"
 fi
 
 identity="$S_PRODUCT_IDENTITY_PLACEHOLDER"
@@ -89,8 +104,8 @@ os_check_identity_cap "$dir/context.md"
 # Los tres globs del nivel llegan de fábrica en `core/templates/tree.md`; acá se agregan a un brain
 # que ya existía antes de esta spec, sin duplicar (mismo patrón que `capture.sh`/`close-session.sh`
 # con los archivos que nacen con su primer dato).
-os_tree_ensure "$brain" "orgs/*/products/*/context.md" || true
-os_tree_ensure "$brain" "orgs/*/products/*/resolver.md" || true
-os_tree_ensure "$brain" "orgs/*/products/*/decisions.md" || true
+os_tree_ensure "$brain" "$wsdir/*/products/*/context.md" || true
+os_tree_ensure "$brain" "$wsdir/*/products/*/resolver.md" || true
+os_tree_ensure "$brain" "$wsdir/*/products/*/decisions.md" || true
 
-printf 'orgs/%s/products/%s — context.md\n' "$org" "$slug"
+printf '%s/%s/products/%s — context.md\n' "$wsdir" "$org" "$slug"

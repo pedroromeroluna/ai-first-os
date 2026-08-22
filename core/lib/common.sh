@@ -18,17 +18,17 @@ OS_ESTADOS_VALIDOS="active blocked ongoing closed"
 OS_ESTADOS_CERRADOS="closed"
 
 # Los archivos propios de un nodo organización: las preguntas canónicas del nodo, más el backlog.
-# Todo lo demás que un glob alcance adentro de `orgs/<slug>/` es una cabeza de iniciativa. Se enuncia
-# acá una sola vez: los dos lectores —arranque de sesión y barridos globales— tienen que contestar lo
-# mismo sobre el mismo archivo, y una tercera copia se desincroniza en la primera pregunta canónica
-# que nazca.
+# Todo lo demás que un glob alcance adentro de la carpeta de un espacio de trabajo es una cabeza de
+# iniciativa. Se enuncia acá una sola vez: los dos lectores —arranque de sesión y barridos
+# globales— tienen que contestar lo mismo sobre el mismo archivo, y una tercera copia se
+# desincroniza en la primera pregunta canónica que nazca.
 OS_ORG_PROPIOS="context.md resolver.md backlog.md decisions.md learnings.md"
 
 # Los archivos propios de la raíz como nodo (spec 018): sus preguntas canónicas, más el backlog. La
 # raíz no tiene `context.md` propio —esa identidad es `operator.md`, que ya se lee siempre— así que
 # la lista es la de arriba menos `context.md`, más los archivos que ya vivían sueltos en la raíz
-# (`operator.md`, `inbox.md`, `mounts.md`). Todo lo demás que un `glob:` alcance fuera de `orgs/` es
-# una cabeza de iniciativa de la raíz — hoy solo `initiatives/*.md`.
+# (`operator.md`, `inbox.md`, `mounts.md`). Todo lo demás que un `glob:` alcance fuera de la carpeta
+# de espacios de trabajo es una cabeza de iniciativa de la raíz — hoy solo `initiatives/*.md`.
 OS_ROOT_PROPIOS="operator.md resolver.md inbox.md mounts.md backlog.md decisions.md learnings.md"
 
 # La etiqueta que agrupa el trabajo propio de la raíz en los barridos globales (spec 018). Nunca
@@ -148,8 +148,8 @@ os_language_valido() {
 }
 
 # os_language BRAIN -> el idioma declarado en el frontmatter de `operator.md`, o `en`.
-# El idioma es dato de la raíz, no de cada comando: `new-org` en un brain que ya existe escribe en
-# el mismo idioma que el bootstrap eligió, sin volver a preguntarlo.
+# El idioma es dato de la raíz, no de cada comando: `new-workspace` en un brain que ya existe
+# escribe en el mismo idioma que el bootstrap eligió, sin volver a preguntarlo.
 #
 # `en` is the default with no `language:` declared (there is no `operator.md` yet, or the file does
 # not carry the key) — silent, because not declaring it is a legitimate choice. A declared
@@ -611,10 +611,11 @@ os_una_linea() {
 # contenido nace con su primer dato, no con el bootstrap.
 #   0  ya estaba       1  nació con este dato
 os_backlog_asegurar() {
-  local brain="$1" org="$2" file titulo
-  file="$brain/orgs/$org/backlog.md"
+  local brain="$1" org="$2" file titulo wsdir
+  wsdir=$(os_ws_dir "$brain")
+  file="$brain/$wsdir/$org/backlog.md"
   [ -f "$file" ] && return 0
-  titulo=$(os_titulo "$brain/orgs/$org/context.md")
+  titulo=$(os_titulo "$brain/$wsdir/$org/context.md")
   [ -n "$titulo" ] || titulo="$org"
   os_backlog_cabecera "$brain" "$titulo" > "$file"
   return 1
@@ -646,14 +647,67 @@ os_root_backlog_asegurar() {
   return 1
 }
 
-# os_org_slugs BRAIN -> los slugs reales de `orgs/`, uno por línea.
-# El ámbito se valida contra este listado, byte a byte, nunca con `[ -d ]`: un test de directorio
-# acepta lo que acepte el filesystem —`Acme` en uno que no distingue mayúsculas, `../..` fuera del
-# árbol— y el resultado se lee como un brain vacío en vez de como un ámbito mal escrito.
+# ---------------------------------------------------------------- el nombre de la carpeta (spec 039)
+# El código sigue diciendo "org" —la variable, la opción `--org`, `os_org_slugs`, `os_org_existe`,
+# `OS_ORG_PROPIOS`— porque nada de eso lo ve el operador (P3): renombrarlo agrandaría el diff sin
+# cambiar nada hacia afuera. Lo que el operador ve es la palabra "workspace"/"espacio de trabajo" y
+# el nombre de la carpeta, y los dos se resuelven acá, en un solo lugar.
+
+# os_ws_dir BRAIN -> el nombre real de la carpeta de espacios de trabajo de este brain:
+# `workspaces` o `orgs`, leído del árbol (`tree.md`), nunca de qué carpeta exista en disco (H3: el
+# árbol ya es la fuente de qué lee un barrido). Sin `tree.md`, o sin ninguna de las dos líneas,
+# `workspaces` — el nombre de nacimiento. Nunca aborta: solo imprime. Un layout inválido lo detecta
+# `os_ws_check`, aparte.
+os_ws_dir() {
+  local tree="$1/tree.md" line
+  [ -f "$tree" ] || { printf 'workspaces'; return 0; }
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      'glob: workspaces/'*|'content: workspaces/'*) printf 'workspaces'; return 0 ;;
+      'glob: orgs/'*|'content: orgs/'*) printf 'orgs'; return 0 ;;
+    esac
+  done < "$tree"
+  printf 'workspaces'
+}
+
+# os_ws_check BRAIN
+# Corre antes de cualquier `$(...)` que arme una ruta con `os_ws_dir` (P2): un `os_die` adentro de
+# una sustitución de comando mata solo la subshell, y el script seguiría con la variable vacía
+# armando rutas en la raíz del brain. Sale con `os_die` cuando el layout es inválido:
+#   (a) existen `workspaces/` y `orgs/` a la vez — nadie eligió una;
+#   (b) el árbol declara una y en disco existe solo la otra — el árbol quedó desincronizado del
+#       disco (por ejemplo, un `mv` a mano sin tocar `tree.md`).
+# Con un layout válido, no imprime nada y vuelve con 0.
+os_ws_check() {
+  local brain="$1" declarado tiene_ws=0 tiene_orgs=0 lang
+  [ -d "$brain/workspaces" ] && tiene_ws=1
+  [ -d "$brain/orgs" ] && tiene_orgs=1
+  [ "$tiene_ws" = "1" ] || [ "$tiene_orgs" = "1" ] || return 0
+  lang=$(os_language "$brain")
+  os_lang_load "$lang"
+  if [ "$tiene_ws" = "1" ] && [ "$tiene_orgs" = "1" ]; then
+    os_die "$S_WS_LAYOUT_BOTH"
+  fi
+  declarado=$(os_ws_dir "$brain")
+  if [ "$declarado" = "workspaces" ] && [ "$tiene_ws" = "0" ]; then
+    os_die "$S_WS_LAYOUT_MISMATCH_WS"
+  fi
+  if [ "$declarado" = "orgs" ] && [ "$tiene_orgs" = "0" ]; then
+    os_die "$S_WS_LAYOUT_MISMATCH_ORGS"
+  fi
+  return 0
+}
+
+# os_org_slugs BRAIN -> los slugs reales de la carpeta de espacios de trabajo de este brain, uno
+# por línea. El ámbito se valida contra este listado, byte a byte, nunca con `[ -d ]`: un test de
+# directorio acepta lo que acepte el filesystem —`Acme` en uno que no distingue mayúsculas,
+# `../..` fuera del árbol— y el resultado se lee como un brain vacío en vez de como un ámbito mal
+# escrito.
 os_org_slugs() {
-  local d
-  [ -d "$1/orgs" ] || return 0
-  for d in "$1"/orgs/*; do
+  local d wsdir
+  wsdir=$(os_ws_dir "$1")
+  [ -d "$1/$wsdir" ] || return 0
+  for d in "$1/$wsdir"/*; do
     [ -d "$d" ] || continue
     printf '%s\n' "$(basename "$d")"
   done

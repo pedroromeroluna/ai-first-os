@@ -46,14 +46,14 @@ Save this message and paste it to your agent, once:
 
 > Install AI First OS from `github.com/pedroromeroluna/ai-first-os`. Bring the repository down to a
 > fixed local folder on this machine —you will need it to update later—, run its bootstrap to build
-> my brain with a short interview about who I am and which organizations I work in, and then run its
+> my brain with a short interview about who I am and which workspaces I work in, and then run its
 > installer to hook it into that brain. Ask me whatever the interview needs before writing anything.
 
 You do not have to do anything else. The agent brings the repository down, interviews you and hooks
 up the tools; you only answer the interview.
 
 That is the full install: the session contract, the two resolvers, the three delegation subagents
-and the ten skills of the system, hooked in by symlink. Nothing is downloaded from a registry and
+and the eleven skills of the system, hooked in by symlink. Nothing is downloaded from a registry and
 nothing asks you to confirm an install in the middle.
 
 **The pack comes at the end, as a question with two answers.** With the brain already built, the
@@ -61,7 +61,7 @@ agent offers the AI First Product Skills pack —the craft on top— and you tak
 Node, and the download asks you to confirm once. Later: the exact command stays as a task in your
 backlog, and any session runs it the day you want it. Either way the system is already yours.
 
-The ten of the system are not published one at a time, and that is on purpose: each of them writes
+The eleven of the system are not published one at a time, and that is on purpose: each of them writes
 into a brain, so on its own —without the session contract, the resolver and the tree of paths— it
 has nowhere to write. What you can try one at a time is a pack.
 
@@ -81,7 +81,7 @@ places, so updating them has two halves and both run:
    `npx skills add pedroromeroluna/ai-first-product-skills` again, which replaces the skills in `.claude/skills/` with the
    published version. With no pack installed there is nothing to refresh, and this half is skipped.
 
-Your brain —your organizations, your decisions, your content— is not touched: the update only
+Your brain —your workspaces, your decisions, your content— is not touched: the update only
 refreshes the tools. And if the installer were run by mistake through the hook that is already
 installed, it stops on its own with a message before writing anything.
 
@@ -106,10 +106,10 @@ my-brain/
 ├── decisions.md                 # Your own decisions: what, why, and what would invalidate them
 ├── learnings.md                 # Live: updated or deleted, never archived
 ├── initiatives/                 # Your own initiatives, one file each, with status/horizon/owner up top
-├── orgs/                        # One folder per organization — the isolation boundary
-│   └── <org>/
+├── workspaces/                  # One folder per workspace — the isolation boundary
+│   └── <workspace>/
 │       ├── context.md           # Its identity, and the `role:` it activates (cpo, cto)
-│       ├── resolver.md          # Where whatever gets written in this organization goes
+│       ├── resolver.md          # Where whatever gets written in this workspace goes
 │       ├── backlog.md           # Its tasks
 │       ├── decisions.md         # Its decisions
 │       ├── learnings.md         # Its learnings
@@ -117,19 +117,19 @@ my-brain/
 │       └── products/<slug>/     # What it is, for whom, what is known — memory, not state
 │           └── context.md       # Born with `new-product`; `context/` (its strategic layer) is filled by `prd`
 ├── .os/
-│   ├── core -> …/ai-first-os/core        # The chassis by symlink: the ten system skills in core/skills/, the shell in core/lib/
+│   ├── core -> …/ai-first-os/core        # The chassis by symlink: the eleven system skills in core/skills/, the shell in core/lib/
 │   └── packs/<pack> -> …                 # Each installed pack, by symlink
 └── .claude/
     ├── agents/                  # complete-spec, ambiguous-spec, scout — one symlink each
     └── skills/                  # The pack's skills, left here by `npx skills add`
 ```
 
-The interview writes `operator.md`, `voice.md`, `resolver.md`, `tree.md` and one `orgs/<slug>/`
-per organization you named. The rest is born the first time it is needed: `backlog.md` on the
-first capture, `mounts.md` on the first mounted repo, `decisions.md` and `learnings.md` when there
-is something to record.
+The interview writes `operator.md`, `voice.md`, `resolver.md`, `tree.md` and one `workspaces/<slug>/`
+per workspace you named. The rest is born the first time it is needed: `backlog.md` on the first
+capture, `mounts.md` on the first mounted repo, `decisions.md` and `learnings.md` when there is
+something to record.
 
-**Where the skills live.** The ten skills of the system are not copied into your brain: they live
+**Where the skills live.** The eleven skills of the system are not copied into your brain: they live
 in `.os/core/skills/`, a symlink to the `core/` of the repository you brought down, and the agent
 reaches them through the resolver. The skills of the pack are what `npx skills add` installs: one
 folder per skill under `.claude/skills/<name>/SKILL.md` — the place your harness reads skills from,
@@ -138,7 +138,7 @@ index. Your own skills, if you write any, go next to them as plain folders in `.
 
 ## The catalog
 
-Ten skills come with the system itself, in two families. **Workflow skills** run a process and
+Eleven skills come with the system itself, in two families. **Workflow skills** run a process and
 leave a deliverable: they are triggered manually, by name — the index is the resolver, never
 automatic activation. **Knowledge skills** carry a method or a standing craft and are loaded as
 context.
@@ -147,9 +147,9 @@ context.
 
 | Name | What it does |
 |---|---|
-| `bootstrap` | Creates the brain from scratch: identity, voice, root resolver, the tree of paths a scan walks, one folder per organization |
-| `new-org` | Adds an organization — the isolation boundary — with its identity, its resolver and its initiatives |
-| `new-product` | Adds a product to an organization — memory: what it is, for whom, what is known — with its identity |
+| `bootstrap` | Creates the brain from scratch: identity, voice, root resolver, the tree of paths a scan walks, one folder per workspace |
+| `new-workspace` | Adds a workspace — the isolation boundary — with its identity, its resolver and its initiatives |
+| `new-product` | Adds a product to a workspace — memory: what it is, for whom, what is known — with its identity |
 | `sweep` | The three global scans: what is pending, what is blocked and why, how the roadmap is going |
 | `check-resolvable` | Audits the capability-to-tool graph and reports dark tools, broken links and rows pointing nowhere |
 | `capture` | Files what you throw in mid-conversation into the right backlog, without opening a discussion |
@@ -157,6 +157,7 @@ context.
 | `mount-repo` | Gives an initiative a body: the remote in the head, the checkout outside the brain (or the repo born from the scaffold, with `--new`), the row in the environment table |
 | `grill` | The pressure interview: counter-question with a concrete example, capped attempts, escape hatches, evidence hierarchy |
 | `new-spec` | Writes a spec an agent can implement without asking for an opinion — one runnable eval per criterion |
+| `rename-workspaces` | Adopts the current name of the workspaces folder on a brain born before it, run only when the operator asks |
 
 ### Knowledge skills
 

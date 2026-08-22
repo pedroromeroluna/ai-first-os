@@ -30,7 +30,8 @@ here=$(cd "$(dirname "$0")" && pwd)
 t_inicio=$(os_now_ms)
 
 # Los archivos propios de un nodo organización viven en common.sh (`OS_ORG_PROPIOS`). Todo lo demás
-# que un glob alcance adentro de `orgs/<slug>/` es una cabeza de iniciativa, a cualquier profundidad.
+# que un glob alcance adentro de la carpeta de espacios de trabajo es una cabeza de iniciativa, a
+# cualquier profundidad.
 
 # Los estados terminales viven en common.sh: `os_cerrado`. Un estado terminal saca la cabeza de
 # "pendiente" y cierra una dependencia que la nombre.
@@ -54,6 +55,11 @@ done
 [ -n "$mode" ] || os_die "falta --mode: pending, blocked o roadmap"
 [ -d "$brain" ] || os_die "no existe el brain: $brain"
 brain=$(cd "$brain" && pwd)
+
+# Layout inválido frena acá, antes de cualquier $(...) que arme una ruta con el nombre de la
+# carpeta (P2, spec 039).
+os_ws_check "$brain"
+wsdir=$(os_ws_dir "$brain")
 
 # Only the Checks title and its empty message go through the catalog (spec 033), reusing
 # `session-start.sh`'s keys — the rest of this sweep stays in Spanish: the spec did not ask for it.
@@ -143,17 +149,18 @@ registros=""
 indice=""
 
 # El trabajo propio de la raíz (spec 018) entra al mismo recorrido, con `OS_ROOT_LABEL` como grupo:
-# una etiqueta que nunca puede ser un slug real de `orgs/` (ver el comentario de la constante en
-# common.sh). Antes de la 018 todo lo que no empezaba con "orgs/" quedaba afuera sin excepción — con
-# un brain sin archivos de nodo en la raíz esa rama nunca matchea, así que la salida no cambia.
+# una etiqueta que nunca puede ser un slug real de la carpeta de espacios de trabajo (ver el
+# comentario de la constante en common.sh). Antes de la 018 todo lo que no empezaba con el prefijo
+# de esa carpeta quedaba afuera sin excepción — con un brain sin archivos de nodo en la raíz esa
+# rama nunca matchea, así que la salida no cambia.
 while IFS= read -r linea || [ -n "$linea" ]; do
   [ -n "$linea" ] || continue
   raiz="${linea%%$sep*}"
   f="${linea#*$sep}"
   base="${f##*/}"
   case "$f" in
-    orgs/*)
-      resto="${f#orgs/}"
+    "$wsdir"/*)
+      resto="${f#$wsdir/}"
       case "$resto" in
         */*) ;;
         *) continue ;;
@@ -188,7 +195,7 @@ while IFS= read -r linea || [ -n "$linea" ]; do
   # arriba— pero no entra a ninguna clasificación. No tiene `status`/`horizon` que reportar, y
   # tratarlo como "sin status" sería ruido fijo en cada corrida, nunca un hallazgo real.
   case "$f" in
-    orgs/*/products/*/context.md|orgs/*/products/*/resolver.md|orgs/*/products/*/decisions.md)
+    "$wsdir"/*/products/*/context.md|"$wsdir"/*/products/*/resolver.md|"$wsdir"/*/products/*/decisions.md)
       continue ;;
   esac
   registros="$registros$org$sep$nombre$sep$fm_status$sep$fm_horizon$sep$fm_waiting_on$sep$fm_blocked$sep$fm_depends_on$sep$fm_roto$nl"

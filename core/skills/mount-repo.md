@@ -14,7 +14,7 @@ the head's `repo:` is what activates the building mechanics, and this command wr
 ## How it is run
 
 ```
-.os/core/lib/mount-repo.sh --brain . --head orgs/<slug>/initiatives/<name>.md \
+.os/core/lib/mount-repo.sh --brain . --head workspaces/<slug>/initiatives/<name>.md \
   --remote <remote> [--clone-root <absolute path>] [--new]
 ```
 

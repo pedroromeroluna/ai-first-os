@@ -3,14 +3,15 @@
 # La clasificación la hace core/skills/capture.md. Interno: no es invocable.
 #
 # Uso: capture.sh --brain DIR --text "TEXTO"
-#                 [--org SLUG | --root] [--session-org SLUG] [--load-context]
+#                 [--org SLUG | --workspace SLUG | --root] [--session-org SLUG] [--load-context]
 #                 [--blocked-by REF] [--hold RAZON] [--hold-until FECHA]
 #
-# Con `--org` la tarea va al `backlog.md` de esa organización, en el formato de línea que el arranque
-# de sesión ya lee. Con `--root` va al `backlog.md` de la raíz — el trabajo propio del operador, spec
-# 018 — con el mismo formato. Sin ninguno de los dos el texto no se pudo clasificar y va al
-# `inbox.md` de la raíz, dicho: el inbox es tránsito de lo sin clasificar, nunca destino por
-# comodidad. `--org` y `--root` son excluyentes.
+# `--workspace` es sinónimo exacto de `--org` (spec 039). Con `--org`/`--workspace` la tarea va al
+# `backlog.md` de esa organización, en el formato de línea que el arranque de sesión ya lee. Con
+# `--root` va al `backlog.md` de la raíz — el trabajo propio del operador, spec 018 — con el mismo
+# formato. Sin ninguno de los dos el texto no se pudo clasificar y va al `inbox.md` de la raíz,
+# dicho: el inbox es tránsito de lo sin clasificar, nunca destino por comodidad. `--org`/`--workspace`
+# y `--root` son excluyentes.
 #
 # La raíz no exige `--session-org` ni `--load-context`: su identidad (`operator.md`) está cargada en
 # cualquier sesión, a cualquier ámbito — no hay context cross-nodo que custodiar.
@@ -27,6 +28,7 @@ here=$(cd "$(dirname "$0")" && pwd)
 brain=""
 text=""
 org=""
+workspace=""
 root=0
 session_org=""
 load_context=0
@@ -40,6 +42,7 @@ while [ $# -gt 0 ]; do
     --brain) brain="${2:-}"; shift 2 ;;
     --text) text="${2:-}"; shift 2 ;;
     --org) org="${2:-}"; shift 2 ;;
+    --workspace) workspace="${2:-}"; shift 2 ;;
     --root) root=1; shift ;;
     --session-org) session_org="${2:-}"; shift 2 ;;
     --load-context) load_context=1; shift ;;
@@ -50,11 +53,22 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+# `--workspace` es sinónimo exacto de `--org` (P3, spec 039).
+if [ -n "$org" ] && [ -n "$workspace" ] && [ "$org" != "$workspace" ]; then
+  os_die "--org y --workspace con valores distintos: $org / $workspace"
+fi
+[ -n "$org" ] || org="$workspace"
+
 [ -n "$brain" ] || os_die "falta --brain"
 [ -n "$text" ] || os_die "falta --text"
-[ "$root" = "0" ] || [ -z "$org" ] || os_die "--root y --org son excluyentes"
+[ "$root" = "0" ] || [ -z "$org" ] || os_die "--root y --org/--workspace son excluyentes"
 [ -d "$brain" ] || os_die "no existe el brain: $brain"
 brain=$(cd "$brain" && pwd)
+
+# Layout inválido frena acá, antes de cualquier $(...) que arme una ruta con el nombre de la
+# carpeta (P2, spec 039).
+os_ws_check "$brain"
+wsdir=$(os_ws_dir "$brain")
 # Una captura es UNA línea, siempre — vale para el backlog y para el inbox. Un texto con saltos
 # escribía varias líneas y cualquiera de ellas podía tener la forma de una tarea. Se colapsa y no se
 # rechaza: `capture` existe para tirar cosas al vuelo.
@@ -140,8 +154,8 @@ fi
 # agente archiva a ciegas, dejando el dato mal archivado en el nodo equivocado y en silencio.
 # Un ámbito de sesión sin declarar cuenta como no cargado: suponer lo contrario es la misma ceguera.
 if [ "$session_org" != "$org" ]; then
-  ctx="orgs/$org/context.md"
-  res="orgs/$org/resolver.md"
+  ctx="$wsdir/$org/context.md"
+  res="$wsdir/$org/resolver.md"
   if [ "$load_context" = "0" ]; then
     printf 'escritura cross-nodo: la sesión está parada en "%s" y esto se escribe en "%s".\n' \
       "${session_org:-(ningún ámbito declarado)}" "$org" >&2
@@ -162,7 +176,7 @@ if [ "$session_org" != "$org" ]; then
 fi
 
 # ---------------------------------------------------------------- el backlog de la organización
-backlog="$brain/orgs/$org/backlog.md"
+backlog="$brain/$wsdir/$org/backlog.md"
 nacio=0
 os_backlog_asegurar "$brain" "$org" || nacio=1
 
@@ -187,7 +201,7 @@ linea=$(os_backlog_linea "$id" "$text" "$blocked_by" "$hold" "$hold_until" "$hol
 printf '%s\n' "$linea" >> "$backlog"
 
 printf 'clasificado en "%s"\n' "$org"
-printf '  orgs/%s/backlog.md — %s\n' "$org" "$linea"
-[ "$nacio" = "1" ] && printf '  orgs/%s/backlog.md nació con este dato\n' "$org"
-declarar_glob "orgs/*/backlog.md"
+printf '  %s/%s/backlog.md — %s\n' "$wsdir" "$org" "$linea"
+[ "$nacio" = "1" ] && printf '  %s/%s/backlog.md nació con este dato\n' "$wsdir" "$org"
+declarar_glob "$wsdir/*/backlog.md"
 exit 0

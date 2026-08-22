@@ -299,12 +299,12 @@ en: inbox: %s unclassified
 es: inbox: %s sin clasificar
 
 key: SESSION_ORG_NOT_FOUND
-en: the organization "%s" does not exist. Here's what there is:
-es: la organización "%s" no existe. Las que hay:
+en: the workspace "%s" does not exist. Here's what there is:
+es: el espacio de trabajo "%s" no existe. Los que hay:
 
 key: SESSION_NO_ORGS
 en: (none)
-es: (ninguna)
+es: (ninguno)
 
 key: SESSION_NODE_COUNT
 en: %s nodes · %s
@@ -705,3 +705,39 @@ es:   el remoto todavía no existe: crealo en tu proveedor como %s (privado), y 
 key: MOUNT_NEW_REMOTE_PUSH
 en:     git -C '%s' push -u origin main
 es:     git -C '%s' push -u origin main
+
+key: WS_LAYOUT_BOTH
+en: this brain has both a `workspaces` folder and an `orgs` folder — pick one before running this command: move the one you are not keeping, or run `rename-workspaces` to adopt the current name.
+es: este brain tiene una carpeta `workspaces` y una carpeta `orgs` a la vez — elegí una antes de correr este comando: movés la que no vas a usar, o corré `rename-workspaces` para adoptar el nombre actual.
+
+key: WS_LAYOUT_MISMATCH_WS
+en: the tree (`tree.md`) declares the `workspaces` folder but this brain only has `orgs` on disk — the tree is out of sync with the folder; fix `tree.md` or the folder before running this command again.
+es: el árbol (`tree.md`) declara la carpeta `workspaces` pero este brain solo tiene `orgs` en disco — el árbol quedó desincronizado de la carpeta; arreglá `tree.md` o la carpeta antes de volver a correr este comando.
+
+key: WS_LAYOUT_MISMATCH_ORGS
+en: the tree (`tree.md`) declares the `orgs` folder but this brain only has `workspaces` on disk — the tree is out of sync with the folder; fix `tree.md` or the folder before running this command again.
+es: el árbol (`tree.md`) declara la carpeta `orgs` pero este brain solo tiene `workspaces` en disco — el árbol quedó desincronizado de la carpeta; arreglá `tree.md` o la carpeta antes de volver a correr este comando.
+
+key: INSTALL_WS_OLD_NAME
+en: this brain uses the previous name of the workspaces folder (`orgs/`) — it keeps working as is; to adopt the current name (`workspaces/`), run `rename-workspaces`.
+es: este brain usa el nombre anterior de la carpeta de espacios de trabajo (`orgs/`) — sigue funcionando tal cual; para adoptar el nombre actual (`workspaces/`), corré `rename-workspaces`.
+
+key: WS_RENAME_NOTHING
+en: nothing to rename: this brain already uses the `workspaces` folder.
+es: nada que renombrar: este brain ya usa la carpeta `workspaces`.
+
+key: WS_RENAME_MOVED
+en: moved the `orgs` folder to `workspaces`.
+es: se movió la carpeta `orgs` a `workspaces`.
+
+key: WS_RENAME_REWROTE
+en: rewrote the `orgs` prefix to `workspaces` in:
+es: se reescribió el prefijo `orgs` por `workspaces` en:
+
+key: WS_RENAME_LEFTOVER
+en: still carrying the `orgs` prefix — left untouched, review by hand:
+es: todavía tienen el prefijo `orgs` — quedaron sin tocar, para revisar a mano:
+
+key: WS_RENAME_NONE_LEFT
+en: no other file carries the `orgs` prefix.
+es: ningún otro archivo tiene el prefijo `orgs`.

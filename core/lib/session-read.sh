@@ -4,17 +4,19 @@
 # scan and before the model answers the first message.
 #
 # Usage: session-read.sh --brain DIR --org SLUG
+#        session-read.sh --brain DIR --workspace SLUG
 #        session-read.sh --brain DIR --root
 #
-# `--org` and `--root` are exclusive, the same way `session-start.sh` reads its scope.
+# `--workspace` is an exact synonym of `--org` (spec 039). `--org`/`--workspace` and `--root` are
+# exclusive, the same way `session-start.sh` reads its scope.
 #
 # READING ORDER — this comment is the only place the reading order is written down, and the body
 # below is what executes it. The contract names this script instead of listing files:
 #
 #   1. operator.md
 #   2. voice.md
-#   3. orgs/<slug>/context.md            (only with --org)
-#   4. orgs/<slug>/resolver.md           (only with --org)
+#   3. <workspaces-dir>/<slug>/context.md   (only with --org/--workspace)
+#   4. <workspaces-dir>/<slug>/resolver.md  (only with --org/--workspace)
 #   5. .os/core/resolver.md
 #   6. .claude/skills/*-resolver/SKILL.md — zero or more, `LC_ALL=C sort` by path
 #   7. resolver.md
@@ -52,6 +54,7 @@ nl="${nl%x}"
 
 brain=""
 org=""
+workspace=""
 root=0
 # A flag that takes a value checks that the value is there before consuming it: with the flag as the
 # last argument (`--brain . --org`), `shift 2` fails without consuming anything, `$#` stays at 1 and
@@ -60,27 +63,40 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --brain) [ $# -ge 2 ] || os_die "--brain needs a value"; brain="$2"; shift 2 ;;
     --org) [ $# -ge 2 ] || os_die "--org needs a value"; org="$2"; shift 2 ;;
+    --workspace) [ $# -ge 2 ] || os_die "--workspace needs a value"; workspace="$2"; shift 2 ;;
     --root) root=1; shift ;;
     *) os_die "unknown argument: $1" ;;
   esac
 done
 
+# `--workspace` is an exact synonym of `--org` (spec 039): the two with different values is an
+# error; the two with the same value, or only one of them, keep working as before.
+if [ -n "$org" ] && [ -n "$workspace" ] && [ "$org" != "$workspace" ]; then
+  os_die "--org and --workspace with different values: $org / $workspace"
+fi
+[ -n "$org" ] || org="$workspace"
+
 [ -n "$brain" ] || os_die "missing --brain"
 if [ "$root" = "1" ]; then
-  [ -z "$org" ] || os_die "--root and --org are exclusive"
+  [ -z "$org" ] || os_die "--root and --org/--workspace are exclusive"
 else
-  [ -n "$org" ] || os_die "missing --org or --root"
+  [ -n "$org" ] || os_die "missing --org, --workspace or --root"
 fi
 [ -d "$brain" ] || os_die "no such brain: $brain"
 brain=$(cd "$brain" && pwd)
+
+# Invalid layout stops here, before any $(...) that builds a path with the folder name (P2, spec
+# 039).
+os_ws_check "$brain"
+wsdir=$(os_ws_dir "$brain")
 
 lang=$(os_language "$brain")
 os_lang_load "$lang"
 
 # ---------------------------------------------------------------- the scope is validated by listing
-# Byte for byte against the real names under `orgs/`, never with `-d`, and with the same keys the
-# scan uses: a scope that does not exist has to read the same in both places. The root needs no
-# check — it always exists.
+# Byte for byte against the real names under the workspaces folder, never with `-d`, and with the
+# same keys the scan uses: a scope that does not exist has to read the same in both places. The
+# root needs no check — it always exists.
 if [ "$root" = "0" ]; then
   if ! os_org_existe "$brain" "$org"; then
     printf "$S_SESSION_ORG_NOT_FOUND\n" "$org" >&2
@@ -106,7 +122,7 @@ fi
 role=""
 rol_ruta=""
 if [ "$root" = "0" ]; then
-  fm_read "$brain/orgs/$org/context.md"
+  fm_read "$brain/$wsdir/$org/context.md"
   role="$fm_role"
   if [ -n "$role" ]; then
     if ! rol_ruta=$(os_buscar_oficio "$brain" "$role"); then rol_ruta=""; fi
@@ -146,8 +162,8 @@ emitir() {
 emitir "operator.md"
 emitir "voice.md"
 if [ "$root" = "0" ]; then
-  emitir "orgs/$org/context.md"
-  emitir "orgs/$org/resolver.md"
+  emitir "$wsdir/$org/context.md"
+  emitir "$wsdir/$org/resolver.md"
 fi
 emitir ".os/core/resolver.md"
 

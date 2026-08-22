@@ -5,27 +5,27 @@ in the product repo. Nothing about the operator lives here; that belongs in `ope
 
 ## When the session starts
 
-**The first message names the scope being worked on: an organization, or your own work (the
-root).** If it does not name one, list the slugs under `orgs/` alongside the root and ask which.
-Never guess it: the context of one scope inside the work of another is the most expensive failure
-in the system.
+**The first message names the scope being worked on: a workspace, or your own work (the root).**
+If it does not name one, list the slugs under the workspaces folder alongside the root and ask
+which. Never guess it: the context of one scope inside the work of another is the most expensive
+failure in the system.
 
 Before answering the first message, in this order:
 
 1. Run the startup scan, with whichever scope applies:
 
    ```
-   .os/core/lib/session-start.sh --brain . --org <slug>
+   .os/core/lib/session-start.sh --brain . --workspace <slug>
    .os/core/lib/session-start.sh --brain . --root
    ```
 
-   If it exits non-zero, the organization does not exist: show the slugs it listed and ask — or the
+   If it exits non-zero, the workspace does not exist: show the slugs it listed and ask — or the
    installation is broken (its bilingual catalog is missing), and the error message says which.
 
 2. Run the startup read, with the same scope:
 
    ```
-   .os/core/lib/session-read.sh --brain . --org <slug>
+   .os/core/lib/session-read.sh --brain . --workspace <slug>
    .os/core/lib/session-read.sh --brain . --root
    ```
 

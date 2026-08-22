@@ -154,8 +154,8 @@ mkdir -p "$brain"
 brain=$(cd "$brain" && pwd -P)
 
 # El bootstrap crea; no rehace. Si las piezas de la raíz ya están, frena: reescribirlas borraría lo
-# que el operador haya escrito encima, y eso es pérdida silenciosa. Agregar organizaciones a un
-# brain que ya existe es trabajo de new-org.
+# que el operador haya escrito encima, y eso es pérdida silenciosa. Agregar espacios de trabajo a un
+# brain que ya existe es trabajo de new-workspace.
 existing=""
 for f in operator.md voice.md resolver.md tree.md; do
   if [ -e "$brain/$f" ]; then
@@ -163,7 +163,7 @@ for f in operator.md voice.md resolver.md tree.md; do
   fi
 done
 if [ -n "$existing" ]; then
-  os_die "el brain ya tiene:$existing — el bootstrap no los reescribe. Para sumar una organización, new-org."
+  os_die "el brain ya tiene:$existing — el bootstrap no los reescribe. Para sumar un espacio de trabajo, new-workspace."
 fi
 
 # Una identidad, dos archivos: operator.md contesta quién es y cómo se le contesta; voice.md, cómo
@@ -223,7 +223,7 @@ EOF
   if [ -n "$org_identity" ]; then
     set -- "$@" --identity-file "$org_identity"
   fi
-  if ! "$here/new-org.sh" "$@"; then
+  if ! "$here/new-workspace.sh" "$@"; then
     fallidas="$fallidas $org_name"
   fi
 done <<ORGS

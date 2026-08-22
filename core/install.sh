@@ -43,6 +43,21 @@ fi
 mkdir -p "$brain"
 brain=$(cd "$brain" && pwd)
 
+# El idioma del brain, leído una sola vez acá: lo usan tanto el aviso del nombre anterior de la
+# carpeta de espacios de trabajo como la línea de versión, más abajo. Mismo criterio liviano que el
+# resto de este script — sin `lib/`, porque el instalador es lo primero que corre.
+lang="en"
+if [ -f "$brain/operator.md" ]; then
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      'language: '*)
+        case "${line#language: }" in en) lang="en" ;; es) lang="es" ;; esac
+        break
+        ;;
+    esac
+  done < "$brain/operator.md"
+fi
+
 claude="$brain/CLAUDE.md"
 claude_target="$core/CLAUDE.md"
 adopted="$brain/CLAUDE.md.adopted"
@@ -180,12 +195,9 @@ for agent in "$core"/agents/*.md; do
   printf '.claude/agents/%s -> %s\n' "$(basename "$agent")" "$agent"
 done
 
-# ---------------------------------------------------------------- la versión que quedó instalada
-# Última línea: el nombre del producto y la versión de `core/VERSION` (spec 038). El texto sale del
-# catálogo (`core/templates/strings.md`, clave `INSTALL_VERSION_LINE`), nunca escrito acá: hasta el
-# rename, el nombre que viaja adentro del producto vive en una clave y cambiarlo es un cambio de
-# catálogo. La lectura es un grep propio, sin `lib/`: el instalador es lo primero que se corre y no
-# puede depender del layout de lo que instala. Sin VERSION o sin la clave, no hay línea.
+# ---------------------------------------------------------------- lectura liviana del catálogo
+# Sin `lib/`: el instalador es lo primero que se corre y no puede depender del layout de lo que
+# instala. La usan el aviso del nombre anterior de la carpeta y la línea de versión, más abajo.
 catalogo_linea() {
   local key="$1" lang="$2" file="$core/templates/strings.md" line dentro=0 valor=""
   [ -f "$file" ] || return 0
@@ -203,6 +215,21 @@ catalogo_linea() {
   printf '%s' "$valor"
 }
 
+# ---------------------------------------------------------------- aviso del nombre anterior (P6, spec 039)
+# Un brain con la carpeta de espacios de trabajo todavía en su nombre anterior sigue funcionando
+# igual: esto avisa una vez, sin tocar nada — adoptar el nombre actual es `rename-workspaces`, a
+# pedido del operador. Con las dos carpetas a la vez el layout es inválido y lo declara cualquier
+# otro comando que lea o escriba el brain; el instalador no valida layout, solo avisa del caso simple.
+if [ -d "$brain/orgs" ] && [ ! -d "$brain/workspaces" ]; then
+  formato=$(catalogo_linea INSTALL_WS_OLD_NAME "$lang")
+  [ -n "$formato" ] && printf '%s\n' "$formato"
+fi
+
+# ---------------------------------------------------------------- la versión que quedó instalada
+# Última línea: el nombre del producto y la versión de `core/VERSION` (spec 038). El texto sale del
+# catálogo (`core/templates/strings.md`, clave `INSTALL_VERSION_LINE`), nunca escrito acá: hasta el
+# rename, el nombre que viaja adentro del producto vive en una clave y cambiarlo es un cambio de
+# catálogo. Sin VERSION o sin la clave, no hay línea.
 version=""
 [ -f "$core/VERSION" ] && { IFS= read -r version < "$core/VERSION" || true; }
 # Mismo saneo que `os_version` en `lib/common.sh`: un `\r` de fin de línea o un espacio de más en el
@@ -211,17 +238,6 @@ version="${version%$'\r'}"
 while [ "${version# }" != "$version" ]; do version="${version# }"; done
 while [ "${version% }" != "$version" ]; do version="${version% }"; done
 if [ -n "$version" ]; then
-  lang="en"
-  if [ -f "$brain/operator.md" ]; then
-    while IFS= read -r line || [ -n "$line" ]; do
-      case "$line" in
-        'language: '*)
-          case "${line#language: }" in en) lang="en" ;; es) lang="es" ;; esac
-          break
-          ;;
-      esac
-    done < "$brain/operator.md"
-  fi
   formato=$(catalogo_linea INSTALL_VERSION_LINE "$lang")
   [ -n "$formato" ] && printf "$formato\n" "$version"
 fi

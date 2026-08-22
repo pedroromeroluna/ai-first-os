@@ -3,8 +3,8 @@ command: sweep
 capability: See what is pending
 capability: See what is blocked and why
 capability: See how the roadmap is going
-description: Run one of the three global scans over every organization plus the root's own work — what is pending, what is blocked and why, or how the roadmap is going — reading frontmatter only. Manually triggered; the mode is an argument, not a separate command.
-description_es: Corre uno de los tres barridos globales sobre todas las organizaciones más el trabajo propio de la raíz — qué hay pendiente, qué está trabado y por qué, o cómo va el roadmap — leyendo solo frontmatter. Se dispara a mano; el modo es un argumento, no un comando aparte.
+description: Run one of the three global scans over every workspace plus the root's own work — what is pending, what is blocked and why, or how the roadmap is going — reading frontmatter only. Manually triggered; the mode is an argument, not a separate command.
+description_es: Corre uno de los tres barridos globales sobre todos los espacios de trabajo más el trabajo propio de la raíz — qué hay pendiente, qué está trabado y por qué, o cómo va el roadmap — leyendo solo frontmatter. Se dispara a mano; el modo es un argumento, no un comando aparte.
 ---
 
 # sweep — the three global scans

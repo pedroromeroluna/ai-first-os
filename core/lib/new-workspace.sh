@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Parte determinística de `new-org`: escribe el nodo de la organización.
-# La entrevista la conduce core/skills/new-org.md. Interno: no es invocable.
+# Parte determinística de `new-workspace`: escribe el nodo del espacio de trabajo.
+# La entrevista la conduce core/skills/new-workspace.md. Interno: no es invocable.
 #
-# Uso: new-org.sh --brain DIR --name NOMBRE --role ROL --owner PERSONA
-#                 [--title TITULO] [--slug SLUG] [--identity-file ARCHIVO]
+# Uso: new-workspace.sh --brain DIR --name NOMBRE --role ROL --owner PERSONA
+#                       [--title TITULO] [--slug SLUG] [--identity-file ARCHIVO]
 #
 # `--role` activa un oficio de posición del pack (spec 009) y nace vacío (spec 020): es un acto
 # deliberado, aparte de la entrevista, nombrar ahí el slug de un oficio instalado (hoy: `cpo`).
@@ -47,13 +47,18 @@ done
 [ -n "$slug" ] || slug=$(os_slugify "$name")
 [ -n "$slug" ] || os_die "el nombre no produce un slug utilizable: $name"
 
-dir="$brain/orgs/$slug"
+# Layout inválido frena acá, antes de cualquier $(...) que arme una ruta con el nombre de la
+# carpeta (P2, spec 039): un `os_die` adentro de una subshell mata solo la subshell.
+os_ws_check "$brain"
+wsdir=$(os_ws_dir "$brain")
+
+dir="$brain/$wsdir/$slug"
 if [ -e "$dir" ]; then
-  os_die "ya existe: orgs/$slug"
+  os_die "ya existe: $wsdir/$slug"
 fi
 
-# El idioma es dato de la raíz (spec 021): lo declara `operator.md` y no se vuelve a preguntar. Una
-# organización sumada meses después nace en el mismo idioma que el resto del brain.
+# El idioma es dato de la raíz (spec 021): lo declara `operator.md` y no se vuelve a preguntar. Un
+# espacio de trabajo sumado meses después nace en el mismo idioma que el resto del brain.
 language=$(os_language "$brain")
 os_lang_load "$language"
 
@@ -74,4 +79,4 @@ os_render_lang "$templates/resolver.md" "$language" "NAME=$name" > "$dir/resolve
 
 os_check_identity_cap "$dir/context.md"
 
-printf 'orgs/%s — context.md · resolver.md · initiatives/\n' "$slug"
+printf '%s/%s — context.md · resolver.md · initiatives/\n' "$wsdir" "$slug"

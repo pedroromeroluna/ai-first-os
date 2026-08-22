@@ -1,8 +1,8 @@
 ---
 command: capture
 capability: Capture something on the fly
-description: File what the operator throws in mid-conversation into the right backlog —an organization's, the root's, or the inbox when it cannot be classified— without opening a discussion about it. Manually triggered; classifying is the model's job, writing is the script's.
-description_es: Archiva lo que el operador tira al vuelo en el backlog que corresponde —el de una organización, el de la raíz, o el inbox cuando no se puede clasificar— sin abrir una discusión al respecto. Se dispara a mano; clasificar es del modelo y escribir es del script.
+description: File what the operator throws in mid-conversation into the right backlog —a workspace's, the root's, or the inbox when it cannot be classified— without opening a discussion about it. Manually triggered; classifying is the model's job, writing is the script's.
+description_es: Archiva lo que el operador tira al vuelo en el backlog que corresponde —el de un espacio de trabajo, el de la raíz, o el inbox cuando no se puede clasificar— sin abrir una discusión al respecto. Se dispara a mano; clasificar es del modelo y escribir es del script.
 ---
 
 # capture — file whatever shows up on the fly

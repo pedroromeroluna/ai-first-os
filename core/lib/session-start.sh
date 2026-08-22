@@ -4,11 +4,15 @@
 # antes de que el modelo conteste el primer mensaje.
 #
 # Uso: session-start.sh --brain DIR --org SLUG [--mounts ARCHIVO]
+#      session-start.sh --brain DIR --workspace SLUG [--mounts ARCHIVO]
 #      session-start.sh --brain DIR --root      [--mounts ARCHIVO]
 #
-# `--org` y `--root` son excluyentes. `--root` es un flag aparte y no un valor reservado de `--org`:
-# un valor de texto siempre puede colisionar con lo que un operador nombre a una organización; un
-# flag distinto, nunca.
+# `--workspace` es sinónimo exacto de `--org` (spec 039): los dos con el mismo valor, o uno solo,
+# siguen igual; los dos con valores distintos frenan con error.
+#
+# `--org`/`--workspace` y `--root` son excluyentes. `--root` es un flag aparte y no un valor
+# reservado del otro: un valor de texto siempre puede colisionar con lo que un operador nombre a un
+# espacio de trabajo; un flag distinto, nunca.
 #
 # Lee el frontmatter de cada cabeza y los archivos que se cargan siempre. Nunca abre el cuerpo de
 # una iniciativa: al `---` de cierre deja de leer. El recorrido son los globs de `tree.md` más las
@@ -53,26 +57,41 @@ sep="$OS_SEP"
 
 brain=""
 org=""
+workspace=""
 mounts=""
 root=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --brain) brain="${2:-}"; shift 2 ;;
     --org) org="${2:-}"; shift 2 ;;
+    --workspace) workspace="${2:-}"; shift 2 ;;
     --root) root=1; shift ;;
     --mounts) mounts="${2:-}"; shift 2 ;;
     *) os_die "argumento desconocido: $1" ;;
   esac
 done
 
+# `--workspace` es sinónimo exacto de `--org` (P3, spec 039): nadie hacia afuera ve la palabra
+# "org", así que la opción también dice "workspace". Los dos con valores distintos son un error;
+# los dos con el mismo valor, o uno solo, siguen igual.
+if [ -n "$org" ] && [ -n "$workspace" ] && [ "$org" != "$workspace" ]; then
+  os_die "--org y --workspace con valores distintos: $org / $workspace"
+fi
+[ -n "$org" ] || org="$workspace"
+
 [ -n "$brain" ] || os_die "falta --brain"
 if [ "$root" = "1" ]; then
-  [ -z "$org" ] || os_die "--root y --org son excluyentes"
+  [ -z "$org" ] || os_die "--root y --org/--workspace son excluyentes"
 else
-  [ -n "$org" ] || os_die "falta --org o --root"
+  [ -n "$org" ] || os_die "falta --org, --workspace o --root"
 fi
 [ -d "$brain" ] || os_die "no existe el brain: $brain"
 brain=$(cd "$brain" && pwd)
+
+# Layout inválido frena acá, antes de cualquier $(...) que arme una ruta con el nombre de la
+# carpeta (P2, spec 039).
+os_ws_check "$brain"
+wsdir=$(os_ws_dir "$brain")
 
 # All the fixed or template text this script prints for the operator comes out of the bilingual
 # catalog (spec 021/033): with `language: en` in `operator.md` it comes out in English, and with
@@ -105,7 +124,8 @@ translate_bl_broken() {
 }
 
 # ---------------------------------------------------------------- el ámbito se valida contra el listado
-# El slug se compara byte a byte contra los nombres reales de `orgs/`, nunca con `-d`. Un test de
+# El slug se compara byte a byte contra los nombres reales de la carpeta de espacios de trabajo,
+# nunca con `-d`. Un test de
 # directorio acepta lo que el filesystem acepte: en un FS que no distingue mayúsculas `--org Acme`
 # pasa y después no matchea contra el slug `acme`, y `--org ../..` sale del árbol. Las dos formas
 # devolvían las cuatro secciones vacías con exit 0 — un barrido vacío que se lee como un brain vacío.
@@ -278,16 +298,17 @@ contar_filas_resolver() {
 }
 
 # La raíz no tiene `context.md` propio: su identidad es `operator.md`, que ya se cuenta abajo, y su
-# resolver es el de la raíz (`resolver.md`), sin el `orgs/<slug>/resolver.md` de una organización.
+# resolver es el de la raíz (`resolver.md`), sin el `<wsdir>/<slug>/resolver.md` de un espacio de
+# trabajo.
 if [ "$root" = "1" ]; then
   if [ -f "$brain/resolver.md" ]; then marcar_leido; fi
   filas=$(contar_filas_resolver "$brain/resolver.md")
 else
-  ctx="$brain/orgs/$org/context.md"
-  res_org="$brain/orgs/$org/resolver.md"
+  ctx="$brain/$wsdir/$org/context.md"
+  res_org="$brain/$wsdir/$org/resolver.md"
 
-  if [ -f "$ctx" ]; then marcar_leido; else push_chequeo "$(printf "$S_SESSION_CHECK_MISSING_FILE" "orgs/$org/context.md")"; fi
-  if [ -f "$res_org" ]; then marcar_leido; else push_chequeo "$(printf "$S_SESSION_CHECK_MISSING_FILE" "orgs/$org/resolver.md")"; fi
+  if [ -f "$ctx" ]; then marcar_leido; else push_chequeo "$(printf "$S_SESSION_CHECK_MISSING_FILE" "$wsdir/$org/context.md")"; fi
+  if [ -f "$res_org" ]; then marcar_leido; else push_chequeo "$(printf "$S_SESSION_CHECK_MISSING_FILE" "$wsdir/$org/resolver.md")"; fi
   if [ -f "$brain/resolver.md" ]; then marcar_leido; fi
 
   ident=$(contar_lineas "$ctx")
@@ -295,14 +316,14 @@ else
   diagnostico=$(printf "$S_SESSION_IDENTITY_DIAG" "$ident" "$OS_IDENTITY_CAP" "$filas")
 
   if [ "$ident" -gt "$OS_IDENTITY_CAP" ]; then
-    push_espera "$(printf "$S_SESSION_WAITING_IDENTITY_OVER" "orgs/$org/context.md" "$diagnostico")"
+    push_espera "$(printf "$S_SESSION_WAITING_IDENTITY_OVER" "$wsdir/$org/context.md" "$diagnostico")"
   fi
 
   # La identidad de cada producto de la organización entra al mismo chequeo (spec 036): un producto
   # es memoria y su cabeza puede crecer igual que la de la organización. Mismo mecanismo
   # (contar_lineas + OS_IDENTITY_CAP), una línea por producto que lo pasa, nada si ninguno lo pasa —
   # sin resolver propio que reportar acá, misma forma que operator.md usa abajo.
-  for prod_ctx in "$brain/orgs/$org/products/"*/context.md; do
+  for prod_ctx in "$brain/$wsdir/$org/products/"*/context.md; do
     [ -f "$prod_ctx" ] || continue
     ident_prod=$(contar_lineas "$prod_ctx")
     if [ "$ident_prod" -gt "$OS_IDENTITY_CAP" ]; then
@@ -337,7 +358,7 @@ rol_ruta=""
 if [ "$root" = "0" ]; then
   fm_read "$ctx"
   if [ -n "$fm_roto" ]; then
-    push_chequeo "$(printf "$S_SESSION_CHECK_ROLE_NOT_ACTIVATED" "orgs/$org/context.md" \
+    push_chequeo "$(printf "$S_SESSION_CHECK_ROLE_NOT_ACTIVATED" "$wsdir/$org/context.md" \
       "$(translate_fm_broken "$fm_roto")")"
   fi
   role="$fm_role"
@@ -364,15 +385,16 @@ while IFS="$sep" read -r raiz f || [ -n "$raiz" ]; do
   [ -n "$f" ] || continue
   if [ "$root" = "1" ]; then
     # Solo lo que vive en el brain mismo: la raíz no tiene montajes propios en esta spec, y un
-    # archivo montado con ruta que no empieza en "orgs/" no puede confundirse con una cabeza propia.
+    # archivo montado con ruta que no empieza en el prefijo de la carpeta de espacios de trabajo no
+    # puede confundirse con una cabeza propia.
     [ "$raiz" = "$brain" ] || continue
     case "$f" in
-      orgs/*) continue ;;
+      "$wsdir"/*) continue ;;
     esac
     propios="$OS_ROOT_PROPIOS"
   else
     case "$f" in
-      "orgs/$org/"*) ;;
+      "$wsdir/$org/"*) ;;
       *) continue ;;
     esac
     propios="$OS_ORG_PROPIOS"
@@ -386,7 +408,7 @@ while IFS="$sep" read -r raiz f || [ -n "$raiz" ]; do
     # subcarpeta (`products/<slug>/context.md`) puede compartir basename con un canónico de la
     # organización sin serlo — comparar solo por basename lo excluía del conteo de nodos aunque el
     # árbol lo alcance con su propio `glob:` (Q-12 del nodo de producto).
-    resto="${f#orgs/$org/}"
+    resto="${f#$wsdir/$org/}"
     case "$resto" in
       */*) ;;
       *) for p in $propios; do [ "$resto" = "$p" ] && propio=1; done ;;
@@ -422,7 +444,7 @@ while IFS="$sep" read -r raiz f || [ -n "$raiz" ]; do
   # `status`/`horizon` que reportar, y tratarlo como "sin status" sería ruido fijo en cada arranque,
   # nunca un hallazgo real.
   case "$f" in
-    orgs/*/products/*/context.md|orgs/*/products/*/resolver.md|orgs/*/products/*/decisions.md)
+    "$wsdir"/*/products/*/context.md|"$wsdir"/*/products/*/resolver.md|"$wsdir"/*/products/*/decisions.md)
       continue ;;
   esac
 
@@ -543,13 +565,13 @@ TOKENS
 revisar_rutas "$brain/resolver.md" "resolver.md"
 revisar_rutas "$brain/.os/core/resolver.md" ".os/core/resolver.md"
 if [ "$root" = "0" ]; then
-  revisar_rutas "$res_org" "orgs/$org/resolver.md"
+  revisar_rutas "$res_org" "$wsdir/$org/resolver.md"
 fi
 
 # ---------------------------------------------------------------- nodos fuera del árbol
-# El check de la raíz es de la spec 003: acá el barrido mira solo su ámbito — su organización, o (con
-# `--root`) los archivos propios de la raíz: sueltos en el brain, o bajo `initiatives/` y `voice/`,
-# nunca `orgs/` ni lo que instala el producto.
+# El check de la raíz es de la spec 003: acá el barrido mira solo su ámbito — su espacio de
+# trabajo, o (con `--root`) los archivos propios de la raíz: sueltos en el brain, o bajo
+# `initiatives/` y `voice/`, nunca la carpeta de espacios de trabajo ni lo que instala el producto.
 fuera=""
 n_fuera=0
 if [ "$root" = "1" ]; then
@@ -564,7 +586,7 @@ if [ "$root" = "1" ]; then
       [ -d voice ] && find voice -type f -name '*.md'
     } | sort)
 else
-  listado=$(cd "$brain" && find "orgs/$org" -type f -name '*.md' | sort)
+  listado=$(cd "$brain" && find "$wsdir/$org" -type f -name '*.md' | sort)
 fi
 while IFS= read -r f || [ -n "$f" ]; do
   [ -n "$f" ] || continue
@@ -597,8 +619,8 @@ if [ "$root" = "1" ]; then
   backlog="$brain/backlog.md"
   backlog_rel="backlog.md"
 else
-  backlog="$brain/orgs/$org/backlog.md"
-  backlog_rel="orgs/$org/backlog.md"
+  backlog="$brain/$wsdir/$org/backlog.md"
+  backlog_rel="$wsdir/$org/backlog.md"
 fi
 if [ -f "$backlog" ]; then
   marcar_leido

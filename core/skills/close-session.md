@@ -36,7 +36,7 @@ You write the material with whatever came out of the two questions —one key pe
 ```
 
 `--root` closes over the root's own work — the same material, the same canonical files, without
-`orgs/<slug>/` in front. It asks for neither `--session-org` nor `--load-context`: the root's
+the workspace's folder in front. It asks for neither `--session-org` nor `--load-context`: the root's
 identity (`operator.md`) is already loaded in any session.
 
 ```
