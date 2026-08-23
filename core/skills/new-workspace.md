@@ -16,7 +16,7 @@ Two questions. Nothing else.
 
 1. **What is this workspace?** What it does, for whom and how it makes money. Three or four
    lines.
-2. **What do you do here?** The answer is a title — identity, written to the body of `context.md`,
+2. **What do you do here?** The answer is a title — identity, written to the body of the head,
    never to `role:`. Write it down in the operator's own words —"I'm the one who decides product"—
    without translating it into anything. `role:` is a different field: it activates an oficio from
    the pack (today: `cpo`) and is born empty. Filling it in is a separate, deliberate step — this
@@ -29,9 +29,10 @@ Two questions. Nothing else.
   [--identity-file <file>]
 ```
 
-Leaves `workspaces/<slug>/` with `context.md`, a `resolver.md` with no rows and an empty
-`initiatives/` — on a brain that still carries the previous name of that folder, it lands there
-instead (see `rename-workspaces` to adopt the new one). Nothing else: whatever only stores content
+Leaves `workspaces/<slug>/` with its head `README.md`, a `resolver.md` with no rows and an empty
+`initiatives/` — on a brain that still carries the previous name of that folder, or the previous
+shape of the head, it lands there instead (see `rename-workspaces` and `rename-heads` to adopt the
+current ones). Nothing else: whatever only stores content
 is born with its first piece of data.
 
 `--owner` comes from the title of `operator.md`: the workspace is created by the operator, so

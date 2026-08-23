@@ -105,17 +105,17 @@ my-brain/
 ├── mounts.md                    # Which repos are mounted onto which initiatives (born on first mount-repo)
 ├── decisions.md                 # Your own decisions: what, why, and what would invalidate them
 ├── learnings.md                 # Live: updated or deleted, never archived
-├── initiatives/                 # Your own initiatives, one file each, with status/horizon/owner up top
+├── initiatives/<slug>/README.md # Your own initiatives, one folder each, with status/horizon/owner up top
 ├── workspaces/                  # One folder per workspace — the isolation boundary
 │   └── <workspace>/
-│       ├── context.md           # Its identity, and the `role:` it activates (cpo, cto)
+│       ├── README.md            # Its identity, and the `role:` it activates (cpo, cto)
 │       ├── resolver.md          # Where whatever gets written in this workspace goes
 │       ├── backlog.md           # Its tasks
 │       ├── decisions.md         # Its decisions
 │       ├── learnings.md         # Its learnings
-│       ├── initiatives/         # Its initiatives; a repo mounted on one gives it a folder
+│       ├── initiatives/         # Its initiatives, one folder each with its `README.md` inside
 │       └── products/<slug>/     # What it is, for whom, what is known — memory, not state
-│           └── context.md       # Born with `new-product`; `context/` (its strategic layer) is filled by `prd`
+│           └── README.md        # Born with `new-product`; `context/` (its strategic layer) is filled by `prd`, `research/` holds every dated document
 ├── .os/
 │   ├── core -> …/ai-first-os/core        # The chassis by symlink: the eleven system skills in core/skills/, the shell in core/lib/
 │   └── packs/<pack> -> …                 # Each installed pack, by symlink
@@ -158,6 +158,7 @@ context.
 | `grill` | The pressure interview: counter-question with a concrete example, capped attempts, escape hatches, evidence hierarchy |
 | `new-spec` | Writes a spec an agent can implement without asking for an opinion — one runnable eval per criterion |
 | `rename-workspaces` | Adopts the current name of the workspaces folder on a brain born before it, run only when the operator asks |
+| `rename-heads` | Adopts the single node shape —a folder with its `README.md` inside— on a brain born before it, run only when the operator asks |
 
 ### Knowledge skills
 

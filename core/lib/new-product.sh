@@ -95,17 +95,26 @@ templates="$here/../templates/node-product"
 today=$(date +%Y-%m-%d)
 
 mkdir -p "$dir"
-os_render_lang "$templates/context.md" "$language" \
-  "NAME=$name" "OWNER=$owner" "DATE=$today" "IDENTITY=$identity" \
-  > "$dir/context.md"
 
-os_check_identity_cap "$dir/context.md"
+# El nombre de la cabeza es dato del brain (spec 040), igual que en `new-workspace`.
+head=$(os_head_file "$brain") || true
+os_render_lang "$templates/README.md" "$language" \
+  "NAME=$name" "OWNER=$owner" "DATE=$today" "IDENTITY=$identity" \
+  > "$dir/$head"
+
+os_check_identity_cap "$dir/$head"
 
 # Los tres globs del nivel llegan de fábrica en `core/templates/tree.md`; acá se agregan a un brain
 # que ya existía antes de esta spec, sin duplicar (mismo patrón que `capture.sh`/`close-session.sh`
 # con los archivos que nacen con su primer dato).
-os_tree_ensure "$brain" "$wsdir/*/products/*/context.md" || true
+os_tree_ensure "$brain" "$wsdir/*/products/*/$head" || true
 os_tree_ensure "$brain" "$wsdir/*/products/*/resolver.md" || true
 os_tree_ensure "$brain" "$wsdir/*/products/*/decisions.md" || true
 
-printf '%s/%s/products/%s — context.md\n' "$wsdir" "$org" "$slug"
+# Las dos carpetas de un producto nacen con su primer dato y son contenido, nunca cabeza: `context/`
+# es la capa estratégica y `research/` todo documento fechado (spec 040). Se declaran acá para que el
+# primer archivo que el operador escriba adentro no aparezca como "ningún glob alcanza".
+os_tree_ensure "$brain" "$wsdir/*/products/*/context/*.md" content || true
+os_tree_ensure "$brain" "$wsdir/*/products/*/research/*.md" content || true
+
+printf '%s/%s/products/%s — %s\n' "$wsdir" "$org" "$slug" "$head"

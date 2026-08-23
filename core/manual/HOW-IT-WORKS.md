@@ -37,13 +37,18 @@ question is a file:
 | `voice.md` | How you write when you write well |
 | `resolver.md` | Capability → tool: which skill resolves which request |
 | `tree.md` | Which paths a scan walks — the map of the system |
-| `workspaces/<name>/context.md` | What that workspace is and which standing craft it activates |
-| `workspaces/<name>/products/<slug>/context.md` | What a product is, for whom, and what is known about it |
-| `initiatives/*.md` | The work: one head per initiative, with its state and its horizon |
+| `workspaces/<name>/README.md` | What that workspace is and which standing craft it activates |
+| `workspaces/<name>/products/<slug>/README.md` | What a product is, for whom, and what is known about it |
+| `initiatives/<slug>/README.md` | The work: one head per initiative, with its state and its horizon |
 | `backlog.md` | What is missing and belongs to no initiative |
 | `decisions.md` | What was decided, why, and what would make it false |
 | `learnings.md` | What was learned, including what was tried and did not close |
 | `inbox.md` | What could not be classified — it is never dropped in silence |
+
+**Every node has the same shape: a folder with the name of the thing, and `README.md` inside.** The
+name shows up once —the folder—, the head is always called the same, and anyone who opens the folder
+knows where to start. The root is the exception: its folder is this one, and its head is
+`operator.md`.
 
 **A product is memory, an initiative is push.** A product holds what it is, who it is for and what
 is known about it; an initiative holds its state, its horizon and when it closes. A product can
@@ -107,6 +112,7 @@ of them by name.
 - **`new-product`** — Add a product to a workspace that already exists.
 - **`new-spec`** — Turn concrete build work that came out of a conversation into a spec file under the target repo's specs/, with runnable evals per criterion, decisions split by who closes them, and effects that escape the system declared.
 - **`new-workspace`** — Add a workspace to an existing brain.
+- **`rename-heads`** — Move a brain born before the single node shape to it — every node becomes a folder with its `README.md` inside, every initiative gets its own folder, and each product's dated documents move to `research/` — rewriting the head paths everywhere the system reads them as routing and listing what it leaves untouched.
 - **`rename-workspaces`** — Move a brain still using the previous name of the workspaces folder to the current one, rewriting the prefix everywhere the system reads it as structure or routing, and listing what it leaves untouched for the operator to review.
 - **`sweep`** — Run one of the three global scans over every workspace plus the root's own work — what is pending, what is blocked and why, or how the roadmap is going — reading frontmatter only.
 

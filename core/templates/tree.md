@@ -5,7 +5,7 @@ reads these lines. Adding a level is adding a line here, not touching scripts.
 
 - `glob:` — what a scan reads as a head: frontmatter with `status`, `horizon`, and so on.
 - `content:` — what a scan counts as reached but **never** reads as a head: the voice, a record, the
-  `context/` of a product node, the body of an initiative with a folder. Without this line, that
+  `context/` and the `research/` of a product node, the body of an initiative next to its `README.md`. Without this line, that
   file gets flagged as unreached by any glob even when it is written correctly.
 
 The commands that create a level add their glob or their content line. A file that neither of the
@@ -18,17 +18,17 @@ glob: operator.md
 glob: resolver.md
 glob: inbox.md
 glob: mounts.md
-glob: initiatives/*.md
+glob: initiatives/*/README.md
 glob: backlog.md
 glob: decisions.md
 glob: learnings.md
-glob: workspaces/*/context.md
+glob: workspaces/*/README.md
 glob: workspaces/*/resolver.md
 glob: workspaces/*/backlog.md
 glob: workspaces/*/decisions.md
 glob: workspaces/*/learnings.md
-glob: workspaces/*/initiatives/*.md
-glob: workspaces/*/products/*/context.md
+glob: workspaces/*/initiatives/*/README.md
+glob: workspaces/*/products/*/README.md
 glob: workspaces/*/products/*/resolver.md
 glob: workspaces/*/products/*/decisions.md
 
@@ -38,4 +38,6 @@ content: voice/*.md
 content: workspaces/*/voice.md
 content: workspaces/*/records/*.md
 content: workspaces/*/products/*/context/*.md
+content: workspaces/*/products/*/research/*.md
+content: initiatives/*/*.md
 content: workspaces/*/initiatives/*/*.md

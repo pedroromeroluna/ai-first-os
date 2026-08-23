@@ -36,13 +36,18 @@ preguntas, y cada pregunta es un archivo:
 | `voice.md` | Cómo escribís cuando escribís bien |
 | `resolver.md` | Capacidad → herramienta: qué skill resuelve qué pedido |
 | `tree.md` | Qué rutas recorre un barrido — el mapa del sistema |
-| `workspaces/<nombre>/context.md` | Qué es ese espacio de trabajo y qué oficio tuyo activa |
-| `workspaces/<nombre>/products/<slug>/context.md` | Qué es un producto, para quién, y qué se sabe de él |
-| `initiatives/*.md` | El trabajo: una cabeza por iniciativa, con su estado y su horizonte |
+| `workspaces/<nombre>/README.md` | Qué es ese espacio de trabajo y qué oficio tuyo activa |
+| `workspaces/<nombre>/products/<slug>/README.md` | Qué es un producto, para quién, y qué se sabe de él |
+| `initiatives/<slug>/README.md` | El trabajo: una cabeza por iniciativa, con su estado y su horizonte |
 | `backlog.md` | Lo que falta y no es de ninguna iniciativa |
 | `decisions.md` | Qué se decidió, por qué, y qué lo volvería falso |
 | `learnings.md` | Qué se aprendió, incluido lo que se intentó y no cerró |
 | `inbox.md` | Lo que no se pudo clasificar — nunca se tira en silencio |
+
+**Todo nodo tiene la misma forma: una carpeta con el nombre de la cosa, y `README.md` adentro.** El
+nombre aparece una sola vez —la carpeta—, la cabeza se llama siempre igual, y cualquiera que abra la
+carpeta sabe por dónde empezar. La raíz es la excepción: su carpeta es esta, y su cabeza es
+`operator.md`.
 
 **Un producto es memoria, una iniciativa es empuje.** Un producto guarda qué es, para quién y qué
 se sabe de él; una iniciativa guarda su estado, su horizonte y cuándo cierra. Un producto puede
@@ -107,6 +112,7 @@ invocar cualquiera por su nombre.
 - **`new-product`** — Suma un producto a un espacio de trabajo que ya existe.
 - **`new-spec`** — Convierte en una spec el trabajo de construcción concreto que salió de una conversación, adentro de specs/ del repo destino, con evals ejecutables por criterio, las decisiones separadas por quién las cierra y los efectos que escapan del sistema declarados.
 - **`new-workspace`** — Suma un espacio de trabajo a un brain que ya existe.
+- **`rename-heads`** — Mueve un brain nacido antes de la forma única de nodo a esa forma — cada nodo pasa a ser una carpeta con su `README.md` adentro, cada iniciativa tiene su carpeta, y los documentos fechados de cada producto van a `research/` —, reescribiendo las rutas de cabeza en todo lo que el sistema lee como ruteo y listando lo que deja sin tocar.
 - **`rename-workspaces`** — Mueve un brain que todavía usa el nombre anterior de la carpeta de espacios de trabajo al nombre actual, reescribiendo el prefijo en todo lo que el sistema lee como estructura o ruteo, y listando lo que deja sin tocar para que el operador lo revise.
 - **`sweep`** — Corre uno de los tres barridos globales sobre todos los espacios de trabajo más el trabajo propio de la raíz — qué hay pendiente, qué está trabado y por qué, o cómo va el roadmap — leyendo solo frontmatter.
 

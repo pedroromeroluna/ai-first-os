@@ -10,7 +10,7 @@
 #
 # `--workspace` es sinónimo exacto de `--org` (spec 039). Con `--root` distribuye a los canónicos
 # de la raíz (spec 018) en vez de a los de una organización: `backlog.md`, `decisions.md`,
-# `learnings.md` y `initiatives/<nombre>.md`, todos en la raíz del brain. `--org`/`--workspace` y
+# `learnings.md` y la cabeza de la iniciativa, todos en la raíz del brain. `--org`/`--workspace` y
 # `--root` son excluyentes, y la raíz no exige `--session-org` ni `--load-context` — su identidad
 # (`operator.md`) ya está cargada en cualquier sesión.
 #
@@ -111,6 +111,8 @@ brain=$(cd "$brain" && pwd)
 # carpeta (P2, spec 039).
 os_ws_check "$brain"
 wsdir=$(os_ws_dir "$brain")
+# La forma de la cabeza, leída del árbol (spec 040).
+head=$(os_head_file "$brain") || true
 
 # Only the "old key" note goes through the bilingual catalog (spec 033) — the rest of the verdict
 # stays in Spanish: that is not what this spec asked to translate.
@@ -142,7 +144,7 @@ if [ "$root" = "1" ]; then
 else
   orgprefix="$wsdir/$org/"
   ambito_nombre="$org"
-  ctx="${orgprefix}context.md"
+  ctx="${orgprefix}$head"
   res="${orgprefix}resolver.md"
   if [ "$session_org" != "$org" ]; then
     if [ "$load_context" = "0" ]; then
@@ -398,7 +400,7 @@ CAMPOS
         push_no_capturado "espera sin iniciativa o sin valor: $value"
         continue
       fi
-      cabeza="${orgprefix}initiatives/$ini.md"
+      cabeza="${orgprefix}$(os_head_path "$brain" initiative "$ini")"
       if [ ! -f "$brain/$cabeza" ]; then
         push_no_capturado "espera no escrita: no existe $cabeza"
         continue

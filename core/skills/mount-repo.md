@@ -14,14 +14,16 @@ the head's `repo:` is what activates the building mechanics, and this command wr
 ## How it is run
 
 ```
-.os/core/lib/mount-repo.sh --brain . --head workspaces/<slug>/initiatives/<name>.md \
+.os/core/lib/mount-repo.sh --brain . --head workspaces/<workspace>/initiatives/<slug>/README.md \
   --remote <remote> [--clone-root <absolute path>] [--new]
 ```
 
 ## Before running it
 
 1. **The head already exists.** The command mounts a repo onto a head that is written; it does not
-   invent one. If the node is not there yet, it is created first.
+   invent one. If the node is not there yet, it is created first — a folder with the name of the
+   initiative and its `initiatives/<slug>/README.md` inside. On a brain that still keeps its heads in
+   the previous shape, the head is where that brain has it (see `rename-heads`).
 2. **The remote is the remote, never a local path.** What gets written into `repo:` travels with the
    brain to any machine; the local path is data of this one.
 3. **The clone root is asked once.** It is the folder where this machine's checkouts live, outside

@@ -741,3 +741,35 @@ es: todavía tienen el prefijo `orgs` — quedaron sin tocar, para revisar a man
 key: WS_RENAME_NONE_LEFT
 en: no other file carries the `orgs` prefix.
 es: ningún otro archivo tiene el prefijo `orgs`.
+
+key: HEADS_RENAME_NOTHING
+en: nothing to rename: every node of this brain already keeps its head in `README.md`.
+es: nada que renombrar: todos los nodos de este brain ya tienen su cabeza en `README.md`.
+
+key: HEADS_RENAME_BOTH
+en: something is already sitting where a file would move — nothing was touched, not one file; keep one of each pair before running this command again:
+es: ya hay algo donde un archivo tendría que moverse — no se tocó nada, ni un archivo; dejá uno de cada par antes de volver a correr este comando:
+
+key: HEADS_RENAME_UNKNOWN
+en: this brain's tree (`tree.md`) declares no head at all — there is nothing this command can recognize as a node, and it will not guess: fix the tree before running it again.
+es: el árbol (`tree.md`) de este brain no declara ninguna cabeza — no hay nada que este comando pueda reconocer como nodo, y no lo adivina: arreglá el árbol antes de volver a correrlo.
+
+key: HEADS_RENAME_MOVED
+en: heads moved into their node's folder:
+es: cabezas movidas adentro de la carpeta de su nodo:
+
+key: HEADS_RENAME_RESEARCH
+en: dated documents moved from `context/` to `research/`:
+es: documentos fechados movidos de `context/` a `research/`:
+
+key: HEADS_RENAME_REWROTE
+en: rewrote the head paths in:
+es: se reescribieron las rutas de cabeza en:
+
+key: HEADS_RENAME_LEFTOVER
+en: still name a head in the previous shape — left untouched, review by hand:
+es: todavía nombran una cabeza en la forma anterior — quedaron sin tocar, para revisar a mano:
+
+key: HEADS_RENAME_NONE_LEFT
+en: no other file names a head in the previous shape.
+es: ningún otro archivo nombra una cabeza en la forma anterior.

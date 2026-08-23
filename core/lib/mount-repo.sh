@@ -4,7 +4,7 @@
 #
 # Uso: mount-repo.sh --brain DIR --head RUTA --remote REMOTE [--clone-root RUTA] [--new]
 #
-#   --head        la cabeza, relativa al brain: `workspaces/<slug>/initiatives/<nombre>.md`
+#   --head        la cabeza, relativa al brain: `workspaces/<slug>/initiatives/<nombre>/README.md`
 #   --remote      lo que se escribe en `repo:` — el remote textual, nunca una ruta local
 #   --clone-root  la raíz de clonado de esta máquina. Se pregunta una sola vez: si `mounts.md` ya la
 #                 declara, esa gana y el argumento se ignora diciéndolo.

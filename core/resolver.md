@@ -13,6 +13,7 @@ from the brain: the operator's rows go in `resolver.md`, at the root of the brai
 | Add a workspace | `new-workspace` | `.os/core/skills/new-workspace.md` |
 | Add a product | `new-product` | `.os/core/skills/new-product.md` |
 | Rename the workspaces folder of an existing brain | `rename-workspaces` | `.os/core/skills/rename-workspaces.md` |
+| Adopt the single node shape in an existing brain | `rename-heads` | `.os/core/skills/rename-heads.md` |
 | See what is pending | `sweep` | `.os/core/skills/sweep.md` |
 | See what is blocked and why | `sweep` | `.os/core/skills/sweep.md` |
 | See how the roadmap is going | `sweep` | `.os/core/skills/sweep.md` |

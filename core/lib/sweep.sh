@@ -60,6 +60,9 @@ brain=$(cd "$brain" && pwd)
 # carpeta (P2, spec 039).
 os_ws_check "$brain"
 wsdir=$(os_ws_dir "$brain")
+# La forma de la cabeza, leída del árbol una sola vez (spec 040).
+head=$(os_head_file "$brain") || true
+org_propios=$(os_org_propios "$brain")
 
 # Only the Checks title and its empty message go through the catalog (spec 033), reusing
 # `session-start.sh`'s keys — the rest of this sweep stays in Spanish: the spec did not ask for it.
@@ -168,12 +171,12 @@ while IFS= read -r linea || [ -n "$linea" ]; do
       org="${resto%%/*}"
       propio=0
       # Mismo criterio que `session-start.sh`: el nombre propio solo cuenta a la altura directa de
-      # la organización — una subcarpeta (`products/<slug>/context.md`) puede compartir basename con
+      # la organización — una subcarpeta (`products/<slug>/<cabeza>`) puede compartir basename con
       # un canónico sin serlo (Q-12 del nodo de producto).
       resto2="${resto#$org/}"
       case "$resto2" in
         */*) ;;
-        *) for p in $OS_ORG_PROPIOS; do [ "$resto2" = "$p" ] && propio=1; done ;;
+        *) for p in $org_propios; do [ "$resto2" = "$p" ] && propio=1; done ;;
       esac
       [ "$propio" = "1" ] && continue
       ;;
@@ -188,14 +191,14 @@ while IFS= read -r linea || [ -n "$linea" ]; do
       ;;
   esac
 
-  nombre="${base%.md}"
+  nombre=$(os_node_name "$f")
   fm_read "$raiz/$f"
   leidos=$(( leidos + 1 ))
   # Un nodo de producto es memoria, no estado (spec 036): cuenta para el total de nodos —ya sumado
   # arriba— pero no entra a ninguna clasificación. No tiene `status`/`horizon` que reportar, y
   # tratarlo como "sin status" sería ruido fijo en cada corrida, nunca un hallazgo real.
   case "$f" in
-    "$wsdir"/*/products/*/context.md|"$wsdir"/*/products/*/resolver.md|"$wsdir"/*/products/*/decisions.md)
+    "$wsdir"/*/products/*/"$head"|"$wsdir"/*/products/*/resolver.md|"$wsdir"/*/products/*/decisions.md)
       continue ;;
   esac
   registros="$registros$org$sep$nombre$sep$fm_status$sep$fm_horizon$sep$fm_waiting_on$sep$fm_blocked$sep$fm_depends_on$sep$fm_roto$nl"

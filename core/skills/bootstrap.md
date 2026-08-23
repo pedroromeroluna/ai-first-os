@@ -80,7 +80,7 @@ is answered in a line. Whatever the system can learn with use is not asked.
 5. **Your workspace.** A workspace is each company or client you work for; a course case is one
    too. For the typical case —one person, one employer— that is one. Ask **what it does** and
    **what you do there**. What you do there is a title — identity, written to the body of
-   `context.md`, never to `role:`. `role:` activates an oficio from the pack (today: `cpo`) and is
+   the head, never to `role:`. `role:` activates an oficio from the pack (today: `cpo`) and is
    born empty; filling it in is a separate, deliberate step, not part of this interview.
 
 **"How do you want to be answered" is not asked.** `operator.md` is born with a default —the answer

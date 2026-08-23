@@ -154,7 +154,7 @@ fi
 # agente archiva a ciegas, dejando el dato mal archivado en el nodo equivocado y en silencio.
 # Un ámbito de sesión sin declarar cuenta como no cargado: suponer lo contrario es la misma ceguera.
 if [ "$session_org" != "$org" ]; then
-  ctx="$wsdir/$org/context.md"
+  ctx="$wsdir/$org/$(os_head_file "$brain" || true)"
   res="$wsdir/$org/resolver.md"
   if [ "$load_context" = "0" ]; then
     printf 'escritura cross-nodo: la sesión está parada en "%s" y esto se escribe en "%s".\n' \

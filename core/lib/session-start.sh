@@ -92,6 +92,10 @@ brain=$(cd "$brain" && pwd)
 # carpeta (P2, spec 039).
 os_ws_check "$brain"
 wsdir=$(os_ws_dir "$brain")
+# La forma de la cabeza es dato del brain (spec 040): se lee del árbol una sola vez, y todo lo que
+# arma una ruta de cabeza o cuenta un canónico la recibe de acá.
+head=$(os_head_file "$brain") || true
+org_propios=$(os_org_propios "$brain")
 
 # All the fixed or template text this script prints for the operator comes out of the bilingual
 # catalog (spec 021/033): with `language: en` in `operator.md` it comes out in English, and with
@@ -297,17 +301,17 @@ contar_filas_resolver() {
   printf '%s' "$n"
 }
 
-# La raíz no tiene `context.md` propio: su identidad es `operator.md`, que ya se cuenta abajo, y su
+# La raíz no tiene cabeza de nodo propia: su identidad es `operator.md`, que ya se cuenta abajo, y su
 # resolver es el de la raíz (`resolver.md`), sin el `<wsdir>/<slug>/resolver.md` de un espacio de
 # trabajo.
 if [ "$root" = "1" ]; then
   if [ -f "$brain/resolver.md" ]; then marcar_leido; fi
   filas=$(contar_filas_resolver "$brain/resolver.md")
 else
-  ctx="$brain/$wsdir/$org/context.md"
+  ctx="$brain/$wsdir/$org/$head"
   res_org="$brain/$wsdir/$org/resolver.md"
 
-  if [ -f "$ctx" ]; then marcar_leido; else push_chequeo "$(printf "$S_SESSION_CHECK_MISSING_FILE" "$wsdir/$org/context.md")"; fi
+  if [ -f "$ctx" ]; then marcar_leido; else push_chequeo "$(printf "$S_SESSION_CHECK_MISSING_FILE" "$wsdir/$org/$head")"; fi
   if [ -f "$res_org" ]; then marcar_leido; else push_chequeo "$(printf "$S_SESSION_CHECK_MISSING_FILE" "$wsdir/$org/resolver.md")"; fi
   if [ -f "$brain/resolver.md" ]; then marcar_leido; fi
 
@@ -316,14 +320,14 @@ else
   diagnostico=$(printf "$S_SESSION_IDENTITY_DIAG" "$ident" "$OS_IDENTITY_CAP" "$filas")
 
   if [ "$ident" -gt "$OS_IDENTITY_CAP" ]; then
-    push_espera "$(printf "$S_SESSION_WAITING_IDENTITY_OVER" "$wsdir/$org/context.md" "$diagnostico")"
+    push_espera "$(printf "$S_SESSION_WAITING_IDENTITY_OVER" "$wsdir/$org/$head" "$diagnostico")"
   fi
 
   # La identidad de cada producto de la organización entra al mismo chequeo (spec 036): un producto
   # es memoria y su cabeza puede crecer igual que la de la organización. Mismo mecanismo
   # (contar_lineas + OS_IDENTITY_CAP), una línea por producto que lo pasa, nada si ninguno lo pasa —
   # sin resolver propio que reportar acá, misma forma que operator.md usa abajo.
-  for prod_ctx in "$brain/$wsdir/$org/products/"*/context.md; do
+  for prod_ctx in "$brain/$wsdir/$org/products/"*/"$head"; do
     [ -f "$prod_ctx" ] || continue
     ident_prod=$(contar_lineas "$prod_ctx")
     if [ "$ident_prod" -gt "$OS_IDENTITY_CAP" ]; then
@@ -352,13 +356,13 @@ fi
 # mismo lugar, para no tener dos copias del mismo recorrido.
 #
 # La raíz no activa rol: el operador no es una posición (fuera de alcance de la spec 018), y no tiene
-# `context.md` con `role:` que leer.
+# cabeza con `role:` que leer.
 role=""
 rol_ruta=""
 if [ "$root" = "0" ]; then
   fm_read "$ctx"
   if [ -n "$fm_roto" ]; then
-    push_chequeo "$(printf "$S_SESSION_CHECK_ROLE_NOT_ACTIVATED" "$wsdir/$org/context.md" \
+    push_chequeo "$(printf "$S_SESSION_CHECK_ROLE_NOT_ACTIVATED" "$wsdir/$org/$head" \
       "$(translate_fm_broken "$fm_roto")")"
   fi
   role="$fm_role"
@@ -397,7 +401,7 @@ while IFS="$sep" read -r raiz f || [ -n "$raiz" ]; do
       "$wsdir/$org/"*) ;;
       *) continue ;;
     esac
-    propios="$OS_ORG_PROPIOS"
+    propios="$org_propios"
   fi
   base=$(basename "$f")
   propio=0
@@ -405,7 +409,7 @@ while IFS="$sep" read -r raiz f || [ -n "$raiz" ]; do
     for p in $propios; do [ "$base" = "$p" ] && propio=1; done
   else
     # El nombre propio solo cuenta a la altura directa de la organización: un archivo debajo de una
-    # subcarpeta (`products/<slug>/context.md`) puede compartir basename con un canónico de la
+    # subcarpeta (`products/<slug>/<cabeza>`) puede compartir basename con un canónico de la
     # organización sin serlo — comparar solo por basename lo excluía del conteo de nodos aunque el
     # árbol lo alcance con su propio `glob:` (Q-12 del nodo de producto).
     resto="${f#$wsdir/$org/}"
@@ -437,14 +441,14 @@ while IFS="$sep" read -r raiz f || [ -n "$raiz" ]; do
   marcar_leido
   fm_read "$raiz/$f"
   base=$(basename "$f")
-  nombre="${base%.md}"
+  nombre=$(os_node_name "$f")
 
   # Un nodo de producto es memoria, no estado (spec 036): ya sumó al conteo de nodos con
   # `marcar_leido` de arriba, pero no entra a ninguna de las cuatro secciones. No tiene
   # `status`/`horizon` que reportar, y tratarlo como "sin status" sería ruido fijo en cada arranque,
   # nunca un hallazgo real.
   case "$f" in
-    "$wsdir"/*/products/*/context.md|"$wsdir"/*/products/*/resolver.md|"$wsdir"/*/products/*/decisions.md)
+    "$wsdir"/*/products/*/"$head"|"$wsdir"/*/products/*/resolver.md|"$wsdir"/*/products/*/decisions.md)
       continue ;;
   esac
 

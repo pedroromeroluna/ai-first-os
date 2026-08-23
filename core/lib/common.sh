@@ -17,18 +17,22 @@ OS_SEP=$(printf '\037')
 OS_ESTADOS_VALIDOS="active blocked ongoing closed"
 OS_ESTADOS_CERRADOS="closed"
 
-# Los archivos propios de un nodo organización: las preguntas canónicas del nodo, más el backlog.
-# Todo lo demás que un glob alcance adentro de la carpeta de un espacio de trabajo es una cabeza de
-# iniciativa. Se enuncia acá una sola vez: los dos lectores —arranque de sesión y barridos
+# Los archivos propios de un nodo organización, sin la cabeza: las preguntas canónicas del nodo, más
+# el backlog. Todo lo demás que un glob alcance adentro de la carpeta de un espacio de trabajo es una
+# cabeza de iniciativa. Se enuncia acá una sola vez: los dos lectores —arranque de sesión y barridos
 # globales— tienen que contestar lo mismo sobre el mismo archivo, y una tercera copia se
 # desincroniza en la primera pregunta canónica que nazca.
-OS_ORG_PROPIOS="context.md resolver.md backlog.md decisions.md learnings.md"
+#
+# La cabeza no está en la lista porque su nombre es dato del brain (spec 040): la suma
+# `os_org_propios`, leyéndolo del árbol. Esta lista es además el negativo con el que `os_head_file`
+# reconoce la cabeza entre los globs de la altura del espacio de trabajo.
+OS_NODE_CANONICOS="resolver.md backlog.md decisions.md learnings.md"
 
 # Los archivos propios de la raíz como nodo (spec 018): sus preguntas canónicas, más el backlog. La
-# raíz no tiene `context.md` propio —esa identidad es `operator.md`, que ya se lee siempre— así que
-# la lista es la de arriba menos `context.md`, más los archivos que ya vivían sueltos en la raíz
-# (`operator.md`, `inbox.md`, `mounts.md`). Todo lo demás que un `glob:` alcance fuera de la carpeta
-# de espacios de trabajo es una cabeza de iniciativa de la raíz — hoy solo `initiatives/*.md`.
+# raíz no tiene cabeza propia —esa identidad es `operator.md`, que ya se lee siempre— así que la
+# lista es la de arriba más los archivos que ya vivían sueltos en la raíz (`operator.md`,
+# `inbox.md`, `mounts.md`). Todo lo demás que un `glob:` alcance fuera de la carpeta de espacios de
+# trabajo es una cabeza de iniciativa de la raíz.
 OS_ROOT_PROPIOS="operator.md resolver.md inbox.md mounts.md backlog.md decisions.md learnings.md"
 
 # La etiqueta que agrupa el trabajo propio de la raíz en los barridos globales (spec 018). Nunca
@@ -615,7 +619,7 @@ os_backlog_asegurar() {
   wsdir=$(os_ws_dir "$brain")
   file="$brain/$wsdir/$org/backlog.md"
   [ -f "$file" ] && return 0
-  titulo=$(os_titulo "$brain/$wsdir/$org/context.md")
+  titulo=$(os_titulo "$brain/$wsdir/$org/$(os_head_file "$brain" || true)")
   [ -n "$titulo" ] || titulo="$org"
   os_backlog_cabecera "$brain" "$titulo" > "$file"
   return 1
@@ -635,7 +639,7 @@ os_backlog_cabecera() {
 # os_root_backlog_asegurar BRAIN
 # Deja existiendo `backlog.md` en la raíz del brain y declarado su glob. Mismo criterio que
 # `os_backlog_asegurar`, para el nodo del operador: el título sale del nombre en `operator.md`, no de
-# un `context.md` que la raíz no tiene.
+# una cabeza de nodo que la raíz no tiene.
 #   0  ya estaba       1  nació con este dato
 os_root_backlog_asegurar() {
   local brain="$1" file titulo
@@ -696,6 +700,122 @@ os_ws_check() {
     os_die "$S_WS_LAYOUT_MISMATCH_ORGS"
   fi
   return 0
+}
+
+# ---------------------------------------------------------------- la forma de la cabeza (spec 040)
+# Todo nodo es una carpeta con su cabeza adentro, y la cabeza se llama `README.md`. Un brain nacido
+# antes de esta spec la llama de otra manera y guarda las iniciativas como archivo suelto: la forma
+# se lee del árbol —igual que el nombre de la carpeta de espacios de trabajo (spec 039)— y ningún
+# script lleva adentro el nombre viejo. `rename-heads` adopta la forma nueva a pedido.
+
+# os_head_file BRAIN -> el nombre de la cabeza de un nodo en este brain, leído del árbol, y la
+# forma en el código de salida. Único lector de la forma: todo lo demás la recibe de acá.
+#
+# El árbol declara las cabezas en dos alturas: la del espacio de trabajo (`glob: <wsdir>/*/<cabeza>`,
+# donde la cabeza es el único glob de esa altura que no es un canónico de `OS_NODE_CANONICOS`) y la
+# de las iniciativas (`glob: initiatives/...`, en la raíz o adentro de un espacio de trabajo). Un
+# brain de raíz pura no declara la primera, así que la forma se lee igual de la segunda.
+#
+# Imprime el nombre de la cabeza de nodo, o `README.md` cuando el árbol no declara esa altura — es
+# el nombre con el que se arma una ruta nueva, no una afirmación sobre lo que el brain tiene.
+# Las dos alturas se leen siempre, incluso cuando la primera ya contestó: un brain a medio migrar
+# tiene una en cada forma, y cortar en la primera lo daba por migrado entero.
+#
+# Exit: 0 las dos alturas en la forma nueva · 1 las dos en la anterior · 2 el árbol no declara
+# ninguna cabeza · 3 mixto, con el espacio de trabajo en la forma nueva y las iniciativas en la
+# anterior · 4 mixto al revés. Nunca aborta ella misma, pero su código de salida no es un error:
+# quien solo quiera el nombre tiene que absorberlo (`|| true`), o `set -e` mata al script en la
+# asignación.
+os_head_file() {
+  local brain="$1" tree="$1/tree.md" line g base wsdir ws_head="" ini_forma=""
+  [ -f "$tree" ] || { printf 'README.md'; return 2; }
+  wsdir=$(os_ws_dir "$brain")
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      glob:*) ;;
+      *) continue ;;
+    esac
+    g=$(os_trim "${line#glob:}")
+    # la altura de las iniciativas, en la raíz o adentro de un espacio de trabajo
+    case "$g" in
+      initiatives/\*/?*|"$wsdir"/\*/initiatives/\*/?*) [ -n "$ini_forma" ] || ini_forma="nueva"; continue ;;
+      initiatives/\*.md|"$wsdir"/\*/initiatives/\*.md) [ -n "$ini_forma" ] || ini_forma="vieja"; continue ;;
+    esac
+    # la altura del espacio de trabajo
+    case "$g" in
+      "$wsdir"/\*/*/*) continue ;;
+      "$wsdir"/\*/?*) base="${g##*/}" ;;
+      *) continue ;;
+    esac
+    case " $OS_NODE_CANONICOS " in
+      *" $base "*) continue ;;
+    esac
+    [ -n "$ws_head" ] || ws_head="$base"
+  done < "$tree"
+
+  local ws_forma=""
+  if [ -n "$ws_head" ]; then
+    printf '%s' "$ws_head"
+    if [ "$ws_head" = "README.md" ]; then ws_forma="nueva"; else ws_forma="vieja"; fi
+  else
+    printf 'README.md'
+  fi
+
+  # sin ninguna de las dos alturas declarada, el árbol no dice nada sobre la forma
+  [ -n "$ws_forma$ini_forma" ] || return 2
+  # con una sola declarada, esa es la forma del brain
+  [ -n "$ws_forma" ] || { [ "$ini_forma" = "nueva" ] && return 0; return 1; }
+  [ -n "$ini_forma" ] || { [ "$ws_forma" = "nueva" ] && return 0; return 1; }
+  # con las dos, coinciden o el brain está a medio migrar
+  [ "$ws_forma" = "$ini_forma" ] && { [ "$ws_forma" = "nueva" ] && return 0; return 1; }
+  [ "$ws_forma" = "nueva" ] && return 3
+  return 4
+}
+
+# os_head_path BRAIN KIND [SLUG] -> la ruta de una cabeza, relativa al nodo que la contiene.
+#   node               la cabeza de un espacio de trabajo o de un producto
+#   initiative SLUG    la cabeza de una iniciativa
+# No lee el árbol: lo hace `os_head_file`. Con la forma nueva una iniciativa es una carpeta con su
+# `README.md` adentro; con la vieja, un archivo suelto. Los scripts arman rutas con esto y nunca
+# concatenando un nombre propio.
+os_head_path() {
+  local brain="$1" kind="$2" slug="${3:-}" head forma=0
+  head=$(os_head_file "$brain") || forma=$?
+  case "$kind" in
+    node) printf '%s' "$head" ;;
+    initiative)
+      # La forma de esta altura, no la del brain entero: en un brain a medio migrar (3 y 4) las dos
+      # alturas difieren. 1 y 3 son los dos casos con la iniciativa en la forma anterior.
+      if [ "$forma" = "1" ] || [ "$forma" = "3" ]; then
+        printf 'initiatives/%s.md' "$slug"
+      else
+        # En la forma nueva la cabeza se llama siempre igual, sea cual sea el nombre que la altura
+        # del espacio de trabajo tenga declarado en un brain a medio migrar.
+        printf 'initiatives/%s/README.md' "$slug"
+      fi
+      ;;
+    *) return 1 ;;
+  esac
+  return 0
+}
+
+# os_node_name RUTA -> el nombre del nodo que esa cabeza encabeza.
+# El nombre de la cosa aparece una sola vez: en la carpeta. Una cabeza `README.md` lo toma de su
+# carpeta; una cabeza vieja, del nombre del archivo. No lee el árbol: la forma se ve en la ruta.
+os_node_name() {
+  local ruta="$1" base carpeta
+  base="${ruta##*/}"
+  if [ "$base" = "README.md" ]; then
+    carpeta="${ruta%/*}"
+    printf '%s' "${carpeta##*/}"
+    return 0
+  fi
+  printf '%s' "${base%.md}"
+}
+
+# os_org_propios BRAIN -> los archivos propios de un nodo espacio de trabajo, cabeza incluida.
+os_org_propios() {
+  printf '%s %s' "$(os_head_file "$1" || true)" "$OS_NODE_CANONICOS"
 }
 
 # os_org_slugs BRAIN -> los slugs reales de la carpeta de espacios de trabajo de este brain, uno

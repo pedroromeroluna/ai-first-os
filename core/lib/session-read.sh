@@ -15,7 +15,7 @@
 #
 #   1. operator.md
 #   2. voice.md
-#   3. <workspaces-dir>/<slug>/context.md   (only with --org/--workspace)
+#   3. <workspaces-dir>/<slug>/<head>       (only with --org/--workspace)
 #   4. <workspaces-dir>/<slug>/resolver.md  (only with --org/--workspace)
 #   5. .os/core/resolver.md
 #   6. .claude/skills/*-resolver/SKILL.md — zero or more, `LC_ALL=C sort` by path
@@ -89,6 +89,8 @@ brain=$(cd "$brain" && pwd)
 # 039).
 os_ws_check "$brain"
 wsdir=$(os_ws_dir "$brain")
+# La forma de la cabeza, leída del árbol (spec 040).
+head=$(os_head_file "$brain") || true
 
 lang=$(os_language "$brain")
 os_lang_load "$lang"
@@ -122,7 +124,7 @@ fi
 role=""
 rol_ruta=""
 if [ "$root" = "0" ]; then
-  fm_read "$brain/$wsdir/$org/context.md"
+  fm_read "$brain/$wsdir/$org/$head"
   role="$fm_role"
   if [ -n "$role" ]; then
     if ! rol_ruta=$(os_buscar_oficio "$brain" "$role"); then rol_ruta=""; fi
@@ -162,7 +164,7 @@ emitir() {
 emitir "operator.md"
 emitir "voice.md"
 if [ "$root" = "0" ]; then
-  emitir "$wsdir/$org/context.md"
+  emitir "$wsdir/$org/$head"
   emitir "$wsdir/$org/resolver.md"
 fi
 emitir ".os/core/resolver.md"

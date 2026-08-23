@@ -32,9 +32,10 @@ Two questions. Nothing else.
   [--identity-file <file>]
 ```
 
-Leaves `workspaces/<org>/products/<slug>/context.md` with the identity. Nothing else: `context/`
-(the strategic layer `prd` writes), `resolver.md` and `decisions.md` are born with their first piece
-of data, same as every other canonical file in this system.
+Leaves `workspaces/<org>/products/<slug>/README.md` with the identity. Nothing else: `context/`
+(the strategic layer `prd` writes), `research/` (every dated document about the product — briefs,
+analyses, inventories), `resolver.md` and `decisions.md` are born with their first piece of data,
+same as every other canonical file in this system.
 
 `--owner` comes from the title of `operator.md`, same as `new-workspace`: the product is created by
 the operator, so they are the owner unless someone else runs it.

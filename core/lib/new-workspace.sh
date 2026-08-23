@@ -8,7 +8,7 @@
 # `--role` activa un oficio de posición del pack (spec 009) y nace vacío (spec 020): es un acto
 # deliberado, aparte de la entrevista, nombrar ahí el slug de un oficio instalado (hoy: `cpo`).
 # `--title` es identidad —"qué hacés en esta organización", en palabras del operador— y va al
-# cuerpo de `context.md`, nunca al frontmatter: no activa nada.
+# cuerpo de la cabeza, nunca al frontmatter: no activa nada.
 
 set -eu
 
@@ -72,11 +72,30 @@ templates="$here/../templates/node-folder"
 today=$(date +%Y-%m-%d)
 
 mkdir -p "$dir/initiatives"
-os_render_lang "$templates/context.md" "$language" \
+
+# El nombre de la cabeza es dato del brain (spec 040): la forma nueva es `README.md` y un brain que
+# todavía no la adoptó recibe su nodo nuevo en la forma que ya tiene — mezclar las dos en el mismo
+# brain es el layout que `rename-heads` existe para reparar.
+head=$(os_head_file "$brain") || true
+os_render_lang "$templates/README.md" "$language" \
   "NAME=$name" "ROLE=$role" "TITLE=$title" "OWNER=$owner" "DATE=$today" "IDENTITY=$identity" \
-  > "$dir/context.md"
+  > "$dir/$head"
 os_render_lang "$templates/resolver.md" "$language" "NAME=$name" > "$dir/resolver.md"
 
-os_check_identity_cap "$dir/context.md"
+os_check_identity_cap "$dir/$head"
 
-printf '%s/%s — context.md · resolver.md · initiatives/\n' "$wsdir" "$slug"
+# La altura del espacio de trabajo queda declarada en el árbol, en la forma con la que este nodo
+# acaba de nacer (spec 040). Un brain que no la tenía —uno que hasta hoy solo tuvo trabajo propio de
+# la raíz— se quedaba con el nodo nuevo sin que ningún glob lo alcanzara: escrito y ciego para todo
+# barrido. Los brains que ya la declaran no cambian: `os_tree_ensure` no duplica.
+os_tree_ensure "$brain" "$wsdir/*/$head" || true
+os_tree_ensure "$brain" "$wsdir/*/resolver.md" || true
+os_tree_ensure "$brain" "$wsdir/*/backlog.md" || true
+os_tree_ensure "$brain" "$wsdir/*/decisions.md" || true
+os_tree_ensure "$brain" "$wsdir/*/learnings.md" || true
+# La altura de las iniciativas de ese nodo, en la forma que el brain tenga para esa altura: el
+# glob sale del mismo helper que arma la ruta de una cabeza, con `*` en lugar del slug.
+os_tree_ensure "$brain" "$wsdir/*/$(os_head_path "$brain" initiative '*')" || true
+os_tree_ensure "$brain" "$wsdir/*/initiatives/*/*.md" content || true
+
+printf '%s/%s — %s · resolver.md · initiatives/\n' "$wsdir" "$slug" "$head"

@@ -78,7 +78,10 @@ not make is not a decision: it is an inference, and it goes as `not-captured` so
 
 `waiting:` is written when the session leaves an initiative waiting on something — a gate, a person,
 a third party. The value says who unblocks it: that is what puts it at the top of the next session
-start.
+start. It names an initiative that already exists: the script writes `waiting_on:` into its head and
+declares it when the head is not there. No command creates one — an initiative that is missing is
+written by hand at `initiatives/<slug>/README.md`, a folder with the name of the thing and its head
+inside.
 
 ## The verdict
 

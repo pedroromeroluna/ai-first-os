@@ -32,7 +32,7 @@ what could not be classified, never a destination out of convenience**: if you k
 organization it belongs to, it goes to its backlog; if it belongs to the operator's own work —to no
 organization— it goes to the root backlog with `--root`.
 
-To write into an organization that is not the session's: load its `context.md` and its
+To write into an organization that is not the session's: load its `README.md` and its
 `resolver.md`, and repeat with `--load-context`. The root never asks for it: its identity
 (`operator.md`) is already loaded in any session, at any scope.
 
@@ -42,7 +42,10 @@ To write into an organization that is not the session's: load its `context.md` a
    without asking, it is not asked in the middle of something else: it goes to the inbox and that is
    said.
 2. **Does it belong to an initiative?** Name it in the text between parentheses. The task lives in
-   the backlog either way: the backlog is the organization node's "what is missing".
+   the backlog either way: the backlog is the organization node's "what is missing". No command
+   creates an initiative: if it needs one that does not exist, you write its head at
+   `initiatives/<slug>/README.md` — the folder is the node and the name of the thing lives there,
+   once.
 3. **Is it blocked or postponed?** `--blocked-by` with the reference blocking it; `--hold` with the
    reason and `--hold-until` with the date it resurfaces. A hold with no date is indefinitely in
    force: the task never comes back on its own.

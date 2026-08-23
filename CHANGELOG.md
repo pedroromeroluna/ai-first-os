@@ -5,6 +5,26 @@ Every published version of AI First OS, newest first. The format follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html): *major* when an already installed brain
 needs a manual step to keep working, *minor* for a new capability, *patch* for a fix.
 
+## [1.2.0] — 2026-08-22
+
+### Added
+
+- `rename-heads`, a command run only at the operator's request: moves a brain born before the single
+  node shape to it — every node becomes a folder with its `README.md` inside, every initiative gets
+  its own folder, and each product's dated documents move from `context/` to `research/` — rewriting
+  the head paths wherever the system reads them as routing, leaving URLs untouched, and listing what
+  it does not touch for review.
+
+### Changed
+
+- One shape for every node: a folder with the name of the thing and its head `README.md` inside, at
+  every height — workspace, product, initiative. The root does not change: its folder is the brain
+  and its head is `operator.md`. A brain already installed keeps working with no change: the shape
+  of the head is read from its own tree, never assumed, and the previous one stays valid
+  indefinitely.
+- A product node keeps `context/` for one meaning only —its strategic layer— and every dated
+  document about it (the pack's briefs, analyses, inventories) now lives in `research/`.
+
 ## [1.1.0] — 2026-08-22
 
 ### Added

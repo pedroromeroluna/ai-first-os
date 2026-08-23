@@ -10,7 +10,7 @@
 #   profile:  el rol en una línea ("Senior PM en una fintech")
 #   voice:    una línea por ítem de la voz (se repite; la entrevista la declara opcional)
 #   org:      Nombre | título | dueño | archivo-de-identidad   (se repite; los dos últimos, opcionales)
-#             El título es identidad —"qué hacés ahí"— y va al cuerpo de context.md, nunca a
+#             El título es identidad —"qué hacés ahí"— y va al cuerpo de la cabeza, nunca a
 #             `role:` (spec 020): ese campo activa un oficio del pack y nace vacío.
 # `reply:` no existe más (spec 021): "cómo querés que te conteste" no se pregunta, y el default vive
 # en el template de `operator.md` marcado como sección que se aprende con el uso. Sin
