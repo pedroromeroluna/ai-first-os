@@ -67,6 +67,21 @@ mounted repo and keeps reading the result from here.
 agent, never in the shared checkout.** Two agents sharing a checkout is a collision waiting to
 happen — the same edit window, no signal for either that the other exists.
 
+**A branch declares itself finished in a file, never in a chat.** With a spec, that is
+`status: implementada` in the archived spec; without one, the trailer `Listo-para-merge: si` in its
+last commit. A clean tree and a recent commit say nothing about whether the work is done, and the
+answer given by the session that wrote it dies with that session.
+
+**Gate 2 runs `scripts/merge-if-green.sh <branch>` of the mounted repo, never a bare `git merge`.**
+It refuses a branch that does not declare itself finished, merges, runs the whole eval suite over
+the result, and rolls the merge back if anything turns red. The person decides the branch is ready;
+the suite decides it is correct.
+
+**Whoever merges removes the worktree and deletes the branch: cleanup is the last step of Gate 2,
+never of the agent's own close.** The agent leaves its worktree standing because that is what the
+person reads at the gate; once the branch is in, both the worktree and the branch are dead weight
+that nothing prunes on its own.
+
 **Before resuming or reinstructing an agent, the brain checks which agents are still alive.** A
 clean tree and a "done" notification are not proof that nothing is running: a just-spawned child has
 not written yet. List the live agents before acting on either signal.

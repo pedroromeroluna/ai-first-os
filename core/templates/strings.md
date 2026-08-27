@@ -75,6 +75,10 @@ key: PRODUCT_IDENTITY_PLACEHOLDER
 en: What it is and who it is for. Two or three lines.
 es: Qué es y para quién. Dos o tres líneas.
 
+key: MEMORY_IDENTITY_PLACEHOLDER
+en: What it is and what is known about it. Two or three lines.
+es: Qué es y qué se sabe de esto. Dos o tres líneas.
+
 key: RESOLVER_TITLE_HEAD
 en: Resolver of
 es: Resolver de

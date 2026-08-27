@@ -20,6 +20,11 @@ If it was not stated, ask for it. Before writing:
 - Read the repo's `CLAUDE.md` and `ARCHITECTURE.md` (if it exists) → that way "Prior state"
   describes the real terrain and does not make the implementing agent rediscover what is already
   built.
+- `git rev-parse --short main` → **"Prior state" opens by naming the commit of `main` it describes.**
+  A spec is written in one session while other sessions keep moving `main`; by the time it is
+  implemented, the terrain it describes may be gone. Git catches a code conflict at merge time and
+  nothing catches a stale prior state, so the agent that implements it runs
+  `git log <commit>..main --stat` first and sees in seconds whether its terrain moved.
 - If the repo has no `specs/` yet, that repo has not adopted this format. Say so and offer to write
   the first spec anyway, creating the folder.
 
@@ -91,7 +96,13 @@ proposed default at every gap — correcting a default is faster than drafting f
 ## 4. Write, validate and deliver
 
 1. Show the complete spec before writing it and wait for the go-ahead.
-2. Write it in `specs/NNN-short-name.md` with `status: pendiente`.
+2. Write it in `specs/NNN-short-name.md` with `status: pendiente`, **and commit it to `main` of
+   the target repo right away — from the shared checkout, by the session that wrote it.** The rule
+   about never working in the shared checkout belongs to the *implementing* agents, each in its own
+   worktree; a spec is a document, and the session that supervises writes it where `main` lives — the spec is a document, not code: it goes to `main`, and the branch
+   is born with the implementation. Committing is also what reserves the number: two sessions writing
+   a spec at the same time both run `ls specs/`, both read the same next number, and neither finds
+   out until the merge.
 3. Close by returning:
    - The exact trigger to implement it: "implement spec NNN".
    - Which agent it belongs to: `complete-spec` if every criterion has its eval and no decision was

@@ -97,6 +97,12 @@ wsdir=$(os_ws_dir "$brain")
 head=$(os_head_file "$brain") || true
 org_propios=$(os_org_propios "$brain")
 
+# Los tipos de nodo de memoria declarados en el árbol (spec 041): `products` fue el primero y ya no
+# vive escrito a mano acá — cualquier carpeta hermana declarada con sus 3 líneas glob entra igual.
+# Calculado una sola vez, antes de cualquier loop que lo necesite.
+memory_types_org=$(os_memory_types "$brain" org) || memory_types_org=""
+memory_types_root=$(os_memory_types "$brain" root) || memory_types_root=""
+
 # All the fixed or template text this script prints for the operator comes out of the bilingual
 # catalog (spec 021/033): with `language: en` in `operator.md` it comes out in English, and with
 # `es` (or no `operator.md` yet, `os_language` falls back to `en` — Checks says so, further down)
@@ -301,12 +307,33 @@ contar_filas_resolver() {
   printf '%s' "$n"
 }
 
+# identidad_tipo TIPO PREFIJO -> una línea por nodo de un tipo de memoria cuya identidad pasa el
+# tope, empujada a "Espera tu decisión". Mismo mecanismo que ya usaba `products` (contar_lineas +
+# OS_IDENTITY_CAP): un nodo de memoria es memoria y su cabeza puede crecer igual que la de la
+# organización o la del operador. PREFIJO es la ruta hasta el tipo, relativa al brain (con o sin
+# `$wsdir/$org/` según el ámbito).
+identidad_tipo() {
+  local tipo="$1" prefijo="$2" node_ctx ident_n
+  for node_ctx in "$brain/$prefijo$tipo/"*/"$head"; do
+    [ -f "$node_ctx" ] || continue
+    ident_n=$(contar_lineas "$node_ctx")
+    if [ "$ident_n" -gt "$OS_IDENTITY_CAP" ]; then
+      push_espera "$(printf "$S_SESSION_WAITING_IDENTITY_OVER" "${node_ctx#$brain/}" \
+        "$(printf "$S_SESSION_IDENTITY_SIMPLE" "$ident_n" "$OS_IDENTITY_CAP")")"
+    fi
+  done
+}
+
 # La raíz no tiene cabeza de nodo propia: su identidad es `operator.md`, que ya se cuenta abajo, y su
 # resolver es el de la raíz (`resolver.md`), sin el `<wsdir>/<slug>/resolver.md` de un espacio de
-# trabajo.
+# trabajo. Sí puede tener tipos de nodo de memoria propios (`channels/` en la raíz, spec 041): su
+# identidad entra al mismo chequeo que la de un espacio de trabajo.
 if [ "$root" = "1" ]; then
   if [ -f "$brain/resolver.md" ]; then marcar_leido; fi
   filas=$(contar_filas_resolver "$brain/resolver.md")
+  for tipo in $memory_types_root; do
+    identidad_tipo "$tipo" ""
+  done
 else
   ctx="$brain/$wsdir/$org/$head"
   res_org="$brain/$wsdir/$org/resolver.md"
@@ -323,17 +350,12 @@ else
     push_espera "$(printf "$S_SESSION_WAITING_IDENTITY_OVER" "$wsdir/$org/$head" "$diagnostico")"
   fi
 
-  # La identidad de cada producto de la organización entra al mismo chequeo (spec 036): un producto
-  # es memoria y su cabeza puede crecer igual que la de la organización. Mismo mecanismo
-  # (contar_lineas + OS_IDENTITY_CAP), una línea por producto que lo pasa, nada si ninguno lo pasa —
-  # sin resolver propio que reportar acá, misma forma que operator.md usa abajo.
-  for prod_ctx in "$brain/$wsdir/$org/products/"*/"$head"; do
-    [ -f "$prod_ctx" ] || continue
-    ident_prod=$(contar_lineas "$prod_ctx")
-    if [ "$ident_prod" -gt "$OS_IDENTITY_CAP" ]; then
-      push_espera "$(printf "$S_SESSION_WAITING_IDENTITY_OVER" "${prod_ctx#$brain/}" \
-        "$(printf "$S_SESSION_IDENTITY_SIMPLE" "$ident_prod" "$OS_IDENTITY_CAP")")"
-    fi
+  # La identidad de cada nodo de memoria de la organización entra al mismo chequeo (spec 036,
+  # generalizado por la 041 a cualquier tipo declarado, no solo `products`): un nodo de memoria es
+  # memoria y su cabeza puede crecer igual que la de la organización. Nada si ningún tipo tiene
+  # nodos sobre el tope — sin resolver propio que reportar acá, misma forma que operator.md abajo.
+  for tipo in $memory_types_org; do
+    identidad_tipo "$tipo" "$wsdir/$org/"
   done
 fi
 
@@ -443,14 +465,13 @@ while IFS="$sep" read -r raiz f || [ -n "$raiz" ]; do
   base=$(basename "$f")
   nombre=$(os_node_name "$f")
 
-  # Un nodo de producto es memoria, no estado (spec 036): ya sumó al conteo de nodos con
-  # `marcar_leido` de arriba, pero no entra a ninguna de las cuatro secciones. No tiene
-  # `status`/`horizon` que reportar, y tratarlo como "sin status" sería ruido fijo en cada arranque,
-  # nunca un hallazgo real.
-  case "$f" in
-    "$wsdir"/*/products/*/"$head"|"$wsdir"/*/products/*/resolver.md|"$wsdir"/*/products/*/decisions.md)
-      continue ;;
-  esac
+  # Un nodo de memoria es memoria, no estado (spec 036, generalizado por la 041 a cualquier tipo
+  # declarado, no solo `products`): ya sumó al conteo de nodos con `marcar_leido` de arriba, pero no
+  # entra a ninguna de las cuatro secciones. No tiene `status`/`horizon` que reportar, y tratarlo
+  # como "sin status" sería ruido fijo en cada arranque, nunca un hallazgo real.
+  if os_memory_own_file "$wsdir" "$head" "$memory_types_org" "$memory_types_root" "$f"; then
+    continue
+  fi
 
   # Lo que no se pudo clasificar se declara. Un barrido incompleto presentado como completo es peor
   # que uno latente: el operador confía de más y nada le avisa.

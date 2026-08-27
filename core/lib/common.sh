@@ -386,6 +386,78 @@ os_tree_content_files() {
   return 0
 }
 
+# ---------------------------------------------------------------- tipos de nodo de memoria (spec 041)
+# La carpeta es el tipo (spec 041): no hay campo `type:` en ningún frontmatter, así que el único
+# lugar donde el nombre de un tipo existe es el segmento de ruta entre el árbol y `/*/`. `products/`
+# fue el primer tipo, y ya no está escrito a mano en ningún lector: session-start.sh y sweep.sh piden
+# la lista de tipos declarados en vez de nombrar `products` — así cualquier carpeta de nodos de
+# memoria que se declare en `tree.md` (accounts/, channels/, la que invente el operador) funciona
+# igual, sin tocar un script.
+
+# os_memory_types BRAIN SCOPE -> los nombres de tipo declarados en tree.md para ese ámbito, uno por
+# línea. SCOPE es "org" (altura `<wsdir>/*/<tipo>/*/...`) o "root" (altura `<tipo>/*/...`, sin
+# prefijo de espacio de trabajo). Un tipo se reconoce por su glob de cabeza a esa altura
+# (`<prefijo><tipo>/*/<cabeza>`) — nunca por sus 5 líneas completas: un tipo creado a mano antes de
+# que existiera `new-memory` puede tener declarada solo esa línea, no las 5, y esta spec tiene que
+# dejarlo contando igual, sin migrar nada (evidencia real: el eval de campo de esta spec, sobre un
+# brain con tipos creados a mano). Se excluyen por nombre los dos canónicos que matchean la misma
+# forma sin ser un tipo: `initiatives` (cabeza de iniciativa, en las dos alturas) y, en la raíz, el
+# propio `$wsdir` (cabeza del nodo organización). Cualquier otra colisión de nombre es la que la spec
+# deja como condición de parada para el operador, no algo que este lector adivine. Toda comparación
+# de ruta es literal (parámetros citados): un prefijo con `*` adentro (`workspaces/*/`) nunca se
+# interpreta como patrón de shell.
+os_memory_types() {
+  local brain="$1" scope="$2" wsdir head prefix line g rest tipo resto2 types nl
+  nl=$(printf '\nx'); nl="${nl%x}"
+  [ -f "$brain/tree.md" ] || return 1
+  wsdir=$(os_ws_dir "$brain")
+  head=$(os_head_file "$brain") || true
+  if [ "$scope" = "root" ]; then prefix=""; else prefix="$wsdir/*/"; fi
+  types=""
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      glob:*) ;;
+      *) continue ;;
+    esac
+    g=$(os_trim "${line#glob:}")
+    if [ -n "$prefix" ]; then
+      [ "${g#"$prefix"}" != "$g" ] || continue
+    fi
+    rest="${g#"$prefix"}"
+    tipo="${rest%%/*}"
+    [ -n "$tipo" ] && [ "$tipo" != "$rest" ] || continue
+    [ "$tipo" = "initiatives" ] && continue
+    [ "$scope" = "root" ] && [ "$tipo" = "$wsdir" ] && continue
+    resto2="${rest#"$tipo"/}"
+    [ "$resto2" = "*/$head" ] || continue
+    case "$nl$types" in *"$nl$tipo$nl"*) continue ;; esac
+    types="$types$tipo$nl"
+  done < "$brain/tree.md"
+  printf '%s' "$types"
+  return 0
+}
+
+# os_memory_own_file WSDIR HEAD TYPES_ORG TYPES_ROOT F -> 0 si F (relativo al brain) es la cabeza,
+# `resolver.md` o `decisions.md` de un nodo de memoria de cualquier tipo declarado — nunca su
+# `context/` ni su `research/`, que son `content:` y nunca llegan a esta pregunta. TYPES_ORG y
+# TYPES_ROOT son la salida de `os_memory_types` para los ámbitos "org" y "root", calculada una sola
+# vez por corrida y pasada acá, no releída por archivo.
+os_memory_own_file() {
+  local wsdir="$1" head="$2" types_org="$3" types_root="$4" f="$5" t
+  for t in $types_org; do
+    case "$f" in
+      "$wsdir"/*/"$t"/*/"$head"|"$wsdir"/*/"$t"/*/resolver.md|"$wsdir"/*/"$t"/*/decisions.md)
+        return 0 ;;
+    esac
+  done
+  for t in $types_root; do
+    case "$f" in
+      "$t"/*/"$head"|"$t"/*/resolver.md|"$t"/*/decisions.md) return 0 ;;
+    esac
+  done
+  return 1
+}
+
 # os_tree_ensure BRAIN GLOB [CLASE]
 # Deja declarado el glob en `tree.md` si faltaba. Es la contracara de que los archivos de solo
 # contenido nazcan con su primer dato: el archivo aparece y ningún glob lo alcanza hasta que el

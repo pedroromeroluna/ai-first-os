@@ -12,6 +12,7 @@ from the brain: the operator's rows go in `resolver.md`, at the root of the brai
 | Install the Product Builder pack | `pack-install.sh` | `.os/core/lib/pack-install.sh` |
 | Add a workspace | `new-workspace` | `.os/core/skills/new-workspace.md` |
 | Add a product | `new-product` | `.os/core/skills/new-product.md` |
+| Add a memory node of any type (accounts, channels, or one you invent) | `new-memory` | `.os/core/skills/new-memory.md` |
 | Rename the workspaces folder of an existing brain | `rename-workspaces` | `.os/core/skills/rename-workspaces.md` |
 | Adopt the single node shape in an existing brain | `rename-heads` | `.os/core/skills/rename-heads.md` |
 | See what is pending | `sweep` | `.os/core/skills/sweep.md` |

@@ -38,7 +38,7 @@ question is a file:
 | `resolver.md` | Capability → tool: which skill resolves which request |
 | `tree.md` | Which paths a scan walks — the map of the system |
 | `workspaces/<name>/README.md` | What that workspace is and which standing craft it activates |
-| `workspaces/<name>/products/<slug>/README.md` | What a product is, for whom, and what is known about it |
+| `workspaces/<name>/<type>/<slug>/README.md` | What a memory node is, for whom, and what is known about it — `products/` is the one type this system ships with its own tool |
 | `initiatives/<slug>/README.md` | The work: one head per initiative, with its state and its horizon |
 | `backlog.md` | What is missing and belongs to no initiative |
 | `decisions.md` | What was decided, why, and what would make it false |
@@ -50,12 +50,34 @@ name shows up once —the folder—, the head is always called the same, and any
 knows where to start. The root is the exception: its folder is this one, and its head is
 `operator.md`.
 
-**A product is memory, an initiative is push.** A product holds what it is, who it is for and what
-is known about it; an initiative holds its state, its horizon and when it closes. A product can
-outlive every initiative built for it, and an initiative never needs a product to exist.
+**A memory node is memory, an initiative is push.** A memory node holds what it is, who it is for
+and what is known about it; an initiative holds its state, its horizon and when it closes. A memory
+node can outlive every initiative built around it, and an initiative never needs one to exist.
 
 A file is born the first time it has something real to hold. An empty file is not structure: it is
 noise that has to be read every session.
+
+### Memory nodes: any folder can be a type
+
+**The folder is the type.** There is no `type:` field anywhere — the path already says what kind of
+thing a node is. `products/` is the one type this system ships with its own tool (`prd`, which writes
+its strategic layer). Any sibling folder of nodes that hold memory instead of push works exactly the
+same way: `accounts/` for client accounts, `channels/` for the channels you publish through, or a
+name you invent.
+
+`new-memory --type <type>` creates a type the first time you use it — the folder plus the five lines
+it needs in `tree.md` — and adds its first node. The same command with the same `--type` and a new
+`--slug` adds another node to a type that already exists — sibling accounts, sibling channels — no
+new tree lines, nothing duplicated. `--root` makes the type live at the root of your own work instead
+of inside a workspace, the way `channels/` can live there for content that is yours, not a client's.
+
+A type this system ships is named in English — today, only `products`. A type you invent is named
+however you like: it is content of your brain, not a component of the system. Three names to start
+from, if you want a catalog instead of inventing one: `products` (what you build, for whom),
+`accounts` (a client or company relationship), `channels` (where you publish). Inventing your own —
+anything that is memory and not push — is exactly as legitimate: the folder plus its lines in
+`tree.md`, and a `context/` you fill by hand until a purpose-built tool like `prd` exists for it, if
+one ever does.
 
 ## The cycle of one session
 
@@ -78,11 +100,12 @@ The tools —skills, scripts, agents— live in `.os/` and `.claude/`. Those two
 Obsidian and visible from the terminal, and they are **links** to the installed product: updating
 the system never touches your data, and your data never travels inside the product.
 
-**Where the skills live**, since it is the first thing everyone asks: the eleven skills of the
-system are in `.os/core/skills/`, one file each, reached through the resolver — not copied into
-this folder, linked to the product. The skills of a pack are in `.claude/skills/<name>/SKILL.md`,
-one folder per skill, which is where your harness reads skills from and why they answer to their
-name. Any skill you write yourself goes next to them, as a plain folder in `.claude/skills/`.
+**Where the skills live**, since it is the first thing everyone asks: the
+<!--count-->thirteen<!--/count--> skills of the system are in `.os/core/skills/`, one file each,
+reached through the resolver — not copied into this folder, linked to the product. The skills of a
+pack are in `.claude/skills/<name>/SKILL.md`, one folder per skill, which is where your harness
+reads skills from and why they answer to their name. Any skill you write yourself goes next to them,
+as a plain folder in `.claude/skills/`.
 
 To update, ask any session: **"update the system"**. That sentence is all you need, and it covers
 both halves of what is installed — the system and the packs. What it does step by step is written
@@ -96,8 +119,8 @@ the session", "capture this"— and the agent looks up which tool covers that ca
 answer that: the product's, which travels with the system, and yours (`resolver.md`), where you add
 a row when the agent would have chosen wrong without it. Your rows win.
 
-The catalog below is the system itself — the eleven tools that come with it. You can also invoke any
-of them by name.
+The catalog below is the system itself — the <!--count-->thirteen<!--/count--> tools that come with
+it. You can also invoke any of them by name.
 
 <!-- catalog: generated by scripts/manual-catalog.sh — do not edit by hand -->
 
@@ -109,6 +132,7 @@ of them by name.
 - **`close-session`** — Close a session by distributing what it produced —decisions, learnings, pending items, what stayed waiting, where to resume— into the loaded node's canonical files, and end with a four-part verdict that names what was not captured.
 - **`grill`** — Pressure the facts behind a claim before a decision closes — counter-question with a concrete example, capped attempts, escape hatches, evidence hierarchy — and route what comes out to the loaded node's decisions or backlog.
 - **`mount-repo`** — Give an initiative a body: write the remote into the head's frontmatter, clone the checkout outside the brain —or, with --new, give birth to the repo from the product's scaffold when it does not exist yet— and record the remote-to-local-path row in the machine's environment table.
+- **`new-memory`** — Create a memory-node type the first time it is used —a folder plus its five lines in `tree.md`— and add a node to it.
 - **`new-product`** — Add a product to a workspace that already exists.
 - **`new-spec`** — Turn concrete build work that came out of a conversation into a spec file under the target repo's specs/, with runnable evals per criterion, decisions split by who closes them, and effects that escape the system declared.
 - **`new-workspace`** — Add a workspace to an existing brain.
@@ -120,12 +144,12 @@ of them by name.
 
 ### Packs: the craft on top
 
-Those eleven run the system. **The craft —building product, and whatever comes next— arrives in
-packs**, and a pack is installed separately, with its own command, into `.claude/skills/` of this
-folder. **A pack is offered, never required**: the install ended by asking whether you wanted one
-now or later, and if you said later the task is in your backlog with the command in it. Adding
-another one, putting one back, or taking the one you postponed is a single request to any session:
-**"install the pack called `<name>`"**.
+Those <!--count-->thirteen<!--/count--> run the system. **The craft —building product, and whatever
+comes next— arrives in packs**, and a pack is installed separately, with its own command, into
+`.claude/skills/` of this folder. **A pack is offered, never required**: the install ended by asking
+whether you wanted one now or later, and if you said later the task is in your backlog with the
+command in it. Adding another one, putting one back, or taking the one you postponed is a single
+request to any session: **"install the pack called `<name>`"**.
 
 **This manual does not list what a pack contains, on purpose.** Every pack ships its own index, and
 that index arrives with it — so the list you read is always the list you have, never the one the

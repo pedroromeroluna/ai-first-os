@@ -5,6 +5,34 @@ Every published version of AI First OS, newest first. The format follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html): *major* when an already installed brain
 needs a manual step to keep working, *minor* for a new capability, *patch* for a fix.
 
+## [1.3.0] — 2026-08-27
+
+### Changed
+
+- The nine pack skills that produce a deliverable resolve their destination without naming the
+  system. With no product node loaded, the file goes to the current folder and the skill says the
+  path it wrote and nothing else — no `new-workspace`, no `new-product`, no session scan, and no
+  mention of AI First OS. Someone who installed a single skill from a link no longer hears about a
+  system they do not have.
+- `prd` writes its eight strategy files into `product-context/` when no product node is loaded,
+  instead of leaving `vision.md`, `problem.md`, `users.md` and the rest loose in whatever folder the
+  session started in, where they could overwrite files that were already there.
+- `synthetic-users` names its deliverable `<YYYY-MM-DD>-script-diagnosis.md`; it was the only one of
+  the nine naming its file in Spanish.
+- The pack offers its sibling skills once per session, not at the close of every deliverable.
+
+### Added
+
+- `new-memory`, a command that creates a memory-node type the first time it is used — the folder
+  plus its five lines in `tree.md` — and adds a node to it. Two questions, what kind of thing this
+  is and what this particular one is and for whom, and it writes the head of the node. Until now a
+  brain could only grow the node types the system already knew.
+- The spec craft records the commit of `main` the spec was written against, so the agent that
+  implements it can see whether its terrain moved, and states that the spec is committed to `main`
+  as soon as it is written — which is what reserves its number when two sessions write at once.
+- The contract states that a branch declares itself finished in a file, never in a chat, and that
+  whoever merges removes the worktree and deletes the branch.
+
 ## [1.2.0] — 2026-08-22
 
 ### Added

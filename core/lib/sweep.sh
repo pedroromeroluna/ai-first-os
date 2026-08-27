@@ -64,6 +64,12 @@ wsdir=$(os_ws_dir "$brain")
 head=$(os_head_file "$brain") || true
 org_propios=$(os_org_propios "$brain")
 
+# Los tipos de nodo de memoria declarados en el árbol (spec 041): `products` fue el primero y ya no
+# vive escrito a mano acá — cualquier carpeta hermana declarada con sus 3 líneas glob entra igual.
+# Calculado una sola vez, antes del recorrido más abajo.
+memory_types_org=$(os_memory_types "$brain" org) || memory_types_org=""
+memory_types_root=$(os_memory_types "$brain" root) || memory_types_root=""
+
 # Only the Checks title and its empty message go through the catalog (spec 033), reusing
 # `session-start.sh`'s keys — the rest of this sweep stays in Spanish: the spec did not ask for it.
 os_lang_load "$(os_language "$brain")" > /dev/null 2>&1
@@ -194,13 +200,13 @@ while IFS= read -r linea || [ -n "$linea" ]; do
   nombre=$(os_node_name "$f")
   fm_read "$raiz/$f"
   leidos=$(( leidos + 1 ))
-  # Un nodo de producto es memoria, no estado (spec 036): cuenta para el total de nodos —ya sumado
-  # arriba— pero no entra a ninguna clasificación. No tiene `status`/`horizon` que reportar, y
-  # tratarlo como "sin status" sería ruido fijo en cada corrida, nunca un hallazgo real.
-  case "$f" in
-    "$wsdir"/*/products/*/"$head"|"$wsdir"/*/products/*/resolver.md|"$wsdir"/*/products/*/decisions.md)
-      continue ;;
-  esac
+  # Un nodo de memoria es memoria, no estado (spec 036, generalizado por la 041 a cualquier tipo
+  # declarado, no solo `products`): cuenta para el total de nodos —ya sumado arriba— pero no entra a
+  # ninguna clasificación. No tiene `status`/`horizon` que reportar, y tratarlo como "sin status"
+  # sería ruido fijo en cada corrida, nunca un hallazgo real.
+  if os_memory_own_file "$wsdir" "$head" "$memory_types_org" "$memory_types_root" "$f"; then
+    continue
+  fi
   registros="$registros$org$sep$nombre$sep$fm_status$sep$fm_horizon$sep$fm_waiting_on$sep$fm_blocked$sep$fm_depends_on$sep$fm_roto$nl"
   [ -n "$fm_roto" ] || indice="$indice$org#$nombre=$fm_status$nl"
 done <<RECORRIDO

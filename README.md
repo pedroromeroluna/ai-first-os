@@ -114,8 +114,8 @@ my-brain/
 │       ├── decisions.md         # Its decisions
 │       ├── learnings.md         # Its learnings
 │       ├── initiatives/         # Its initiatives, one folder each with its `README.md` inside
-│       └── products/<slug>/     # What it is, for whom, what is known — memory, not state
-│           └── README.md        # Born with `new-product`; `context/` (its strategic layer) is filled by `prd`, `research/` holds every dated document
+│       └── <type>/<slug>/       # A memory node of any declared type — products/ is the one this system ships with its own tool
+│           └── README.md        # Born with `new-memory --type <type>` (`new-product` is its `products` shortcut); `context/` and `research/` are filled by whatever tool the type has, or by hand
 ├── .os/
 │   ├── core -> …/ai-first-os/core        # The chassis by symlink: the eleven system skills in core/skills/, the shell in core/lib/
 │   └── packs/<pack> -> …                 # Each installed pack, by symlink
@@ -150,6 +150,7 @@ context.
 | `bootstrap` | Creates the brain from scratch: identity, voice, root resolver, the tree of paths a scan walks, one folder per workspace |
 | `new-workspace` | Adds a workspace — the isolation boundary — with its identity, its resolver and its initiatives |
 | `new-product` | Adds a product to a workspace — memory: what it is, for whom, what is known — with its identity |
+| `new-memory` | Creates a memory-node type the first time it is used —a folder plus its five lines in `tree.md`— and adds a node to it; `--root` for a type of the operator's own work |
 | `sweep` | The three global scans: what is pending, what is blocked and why, how the roadmap is going |
 | `check-resolvable` | Audits the capability-to-tool graph and reports dark tools, broken links and rows pointing nowhere |
 | `capture` | Files what you throw in mid-conversation into the right backlog, without opening a discussion |

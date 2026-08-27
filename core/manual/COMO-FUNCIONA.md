@@ -37,7 +37,7 @@ preguntas, y cada pregunta es un archivo:
 | `resolver.md` | Capacidad → herramienta: qué skill resuelve qué pedido |
 | `tree.md` | Qué rutas recorre un barrido — el mapa del sistema |
 | `workspaces/<nombre>/README.md` | Qué es ese espacio de trabajo y qué oficio tuyo activa |
-| `workspaces/<nombre>/products/<slug>/README.md` | Qué es un producto, para quién, y qué se sabe de él |
+| `workspaces/<nombre>/<tipo>/<slug>/README.md` | Qué es un nodo de memoria, para quién, y qué se sabe de él — `products/` es el único tipo que el sistema trae con herramienta propia |
 | `initiatives/<slug>/README.md` | El trabajo: una cabeza por iniciativa, con su estado y su horizonte |
 | `backlog.md` | Lo que falta y no es de ninguna iniciativa |
 | `decisions.md` | Qué se decidió, por qué, y qué lo volvería falso |
@@ -49,13 +49,36 @@ nombre aparece una sola vez —la carpeta—, la cabeza se llama siempre igual, 
 carpeta sabe por dónde empezar. La raíz es la excepción: su carpeta es esta, y su cabeza es
 `operator.md`.
 
-**Un producto es memoria, una iniciativa es empuje.** Un producto guarda qué es, para quién y qué
-se sabe de él; una iniciativa guarda su estado, su horizonte y cuándo cierra. Un producto puede
-sobrevivir a todas las iniciativas que se construyeron para él, y una iniciativa nunca necesita un
-producto para existir.
+**Un nodo de memoria es memoria, una iniciativa es empuje.** Un nodo de memoria guarda qué es, para
+quién y qué se sabe de él; una iniciativa guarda su estado, su horizonte y cuándo cierra. Un nodo de
+memoria puede sobrevivir a todas las iniciativas que se construyeron a su alrededor, y una iniciativa
+nunca necesita uno para existir.
 
 Un archivo nace la primera vez que tiene algo real que guardar. Un archivo vacío no es estructura:
 es ruido que hay que leer todas las sesiones.
+
+### Nodos de memoria: cualquier carpeta puede ser un tipo
+
+**La carpeta es el tipo.** No hay ningún campo `type:`: la ruta ya dice de qué tipo de cosa se trata.
+`products/` es el único tipo que el sistema trae con herramienta propia (`prd`, que escribe su capa
+estratégica). Cualquier carpeta hermana de nodos que guarden memoria en vez de empuje funciona igual:
+`accounts/` para cuentas de clientes, `channels/` para los canales por los que publicás, o un nombre
+que inventes vos.
+
+`new-memory --type <tipo>` crea un tipo la primera vez que se usa —la carpeta más las cinco líneas
+que necesita en `tree.md`— y le suma su primer nodo. El mismo comando con el mismo `--type` y otro
+`--slug` suma otro nodo a un tipo que ya existe —otra cuenta, otro canal— sin líneas nuevas ni
+duplicadas. `--root` hace que el tipo viva en la raíz de tu trabajo propio en vez de adentro de un
+espacio de trabajo, igual que `channels/` puede vivir ahí para contenido que es tuyo, no de un
+cliente.
+
+Un tipo que el sistema trae se nombra en inglés —hoy, solo `products`—. Un tipo que inventás se
+nombra como quieras: es contenido de tu brain, no un componente del sistema. Tres nombres para
+arrancar, si preferís un catálogo antes que inventar uno: `products` (qué construís, para quién),
+`accounts` (una relación con un cliente o una empresa), `channels` (dónde publicás). Inventar el tuyo
+—cualquier cosa que sea memoria y no empuje— es igual de legítimo: la carpeta más sus líneas en
+`tree.md`, y un `context/` que llenás a mano hasta que exista una herramienta propia como `prd`, si
+alguna vez existe.
 
 ## El ciclo de una sesión
 
@@ -77,12 +100,12 @@ Las herramientas —skills, scripts, agentes— viven en `.os/` y `.claude/`. Es
 ocultas en Obsidian y se ven desde la terminal, y son **enlaces** al producto instalado: actualizar
 el sistema no toca tus datos, y tus datos nunca viajan adentro del producto.
 
-**Dónde viven los skills**, porque es lo primero que todo el mundo pregunta: los once skills del
-sistema están en `.os/core/skills/`, un archivo cada uno, y se llega a ellos por el resolver — no
-están copiados en esta carpeta, están enlazados al producto. Los skills de un pack están en
-`.claude/skills/<nombre>/SKILL.md`, una carpeta por skill, que es de donde tu harness lee los skills
-y por eso responden a su nombre. Cualquier skill que escribas vos va al lado, como carpeta común en
-`.claude/skills/`.
+**Dónde viven los skills**, porque es lo primero que todo el mundo pregunta: los
+<!--count-->trece<!--/count--> skills del sistema están en `.os/core/skills/`, un archivo cada uno, y
+se llega a ellos por el resolver — no están copiados en esta carpeta, están enlazados al producto.
+Los skills de un pack están en `.claude/skills/<nombre>/SKILL.md`, una carpeta por skill, que es de
+donde tu harness lee los skills y por eso responden a su nombre. Cualquier skill que escribas vos va
+al lado, como carpeta común en `.claude/skills/`.
 
 Para actualizar, pedile a cualquier sesión: **"actualizá el sistema"**. Con esa frase alcanza, y
 cubre las dos mitades de lo que está instalado — el sistema y los packs. Qué hace paso a paso está
@@ -96,8 +119,8 @@ sesión", "capturá esto"— y el agente busca qué herramienta cubre esa capaci
 contestan eso: el del producto, que viaja con el sistema, y el tuyo (`resolver.md`), donde agregás
 una fila cuando el agente habría elegido mal sin ella. Tus filas ganan.
 
-El catálogo de abajo es el sistema mismo — las once herramientas que vienen con él. También podés
-invocar cualquiera por su nombre.
+El catálogo de abajo es el sistema mismo — las <!--count-->trece<!--/count--> herramientas que vienen
+con él. También podés invocar cualquiera por su nombre.
 
 <!-- catalog: generated by scripts/manual-catalog.sh — do not edit by hand -->
 
@@ -109,6 +132,7 @@ invocar cualquiera por su nombre.
 - **`close-session`** — Cierra la sesión repartiendo lo que produjo —decisiones, aprendizajes, pendientes, lo que quedó esperando, por dónde retomar— en los archivos canónicos del nodo cargado, y termina con un veredicto de cuatro partes que nombra lo que no se capturó.
 - **`grill`** — Presiona los hechos detrás de una afirmación antes de que una decisión cierre — contrapregunta con un ejemplo concreto, intentos acotados, escape hatches, jerarquía de evidencia — y rutea lo que salga a las decisiones o al backlog del nodo cargado.
 - **`mount-repo`** — Le da cuerpo a una iniciativa: escribe el remote en el frontmatter de la cabeza, clona el checkout afuera del brain —o, con --new, hace nacer el repo desde la plantilla del producto cuando todavía no existe— y registra la fila remote → ruta local en la tabla del entorno de la máquina.
+- **`new-memory`** — Crea un tipo de nodo de memoria la primera vez que se usa —una carpeta más sus cinco líneas en `tree.md`— y le suma un nodo.
 - **`new-product`** — Suma un producto a un espacio de trabajo que ya existe.
 - **`new-spec`** — Convierte en una spec el trabajo de construcción concreto que salió de una conversación, adentro de specs/ del repo destino, con evals ejecutables por criterio, las decisiones separadas por quién las cierra y los efectos que escapan del sistema declarados.
 - **`new-workspace`** — Suma un espacio de trabajo a un brain que ya existe.
@@ -120,12 +144,12 @@ invocar cualquiera por su nombre.
 
 ### Los packs: el oficio de arriba
 
-Esas once hacen andar el sistema. **El oficio —construir producto, y lo que venga después— llega en
-packs**, y un pack se instala aparte, con su propio comando, adentro de `.claude/skills/` de esta
-carpeta. **Un pack se ofrece, nunca se exige**: la instalación terminó preguntándote si lo querías
-ahora o después, y si dijiste después la tarea está en tu backlog con el comando adentro. Sumar
-otro, volver a poner uno, o tomar el que postergaste es un pedido a cualquier sesión: **"instalá el
-pack `<nombre>`"**.
+Esas <!--count-->trece<!--/count--> hacen andar el sistema. **El oficio —construir producto, y lo que
+venga después— llega en packs**, y un pack se instala aparte, con su propio comando, adentro de
+`.claude/skills/` de esta carpeta. **Un pack se ofrece, nunca se exige**: la instalación terminó
+preguntándote si lo querías ahora o después, y si dijiste después la tarea está en tu backlog con el
+comando adentro. Sumar otro, volver a poner uno, o tomar el que postergaste es un pedido a cualquier
+sesión: **"instalá el pack `<nombre>`"**.
 
 **Este manual no lista qué trae un pack, a propósito.** Cada pack viaja con su propio índice, y ese
 índice llega con él — así la lista que leés es siempre la que tenés, nunca la que el manual se
