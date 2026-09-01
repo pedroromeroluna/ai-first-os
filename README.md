@@ -138,7 +138,7 @@ index. Your own skills, if you write any, go next to them as plain folders in `.
 
 ## The catalog
 
-Eleven skills come with the system itself, in two families. **Workflow skills** run a process and
+Fourteen skills come with the system itself, in two families. **Workflow skills** run a process and
 leave a deliverable: they are triggered manually, by name — the index is the resolver, never
 automatic activation. **Knowledge skills** carry a method or a standing craft and are loaded as
 context.
@@ -158,6 +158,7 @@ context.
 | `mount-repo` | Gives an initiative a body: the remote in the head, the checkout outside the brain (or the repo born from the scaffold, with `--new`), the row in the environment table |
 | `grill` | The pressure interview: counter-question with a concrete example, capped attempts, escape hatches, evidence hierarchy |
 | `new-spec` | Writes a spec an agent can implement without asking for an opinion — one runnable eval per criterion |
+| `supersede` | Marks a file as replaced by another —`superseded_by:` in the frontmatter of the old one— so a session that opens it knows what to read instead, and audits the marks of the whole brain |
 | `rename-workspaces` | Adopts the current name of the workspaces folder on a brain born before it, run only when the operator asks |
 | `rename-heads` | Adopts the single node shape —a folder with its `README.md` inside— on a brain born before it, run only when the operator asks |
 

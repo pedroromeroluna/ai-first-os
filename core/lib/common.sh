@@ -286,12 +286,12 @@ os_lower() {
 CAP_FRONTMATTER=30
 
 fm_status=""; fm_horizon=""; fm_waiting_on=""; fm_blocked=""; fm_role=""; fm_owner=""
-fm_depends_on=""; fm_repo=""; fm_language=""
+fm_depends_on=""; fm_repo=""; fm_language=""; fm_superseded_by=""
 fm_roto=""
 
 fm_limpiar() {
   fm_status=""; fm_horizon=""; fm_waiting_on=""; fm_blocked=""; fm_role=""; fm_owner=""
-  fm_depends_on=""; fm_repo=""; fm_language=""
+  fm_depends_on=""; fm_repo=""; fm_language=""; fm_superseded_by=""
 }
 
 # fm_read ARCHIVO — deja el resultado en las variables fm_*. `fm_roto` no vacío significa que no se
@@ -328,6 +328,13 @@ fm_read() {
       depends_on) fm_depends_on="$value" ;;
       repo) fm_repo="$value" ;;
       language) fm_language="$value" ;;
+      # `superseded_by:` (spec 046) — the path, relative to the brain, of the file that replaced
+      # this one. It reaches this reader like every other key, with the same bound and the same
+      # three failure values: a file whose frontmatter cannot be read has no vigency mark either,
+      # and saying it does would be inventing one. Any file can carry it — a head that a `glob:`
+      # reaches and a content file that only a `content:` reaches — because the reader at risk is
+      # whoever opened the file, not whoever walked the tree.
+      superseded_by) fm_superseded_by="$value" ;;
     esac
   done < "$file"
   if [ "$primera" = "1" ]; then fm_roto="sin frontmatter"; return 0; fi
@@ -929,41 +936,126 @@ os_titulo() {
   return 0
 }
 
-# os_fm_set ARCHIVO CLAVE VALOR
-# Escribe una clave en el frontmatter de una cabeza sin tocar el cuerpo: reemplaza la que esté o la
-# suma antes del `---` de cierre. Exit 1 si el frontmatter no se pudo leer, con el motivo en
-# `fm_roto` — escribir sobre un frontmatter que no se entiende es corromper el archivo en silencio.
-os_fm_set() {
-  local file="$1" key="$2" value="$3" tmp line n=0 primera=1 puesto=0
-  fm_read "$file"
-  [ -z "$fm_roto" ] || return 1
-  tmp="$file.os-tmp"
-  : > "$tmp"
+# os_file_mode ARCHIVO -> los bits de permiso en octal (tres dígitos), o exit 1. Se leen de `ls -ld`
+# y se convierten acá: `stat` no está en el PATH mínimo con el que corre E7, y un lector que no
+# existe devuelve vacío, que es lo mismo que "sin permisos que conservar" — el archivo vuelve con el
+# umask de la sesión sin que nadie se entere. Los bits especiales (setuid, sticky) no se conservan:
+# ningún archivo del brain los usa.
+os_file_mode() {
+  local line perms i val total=""
+  line=$(ls -ld "$1" 2>/dev/null) || return 1
+  set -- $line
+  perms="$1"
+  [ "${#perms}" -ge 10 ] || return 1
+  for i in 1 4 7; do
+    val=0
+    case "${perms:$i:1}" in r) val=$(( val + 4 )) ;; esac
+    case "${perms:$(( i + 1 )):1}" in w) val=$(( val + 2 )) ;; esac
+    case "${perms:$(( i + 2 )):1}" in x|s|t) val=$(( val + 1 )) ;; esac
+    total="$total$val"
+  done
+  printf '%s' "$total"
+  return 0
+}
+
+# os_replace_file TMP DESTINO
+# Reemplaza el destino por el temporal conservando sus permisos, y devuelve 1 —borrando el
+# temporal— si algo falló. Un `mv` sin chequear sobre un directorio sin permiso de escritura deja
+# el archivo intacto y el llamador anunciando que escribió: una escritura que no ocurrió nunca
+# reporta éxito (spec 047 C1). Los permisos se copian antes del `mv` porque el temporal nace con el
+# umask de la sesión: sin eso un archivo de solo lectura vuelve 0644.
+os_replace_file() {
+  local tmp="$1" dest="$2" mode
+  [ -f "$tmp" ] || return 1
+  if [ -e "$dest" ]; then
+    mode=$(os_file_mode "$dest") || mode=""
+    if [ -n "$mode" ]; then
+      chmod "$mode" "$tmp" 2>/dev/null || { rm -f "$tmp"; return 1; }
+    fi
+  fi
+  mv -f "$tmp" "$dest" 2>/dev/null || { rm -f "$tmp"; return 1; }
+  return 0
+}
+
+# os_fm_shape_ok ARCHIVO -> 0 si lo que hay entre los dos `---` es realmente un frontmatter: cada
+# línea de adentro es una clave, un comentario, un ítem de lista o una línea vacía.
+# Un cuerpo markdown que abre con una línea `---` y más abajo tiene otra le parece frontmatter a un
+# lector que solo mira los delimitadores, y un escritor que le cree aterriza la clave en el medio de
+# la prosa (spec 047 C7). Esto no cambia lo que `fm_read` contesta: es la guarda del escritor.
+os_fm_shape_ok() {
+  local file="$1" line primera=1 n=0 clave
+  [ -f "$file" ] || return 1
   while IFS= read -r line || [ -n "$line" ]; do
     n=$(( n + 1 ))
     if [ "$primera" = "1" ]; then
       primera=0
-      printf '%s\n' "$line" >> "$tmp"
+      [ "$line" = "---" ] || return 1
       continue
     fi
-    if [ "$puesto" = "0" ]; then
-      if [ "$line" = "---" ]; then
-        printf '%s: %s\n' "$key" "$value" >> "$tmp"
-        puesto=1
-        printf '%s\n' "$line" >> "$tmp"
+    [ "$line" = "---" ] && return 0
+    [ "$n" -ge "$CAP_FRONTMATTER" ] && return 1
+    case "$line" in
+      "") continue ;;
+      '#'*) continue ;;
+      '- '*) continue ;;
+      ' '*) continue ;;
+      '	'*) continue ;;
+    esac
+    case "$line" in
+      *:*) clave="${line%%:*}" ;;
+      *) return 1 ;;
+    esac
+    case "$clave" in
+      "") return 1 ;;
+      *[!A-Za-z0-9_-]*) return 1 ;;
+    esac
+  done < "$file"
+  return 1
+}
+
+# os_fm_set ARCHIVO CLAVE VALOR
+# Escribe una clave en el frontmatter de una cabeza sin tocar el cuerpo: reemplaza la que esté o la
+# suma antes del `---` de cierre. Exit 1 si el frontmatter no se pudo leer, con el motivo en
+# `fm_roto` — escribir sobre un frontmatter que no se entiende es corromper el archivo en silencio—,
+# si lo que hay entre los delimitadores no tiene forma de frontmatter, o si la escritura no ocurrió.
+os_fm_set() {
+  local file="$1" key="$2" value="$3" tmp line primera=1 puesto=0
+  fm_read "$file"
+  [ -z "$fm_roto" ] || return 1
+  os_fm_shape_ok "$file" || return 1
+  tmp="$file.os-tmp"
+  rm -f "$tmp"
+  if ! {
+    while IFS= read -r line || [ -n "$line" ]; do
+      if [ "$primera" = "1" ]; then
+        primera=0
+        printf '%s\n' "$line"
         continue
       fi
-      case "$line" in
-        "$key":*)
-          printf '%s: %s\n' "$key" "$value" >> "$tmp"
+      if [ "$puesto" = "0" ]; then
+        if [ "$line" = "---" ]; then
+          printf '%s: %s\n' "$key" "$value"
           puesto=1
+          printf '%s\n' "$line"
           continue
-          ;;
-      esac
-    fi
-    printf '%s\n' "$line" >> "$tmp"
-  done < "$file"
-  mv "$tmp" "$file"
+        fi
+        case "$line" in
+          "$key":*)
+            printf '%s: %s\n' "$key" "$value"
+            puesto=1
+            continue
+            ;;
+        esac
+      fi
+      printf '%s\n' "$line"
+    done < "$file"
+  } 2>/dev/null > "$tmp"; then
+    rm -f "$tmp"
+    return 1
+  fi
+  # Un frontmatter nunca es vacío: un temporal vacío es una escritura que se cortó a la mitad.
+  [ -s "$tmp" ] || { rm -f "$tmp"; return 1; }
+  os_replace_file "$tmp" "$file" || return 1
   return 0
 }
 

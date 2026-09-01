@@ -18,6 +18,7 @@ from the brain: the operator's rows go in `resolver.md`, at the root of the brai
 | See what is pending | `sweep` | `.os/core/skills/sweep.md` |
 | See what is blocked and why | `sweep` | `.os/core/skills/sweep.md` |
 | See how the roadmap is going | `sweep` | `.os/core/skills/sweep.md` |
+| Mark a file as replaced by another | `supersede` | `.os/core/skills/supersede.md` |
 | Audit the routing of the root | `check-resolvable` | `.os/core/skills/check-resolvable.md` |
 | Capture something on the fly | `capture` | `.os/core/skills/capture.md` |
 | Close the session without losing anything | `close-session` | `.os/core/skills/close-session.md` |

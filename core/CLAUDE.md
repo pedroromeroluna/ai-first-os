@@ -113,6 +113,11 @@ in the product's root resolver.
   and then requested.
 - **Whatever the AI writes is marked**: 📌 literal with `file:line` · 🔍 inference · ❓ gap.
 - **Whatever is missing is recorded as open, with who closes it.** It is never invented.
+- **A file that another one replaced declares it**, with `superseded_by: <path relative to the
+  brain>` in its frontmatter. A session that opens a file carrying that key reads the file it names
+  before using anything from the one it opened, and says which one replaced it. Git does not answer
+  this: the agent reads the working tree, never the history. The mark is written with `supersede`,
+  which also audits the marks of the whole brain.
 - **The brain works on `main` and commits as it goes.** Every file created or edited in the brain
   during a session —a draft, a sketch, a note— is committed and pushed in the same turn it appears;
   nothing of the brain's own work waits for the close to be committed, and no draft is added to

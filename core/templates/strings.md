@@ -777,3 +777,115 @@ es: todavía nombran una cabeza en la forma anterior — quedaron sin tocar, par
 key: HEADS_RENAME_NONE_LEFT
 en: no other file names a head in the previous shape.
 es: ningún otro archivo nombra una cabeza en la forma anterior.
+
+key: SUPERSEDE_WROTE
+en: %s now declares that it was replaced by %s.
+es: %s ahora declara que fue reemplazado por %s.
+
+key: SUPERSEDE_ALREADY
+en: %s already declared that it was replaced by %s — nothing to write.
+es: %s ya declaraba que fue reemplazado por %s — no hay nada que escribir.
+
+key: SUPERSEDE_NO_FILE
+en: no such file in this brain: %s
+es: no existe ese archivo en este brain: %s
+
+key: SUPERSEDE_SELF
+en: a file cannot declare that it replaced itself.
+es: un archivo no puede declarar que se reemplazó a sí mismo.
+
+key: SUPERSEDE_WOULD_CYCLE
+en: %s already leads back to %s — the mark would close a cycle, and whoever follows it never gets out.
+es: %s ya vuelve a %s — la marca cerraría un ciclo, y quien la siga no sale nunca.
+
+key: SUPERSEDE_UNREADABLE
+en: %s has a frontmatter that cannot be read (%s) — nothing was written; fix the file by hand first.
+es: %s tiene un frontmatter que no se puede leer (%s) — no se escribió nada; arreglá el archivo a mano primero.
+
+key: SUPERSEDE_DANGLING
+en: declares that %s replaced it, and that file is not there.
+es: declara que lo reemplazó %s, y ese archivo no está.
+
+key: SUPERSEDE_CYCLE
+en: declares that %s replaced it, and following that chain comes back here.
+es: declara que lo reemplazó %s, y siguiendo esa cadena se vuelve acá.
+
+key: SUPERSEDE_OPEN_HEAD
+en: was replaced and its status is still `%s` — a head that was replaced is not open work.
+es: fue reemplazada y su estado sigue siendo `%s` — una cabeza reemplazada no es trabajo abierto.
+
+key: SUPERSEDE_NO_TREE
+en: this brain has no `tree.md` that can be read (%s) — nothing was audited and nothing was written.
+es: este brain no tiene un `tree.md` que se pueda leer (%s) — no se auditó ni se escribió nada.
+
+key: SUPERSEDE_NOT_MD
+en: %s is not a `.md` document — this mark only goes on documents of the brain.
+es: %s no es un documento `.md` — esta marca solo va sobre documentos del brain.
+
+key: SUPERSEDE_NOT_IN_TREE
+en: no line of `tree.md` reaches %s — the tree does not govern that file, and the audit would never see the mark.
+es: ninguna línea de `tree.md` alcanza %s — el árbol no gobierna ese archivo, y la auditoría nunca vería la marca.
+
+key: SUPERSEDE_IS_LINK
+en: %s is a symbolic link — mark the file it points at, by its own path inside the brain.
+es: %s es un enlace simbólico — marcá el archivo al que apunta, por su propia ruta adentro del brain.
+
+key: SUPERSEDE_OUT_OF_BRAIN
+en: %s resolves outside the brain — every path of this mark is a path of this brain.
+es: %s resuelve afuera del brain — toda ruta de esta marca es una ruta de este brain.
+
+key: SUPERSEDE_WRITE_FAILED
+en: %s could not be written (permissions, or no space) — nothing changed.
+es: no se pudo escribir %s (permisos, o falta de espacio) — no cambió nada.
+
+key: SUPERSEDE_NOT_FRONTMATTER
+en: %s opens with a `---` that is not a frontmatter block — nothing was written; the key would land in the middle of the body.
+es: %s abre con un `---` que no es un bloque de frontmatter — no se escribió nada; la clave caería en el medio del cuerpo.
+
+key: SUPERSEDE_CHAIN_TOO_LONG
+en: the chain that starts at %s is longer than %s links — whether it closes a cycle is undecided, and nothing was written.
+es: la cadena que arranca en %s tiene más de %s eslabones — si cierra un ciclo queda sin decidir, y no se escribió nada.
+
+key: SUPERSEDE_CHAIN_UNDECIDED
+en: declares that %s replaced it, and the chain from there is longer than %s links — whether it closes a cycle is undecided.
+es: declara que lo reemplazó %s, y la cadena desde ahí tiene más de %s eslabones — si cierra un ciclo queda sin decidir.
+
+key: SUPERSEDE_UNREADABLE_MARK
+en: carries a `superseded_by:` inside a frontmatter that cannot be read (%s) — no reader of the system sees that mark.
+es: lleva un `superseded_by:` adentro de un frontmatter que no se puede leer (%s) — ningún lector del sistema ve esa marca.
+
+key: SUPERSEDE_HEAD_CLOSED
+en: %s was the head of open work: its status went from `active` to `closed`.
+es: %s era la cabeza de un trabajo abierto: su estado pasó de `active` a `closed`.
+
+key: SUPERSEDE_HEAD_ONGOING
+en: %s is permanent work (`status: ongoing`) and stays open — replacing a document does not end standing work.
+es: %s es trabajo permanente (`status: ongoing`) y queda abierta — reemplazar un documento no termina un trabajo que no termina.
+
+key: SUPERSEDE_NO_REASON
+en: no reason recorded
+es: sin motivo anotado
+
+key: SUPERSEDE_HEAD_BLOCKED
+en: %s is blocked (%s) and stays open — closing it would drop what it is waiting for without anyone reading it.
+es: %s está bloqueada (%s) y queda abierta — cerrarla soltaría lo que está esperando sin que nadie lo lea.
+
+key: SUPERSEDE_HEAD_DEPENDED_ON
+en: %s stays open — %s depends on it, and a closed dependency reads as satisfied; re-point that one at %s first.
+es: %s queda abierta — %s depende de ella, y una dependencia cerrada se lee como satisfecha; apuntá esa otra a %s primero.
+
+key: SUPERSEDE_HEAD_NO_STATUS
+en: %s has no `status:` of its own and stays as it is — this command does not invent one.
+es: %s no tiene `status:` propio y queda como está — este comando no le inventa uno.
+
+key: SUPERSEDE_HEAD_UNKNOWN_STATUS
+en: %s carries a status outside the vocabulary (`%s`) and stays as it is — it is declared, never interpreted.
+es: %s lleva un estado fuera del vocabulario (`%s`) y queda como está — se declara, nunca se interpreta.
+
+key: SUPERSEDE_HEAD_PENDING
+en: the mark is written; the head above needs your decision.
+es: la marca quedó escrita; la cabeza de arriba necesita tu decisión.
+
+key: SUPERSEDE_CHECK_CLEAN
+en: every `superseded_by:` of this brain points at a file that is there, with no cycle.
+es: todos los `superseded_by:` de este brain apuntan a un archivo que está, y sin ciclos.

@@ -5,6 +5,55 @@ Every published version of AI First OS, newest first. The format follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html): *major* when an already installed brain
 needs a manual step to keep working, *minor* for a new capability, *patch* for a fix.
 
+## [1.4.1] — 2026-08-31
+
+### Fixed
+
+- `supersede` never reports a write that did not happen. Over a file it could not write —a
+  directory with no write permission, no space— it used to print that the mark was written and exit
+  0 with the file untouched. Every write is checked now, including the `status: closed` of a head.
+- `supersede` only marks documents the brain's tree reaches. It used to accept any existing file:
+  pointed at a git config file it prepended a frontmatter block to it. A `--file` now has to end in
+  `.md` and be reached by a line of `tree.md`.
+- The spelling of a path is no longer a way around the checks. `./d/a.md`, `d//a.md` and `d/a.md`
+  are one path, so a file can no longer be made to declare that it replaced itself, and the value
+  written is always the normalised path.
+- A cycle longer than the walk's bound is reported instead of passing as clean, and a chain the
+  walk could not finish is refused as undecided instead of being written.
+- `--check` exits non-zero over a brain whose `tree.md` it could not read, instead of reporting
+  that every mark resolves. It also reports a `superseded_by:` hidden inside a frontmatter it
+  cannot parse, which no reader of the system can see.
+- Nothing follows a symbolic link: a link is refused instead of being replaced by a regular file,
+  a path that resolves outside the brain is refused, and a file keeps the permissions it had.
+- A file whose body opens with a `---` rule is refused instead of getting the key written into the
+  middle of its prose. The same guard protects every writer of frontmatter.
+
+### Changed
+
+- Superseding a head no longer closes it in silence, and no longer closes every head. An `active`
+  head with nothing depending on it is closed and the output says so. A head that is `ongoing`
+  —permanent work— one that is `blocked`, and one another head declares in `depends_on:` keep their
+  status: the mark is written, the reason is printed, and the command exits 3 so that the pending
+  decision is never read as a plain success. Closing a head something depends on used to make that
+  other head read as unblocked.
+
+## [1.4.0] — 2026-08-31
+
+### Added
+
+- A file can declare that another one replaced it. `superseded_by: <path>` in the frontmatter of the
+  older file names the newer one, and a session that opens the older file reads the newer one before
+  using anything from it. Until now a research document from March and one from July that
+  contradicts it were two equally valid files: git holds the history, and the agent reads the
+  working tree.
+- `supersede` writes that mark. A file with no frontmatter gets one created above its untouched
+  body; a file whose frontmatter cannot be read is refused with the reason instead of being
+  overwritten. When the file is the head of a node or an initiative, its `status` also goes to
+  `closed`, so it leaves the lists of the session scan.
+- `supersede --check` audits every mark of the brain — heads and content alike — and reports the
+  ones pointing at a file that is not there, the ones closing a cycle, and the heads that were
+  replaced and still read as open work. It exits non-zero when it finds something.
+
 ## [1.3.0] — 2026-08-27
 
 ### Changed
