@@ -102,7 +102,6 @@ done
 [ -n "$brain" ] || os_die "missing --brain"
 [ -d "$brain" ] || os_die "no such brain: $brain"
 brain=$(cd "$brain" && pwd)
-brain_real=$(cd "$brain" && pwd -P)
 
 if [ "$check" = "1" ]; then
   { [ -z "$file" ] && [ -z "$by" ]; } || os_die "--check is exclusive with --file and --by"
@@ -119,44 +118,12 @@ os_lang_load "$lang"
 # mark portable and the audit possible with a plain `[ -f ]`. An absolute path works on one machine;
 # a `..` walks out of the brain into a tree nothing here governs. Both are refused before anything
 # is read.
-rel_ok() {
-  case "$1" in
-    /*) return 1 ;;
-    ../*|*/../*|*/..|..) return 1 ;;
-    "") return 1 ;;
-  esac
-  return 0
-}
-
-# rel_norm PATH -> the same path written the one way this command compares paths: no leading `./`,
-# no `//`, no `/./`, no trailing `/`. Without it `d/a.md`, `./d/a.md` and `d//a.md` are three
-# different strings naming one file, and every comparison here —self-reference, cycle, is it a head—
-# is a string comparison.
-rel_norm() {
-  local p="$1" prev=""
-  while [ "$p" != "$prev" ]; do
-    prev="$p"
-    p="${p#./}"
-    p="${p//\/\//\/}"
-    p="${p//\/.\//\/}"
-    p="${p%/.}"
-    p="${p%/}"
-  done
-  printf '%s' "$p"
-}
-
-# inside_brain RELPATH -> 0 if the path, resolved through whatever symlinks its directories are,
-# still lands inside the brain. `rel_ok` is text and a linked directory is not: without this a mark
-# written through `link/x.md` points at a file no brain governs.
-inside_brain() {
-  local dir real
-  dir=$(dirname "$brain/$1")
-  real=$(cd "$dir" 2>/dev/null && pwd -P) || return 1
-  case "$real" in
-    "$brain_real"|"$brain_real"/*) return 0 ;;
-  esac
-  return 1
-}
+# The three of them live in `common.sh` since spec 049, where the second command that validates a
+# path written by hand into a frontmatter reads them too. A local copy would be the desync this repo
+# already forbids; the wrappers keep this file's calls reading the same as before.
+rel_ok() { os_rel_ok "$1"; }
+rel_norm() { os_rel_norm "$1"; }
+inside_brain() { os_inside_brain "$brain" "$1"; }
 
 # fm_of RELPATH -> reads the frontmatter of a brain-relative path into the fm_* variables.
 fm_of() {

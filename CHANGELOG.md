@@ -5,6 +5,24 @@ Every published version of AI First OS, newest first. The format follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html): *major* when an already installed brain
 needs a manual step to keep working, *minor* for a new capability, *patch* for a fix.
 
+## [1.5.0] — 2026-09-01
+
+### Added
+
+- A node declares what it is about: `about: <path relative to the brain>` in the frontmatter of a
+  head names the head of the node this one is about — a product, an account, a channel, any head
+  the tree reaches. The startup scan shows it in the row and reports a link that names no head.
+- `focus-read.sh`: what a session loads when the operator picks one node to work on — that node's
+  head, its body, and, when the head declares `about:`, the head it names together with the
+  `resolver.md` beside it. One jump: the head loaded that way may declare its own `about:` and it
+  is not followed.
+
+### Fixed
+
+- A path written with `//` is normalised to a single separator on bash 3.2. `supersede` used to
+  turn `d//a.md` into `d\/a.md`, so the checks that compare paths as strings answered about a file
+  that does not exist instead of the one named.
+
 ## [1.4.1] — 2026-08-31
 
 ### Fixed

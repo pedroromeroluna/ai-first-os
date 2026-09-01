@@ -889,3 +889,47 @@ es: la marca quedó escrita; la cabeza de arriba necesita tu decisión.
 key: SUPERSEDE_CHECK_CLEAN
 en: every `superseded_by:` of this brain points at a file that is there, with no cycle.
 es: todos los `superseded_by:` de este brain apuntan a un archivo que está, y sin ciclos.
+
+key: SESSION_ABOUT
+en: about %s
+es: sobre %s
+
+key: SESSION_CHECK_ABOUT_BROKEN
+en: %s — `about: %s` %s; the link is not followed.
+es: %s — `about: %s` %s; el vínculo no se sigue.
+
+key: ABOUT_NOT_A_HEAD
+en: is not a head that a `glob:` line of the tree reaches
+es: no es una cabeza que alcance una línea `glob:` del árbol
+
+key: ABOUT_NOT_RELATIVE
+en: is not a path relative to the brain
+es: no es una ruta relativa al brain
+
+key: ABOUT_IS_A_LIST
+en: names more than one path, and the key takes exactly one
+es: nombra más de una ruta, y la clave acepta exactamente una
+
+key: FOCUS_NOT_A_HEAD
+en: %s is not a head that a `glob:` line of the tree reaches: there is nothing to focus on there.
+es: %s no es una cabeza que alcance una línea `glob:` del árbol: no hay foco que abrir ahí.
+
+key: FOCUS_ABOUT_UNRESOLVED
+en: about-unresolved: %s · %s
+es: about-unresolved: %s · %s
+
+key: FOCUS_UNREADABLE_HEAD
+en: about-unresolved: the frontmatter of the head could not be read (%s)
+es: about-unresolved: no se pudo leer el frontmatter de la cabeza (%s)
+
+key: ABOUT_SELF
+en: names the head it is written on
+es: nombra la misma cabeza en la que está escrito
+
+key: ABOUT_IS_A_LINK
+en: is a symbolic link, and a link is never followed
+es: es un enlace simbólico, y un enlace nunca se sigue
+
+key: ABOUT_OUT_OF_BRAIN
+en: resolves outside the brain
+es: resuelve fuera del brain

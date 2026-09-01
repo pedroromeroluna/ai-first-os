@@ -45,8 +45,16 @@ root, which is where its `CLAUDE.md` lives — the product's root is never mount
 four— and it is not recomputed, nor completed with inferences, nor summarized. Above it goes **one**
 suggested next action, and then a question.
 
-**The body of an initiative is loaded only once the operator picks a focus.** The scan reads
-frontmatter: enough to choose, not enough to work.
+**The body of a node is loaded only once the operator picks a focus.** The scan reads frontmatter:
+enough to choose, not enough to work. Once the operator names one, run the focus read with the head
+of that node:
+
+```
+.os/core/lib/focus-read.sh --brain . --focus <path of the head>
+```
+
+It prints everything the focus loads, in the order it has to be read. That order lives in the header
+of `focus-read.sh` and nowhere else: it is not repeated here, and it is not rebuilt by hand.
 
 ## How the agent speaks
 
@@ -118,6 +126,11 @@ in the product's root resolver.
   before using anything from the one it opened, and says which one replaced it. Git does not answer
   this: the agent reads the working tree, never the history. The mark is written with `supersede`,
   which also audits the marks of the whole brain.
+- **A node declares what it is about**, with `about: <path relative to the brain>` in the
+  frontmatter of its head, naming the head of the node this one is about: a product, an account, a
+  channel — whatever a `glob:` line of the tree reaches. It names exactly one, and the focus read
+  loads that head and the `resolver.md` beside it and stops there: one jump, never a chain. A value
+  that names no head is a finding of the startup scan, never a key that gets ignored.
 - **The brain works on `main` and commits as it goes.** Every file created or edited in the brain
   during a session —a draft, a sketch, a note— is committed and pushed in the same turn it appears;
   nothing of the brain's own work waits for the close to be committed, and no draft is added to

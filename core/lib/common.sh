@@ -286,12 +286,12 @@ os_lower() {
 CAP_FRONTMATTER=30
 
 fm_status=""; fm_horizon=""; fm_waiting_on=""; fm_blocked=""; fm_role=""; fm_owner=""
-fm_depends_on=""; fm_repo=""; fm_language=""; fm_superseded_by=""
+fm_depends_on=""; fm_repo=""; fm_language=""; fm_superseded_by=""; fm_about=""
 fm_roto=""
 
 fm_limpiar() {
   fm_status=""; fm_horizon=""; fm_waiting_on=""; fm_blocked=""; fm_role=""; fm_owner=""
-  fm_depends_on=""; fm_repo=""; fm_language=""; fm_superseded_by=""
+  fm_depends_on=""; fm_repo=""; fm_language=""; fm_superseded_by=""; fm_about=""
 }
 
 # fm_read ARCHIVO — deja el resultado en las variables fm_*. `fm_roto` no vacío significa que no se
@@ -335,6 +335,11 @@ fm_read() {
       # reaches and a content file that only a `content:` reaches — because the reader at risk is
       # whoever opened the file, not whoever walked the tree.
       superseded_by) fm_superseded_by="$value" ;;
+      # `about:` (spec 049) — la ruta, relativa al brain, de la cabeza de la que trata este nodo:
+      # la iniciativa dice sobre qué producto, cuenta o canal trabaja. Llega a este lector como
+      # cualquier otra clave. Es clave de cabeza: el barrido lee frontmatter de cabezas y nunca abre
+      # un archivo de contenido, así que la misma clave escrita en un `content:` no la lee nadie.
+      about) fm_about="$value" ;;
     esac
   done < "$file"
   if [ "$primera" = "1" ]; then fm_roto="sin frontmatter"; return 0; fi
@@ -391,6 +396,58 @@ os_tree_content_files() {
     ( cd "$brain" && for f in $g; do [ -e "$f" ] && printf '%s\n' "$f"; done )
   done < "$brain/tree.md"
   return 0
+}
+
+# ---------------------------------------------------------------- rutas relativas al brain
+# Las tres funciones de acá abajo nacieron adentro de `supersede.sh` (spec 047) y viven ahora en el
+# único lugar que lee el formato del brain: desde la spec 049 hay un segundo comando que valida una
+# ruta escrita a mano en un frontmatter, y una segunda copia de estas comparaciones sería la
+# desincronización que este repo ya prohíbe. Al mudarlas se corrigió un defecto: bajo bash 3.2 el
+# reemplazo escrito `\/` adentro de `${p//\/\//\/}` aterriza en el valor, así que `d//a.md` salía
+# `d\/a.md` y toda comparación de rutas contestaba sobre un archivo que no existe.
+
+# os_rel_ok RUTA -> 0 si es una ruta relativa al brain: ni absoluta, ni con `..`, ni vacía.
+# Toda ruta del sistema es relativa al brain (`core/CLAUDE.md`): una absoluta funciona en una sola
+# máquina y un `..` sale del árbol que el brain gobierna.
+os_rel_ok() {
+  case "$1" in
+    /*) return 1 ;;
+    ../*|*/../*|*/..|..) return 1 ;;
+    "") return 1 ;;
+  esac
+  return 0
+}
+
+# os_rel_norm RUTA -> la misma ruta escrita de la única forma con la que se compara: sin `./` al
+# principio, sin `//`, sin `/./`, sin `/` al final. Sin esto `d/a.md`, `./d/a.md` y `d//a.md` son
+# tres cadenas distintas para el mismo archivo, y toda comparación de ruta del sistema es una
+# comparación de cadenas.
+os_rel_norm() {
+  local p="$1" prev=""
+  while [ "$p" != "$prev" ]; do
+    prev="$p"
+    p="${p#./}"
+    p="${p//\/\///}"
+    p="${p//\/.\///}"
+    p="${p%/.}"
+    p="${p%/}"
+  done
+  printf '%s' "$p"
+}
+
+# os_inside_brain BRAIN RUTA -> 0 si la ruta, resuelta a través de los enlaces que tengan sus
+# directorios, sigue cayendo adentro del brain. `os_rel_ok` es texto y un directorio enlazado no lo
+# es: sin esta, una ruta escrita a través de `enlace/x.md` nombra un archivo que ningún brain
+# gobierna.
+os_inside_brain() {
+  local brain="$1" rel="$2" dir real brain_real
+  brain_real=$(cd "$brain" 2>/dev/null && pwd -P) || return 1
+  dir=$(dirname "$brain/$rel")
+  real=$(cd "$dir" 2>/dev/null && pwd -P) || return 1
+  case "$real" in
+    "$brain_real"|"$brain_real"/*) return 0 ;;
+  esac
+  return 1
 }
 
 # ---------------------------------------------------------------- tipos de nodo de memoria (spec 041)

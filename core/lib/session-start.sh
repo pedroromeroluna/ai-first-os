@@ -15,9 +15,11 @@
 # espacio de trabajo; un flag distinto, nunca.
 #
 # Lee el frontmatter de cada cabeza y los archivos que se cargan siempre. Nunca abre el cuerpo de
-# una iniciativa: al `---` de cierre deja de leer. El recorrido son los globs de `tree.md` más las
-# cabezas de este ámbito que vivan en un montaje: la tabla del entorno se lee sola desde la raíz del
-# brain y `--mounts` es override.
+# una iniciativa: al `---` de cierre deja de leer. El `about:` de una cabeza (spec 049) se verifica
+# acá —que apunte a otra cabeza del árbol es una comparación de cadenas, sin abrir ni un archivo
+# más— y se muestra en la fila; cargar el destino es del foco (`focus-read.sh`), nunca del arranque.
+# El recorrido son los globs de `tree.md` más las cabezas de este ámbito que vivan en un montaje:
+# la tabla del entorno se lee sola desde la raíz del brain y `--mounts` es override.
 #
 # La salida son las mismas cuatro secciones fijas, siempre las cuatro, con vacío explícito, y una
 # última línea con el conteo de nodos y el tiempo — con `--org` o con `--root` es el mismo formato.
@@ -505,6 +507,43 @@ while IFS="$sep" read -r raiz f || [ -n "$raiz" ]; do
     continue
   fi
 
+  # `about:` — la cabeza de la que trata esta (spec 049). El barrido ya tiene leído el frontmatter
+  # de la cabeza y ya tiene armada la lista de lo que alcanzan los `glob:` del árbol, así que
+  # verificar el vínculo no abre ni un archivo más: es una comparación de cadenas. Lo que el
+  # arranque NO hace es cargar el destino — eso pasa después, cuando el operador elige el foco
+  # (`focus-read.sh`), y por eso acá no hay ninguna lectura nueva que acotar.
+  #
+  # Un vínculo que no resuelve es un hallazgo, nunca una clave que se ignora: la misma regla que el
+  # árbol ya aplica a un archivo que ninguna línea alcanza. Y el destino tiene que ser una cabeza:
+  # cargar contenido no es cargar un nodo.
+  sufijo_about=""
+  if [ -n "$fm_about" ]; then
+    about_motivo=""
+    about_dest=$(os_rel_norm "$fm_about")
+    case "$fm_about" in
+      *,*|*' '*) about_motivo="$S_ABOUT_IS_A_LIST" ;;
+    esac
+    if [ -z "$about_motivo" ] && ! os_rel_ok "$about_dest"; then
+      about_motivo="$S_ABOUT_NOT_RELATIVE"
+    fi
+    if [ -z "$about_motivo" ]; then
+      case "$nl$tree_files" in
+        *"$nl$about_dest$nl"*) ;;
+        *) about_motivo="$S_ABOUT_NOT_A_HEAD" ;;
+      esac
+    fi
+    if [ -z "$about_motivo" ] && [ "$about_dest" = "$f" ]; then about_motivo="$S_ABOUT_SELF"; fi
+    if [ -z "$about_motivo" ] && [ -L "$brain/$about_dest" ]; then about_motivo="$S_ABOUT_IS_A_LINK"; fi
+    if [ -z "$about_motivo" ] && ! os_inside_brain "$brain" "$about_dest"; then
+      about_motivo="$S_ABOUT_OUT_OF_BRAIN"
+    fi
+    if [ -n "$about_motivo" ]; then
+      push_chequeo "$(printf "$S_SESSION_CHECK_ABOUT_BROKEN" "$f" "$fm_about" "$about_motivo")"
+    else
+      sufijo_about=" · $(printf "$S_SESSION_ABOUT" "$(os_node_name "$about_dest")")"
+    fi
+  fi
+
   [ -n "$fm_horizon" ] || falta="$S_SESSION_MISSING_HORIZON"
   if [ -z "$fm_status" ]; then
     [ -n "$falta" ] && falta="$falta, $S_SESSION_MISSING_STATUS" || falta="$S_SESSION_MISSING_STATUS"
@@ -537,7 +576,7 @@ while IFS="$sep" read -r raiz f || [ -n "$raiz" ]; do
     esac
   fi
   if [ -n "$etiqueta" ]; then
-    push_espera "$nombre — $etiqueta"
+    push_espera "$nombre — $etiqueta$sufijo_about"
     continue
   fi
 
@@ -549,6 +588,7 @@ while IFS="$sep" read -r raiz f || [ -n "$raiz" ]; do
   if [ "$fm_horizon" = "now" ] || [ -n "$senal" ]; then
     linea="$nombre · ${fm_horizon:-$S_SESSION_NO_HORIZON_LABEL} · ${fm_status:-$S_SESSION_NO_STATUS_LABEL}"
     [ -n "$senal" ] && linea="$linea · $senal"
+    linea="$linea$sufijo_about"
     push_curso "$linea"
   fi
 done <<CABEZAS
