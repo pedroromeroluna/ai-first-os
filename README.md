@@ -46,8 +46,9 @@ Save this message and paste it to your agent, once:
 
 > Install AI First OS from `github.com/pedroromeroluna/ai-first-os`. Bring the repository down to a
 > fixed local folder on this machine —you will need it to update later—, run its bootstrap to build
-> my brain with a short interview about who I am and which workspaces I work in, and then run its
-> installer to hook it into that brain. Ask me whatever the interview needs before writing anything.
+> my brain with a short interview about who I am and which workspaces I work in, if any, and then
+> run its installer to hook it into that brain. Ask me whatever the interview needs before writing
+> anything.
 
 You do not have to do anything else. The agent brings the repository down, interviews you and hooks
 up the tools; you only answer the interview.
@@ -103,16 +104,20 @@ my-brain/
 ├── backlog.md                   # Your own tasks, one line each, in priority order (born on first capture)
 ├── inbox.md                     # Transit for what could not be filed yet — never a destination
 ├── mounts.md                    # Which repos are mounted onto which initiatives (born on first mount-repo)
-├── decisions.md                 # Your own decisions: what, why, and what would invalidate them
-├── learnings.md                 # Live: updated or deleted, never archived
+├── decisions.md                 # Index of your decisions: one line each, linking to its own file
+├── decisions/<date>-<slug>.md   # One decision per file: what, why, and what would invalidate it
+├── learnings.md                 # Index of your learnings: one line each, linking to its own file
+├── learnings/<slug>.md          # One learning per file, no date in the name — it updates in place
 ├── initiatives/<slug>/README.md # Your own initiatives, one folder each, with status/horizon/owner up top
 ├── workspaces/                  # One folder per workspace — the isolation boundary
 │   └── <workspace>/
 │       ├── README.md            # Its identity, and the `role:` it activates (cpo, cto)
 │       ├── resolver.md          # Where whatever gets written in this workspace goes
 │       ├── backlog.md           # Its tasks
-│       ├── decisions.md         # Its decisions
-│       ├── learnings.md         # Its learnings
+│       ├── decisions.md         # Its decisions, indexed the same way
+│       ├── decisions/           # Its decisions' own files
+│       ├── learnings.md         # Its learnings, indexed the same way
+│       ├── learnings/           # Its learnings' own files
 │       ├── initiatives/         # Its initiatives, one folder each with its `README.md` inside
 │       └── <type>/<slug>/       # A memory node of any declared type — products/ is the one this system ships with its own tool
 │           └── README.md        # Born with `new-memory --type <type>` (`new-product` is its `products` shortcut); `context/` and `research/` are filled by whatever tool the type has, or by hand
@@ -126,8 +131,10 @@ my-brain/
 
 The interview writes `operator.md`, `voice.md`, `resolver.md`, `tree.md` and one `workspaces/<slug>/`
 per workspace you named. The rest is born the first time it is needed: `backlog.md` on the first
-capture, `mounts.md` on the first mounted repo, `decisions.md` and `learnings.md` when there is
-something to record.
+capture, `mounts.md` on the first mounted repo, `decisions.md`/`decisions/` and
+`learnings.md`/`learnings/` when there is something to record — one file per decision and per
+learning, with the `.md` index left as the table of contents so a session opens only the one it
+needs instead of the whole register.
 
 **Where the skills live.** The eleven skills of the system are not copied into your brain: they live
 in `.os/core/skills/`, a symlink to the `core/` of the repository you brought down, and the agent
@@ -138,7 +145,7 @@ index. Your own skills, if you write any, go next to them as plain folders in `.
 
 ## The catalog
 
-Fourteen skills come with the system itself, in two families. **Workflow skills** run a process and
+Fifteen skills come with the system itself, in two families. **Workflow skills** run a process and
 leave a deliverable: they are triggered manually, by name — the index is the resolver, never
 automatic activation. **Knowledge skills** carry a method or a standing craft and are loaded as
 context.
@@ -161,6 +168,8 @@ context.
 | `supersede` | Marks a file as replaced by another —`superseded_by:` in the frontmatter of the old one— so a session that opens it knows what to read instead, and audits the marks of the whole brain |
 | `rename-workspaces` | Adopts the current name of the workspaces folder on a brain born before it, run only when the operator asks |
 | `rename-heads` | Adopts the single node shape —a folder with its `README.md` inside— on a brain born before it, run only when the operator asks |
+| `archive` | Moves a document into the node's `archive/` so the focus lists it by name instead of loading it, rewriting every reference that pointed at it, and lists what the brain already declared replaced and still loads |
+| `recall` | Searches every file the tree reaches for a lateral question, ranked with file, line and date, current work ahead of whatever replaced it, and one jump to a result's neighbours with `--expand` |
 
 ### Knowledge skills
 

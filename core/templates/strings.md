@@ -933,3 +933,103 @@ es: es un enlace simbólico, y un enlace nunca se sigue
 key: ABOUT_OUT_OF_BRAIN
 en: resolves outside the brain
 es: resuelve fuera del brain
+
+key: RECALL_NO_RESULTS
+en: no results
+es: sin resultados
+
+key: ARCHIVE_REFUSED
+en: %s — %s
+es: %s — %s
+
+key: ARCHIVE_NOT_RELATIVE
+en: is not a path relative to the brain
+es: no es una ruta relativa al brain
+
+key: ARCHIVE_NOT_MD
+en: is not a `.md`, and this command only moves documents of the brain
+es: no es un `.md`, y este comando solo mueve documentos del brain
+
+key: ARCHIVE_OUT_OF_BRAIN
+en: resolves outside the brain
+es: resuelve fuera del brain
+
+key: ARCHIVE_IS_A_LINK
+en: is a symbolic link, and a link is never followed
+es: es un enlace simbólico, y un enlace nunca se sigue
+
+key: ARCHIVE_NOT_THERE
+en: is not there
+es: no está
+
+key: ARCHIVE_NOT_IN_TREE
+en: no line of `tree.md` reaches it
+es: ninguna línea de `tree.md` lo alcanza
+
+key: ARCHIVE_TWICE
+en: was named twice in the same batch
+es: se nombró dos veces en el mismo lote
+
+key: ARCHIVE_NOT_IN_A_NODE
+en: does not live in a folder of a node, so there is no `archive/` next to it
+es: no vive en una carpeta de un nodo, así que no hay `archive/` al lado
+
+key: ARCHIVE_ALREADY
+en: is already archived
+es: ya está archivado
+
+key: ARCHIVE_NOT_ARCHIVED
+en: is not archived, so there is nothing to bring back
+es: no está archivado, así que no hay nada que traer de vuelta
+
+key: ARCHIVE_DEST_TAKEN
+en: %s already exists, and choosing which of the two wins is not this command's call
+es: %s ya existe, y elegir cuál de los dos gana no es de este comando
+
+key: ARCHIVE_DEST_NOT_ARCHIVE
+en: no `archive:` line of the tree reaches %s, and an archived file the tree does not reach is invisible to the audit
+es: ninguna línea `archive:` del árbol alcanza %s, y un archivo archivado que el árbol no alcanza es invisible para la auditoría
+
+key: ARCHIVE_DEST_NOT_CONTENT
+en: no `content:` line of the tree reaches %s
+es: ninguna línea `content:` del árbol alcanza %s
+
+key: ARCHIVE_NOTHING_MOVED
+en: nothing was moved: the batch is checked whole before the first move.
+es: no se movió nada: el lote se chequea entero antes del primer movimiento.
+
+key: ARCHIVE_NOTHING_TO_DO
+en: nothing to do.
+es: nada que hacer.
+
+key: ARCHIVE_ARCHIVED
+en: archived:
+es: archivados:
+
+key: ARCHIVE_UNARCHIVED
+en: brought back:
+es: traídos de vuelta:
+
+key: ARCHIVE_REWROTE
+en: references rewritten:
+es: referencias reescritas:
+
+key: ARCHIVE_REWRITE_FAILED
+en: %s — the reference could not be rewritten; it still names the old path.
+es: %s — no se pudo reescribir la referencia; sigue nombrando la ruta vieja.
+
+key: ARCHIVE_STOPPED
+en: the batch stopped here; these were not moved, and re-running the same command finishes it:
+es: el lote se cortó acá; estos no se movieron, y volver a correr el mismo comando lo termina:
+
+key: ARCHIVE_STALE_ROW
+en: %s — replaced by %s, and still outside `archive/`
+es: %s — reemplazado por %s, y todavía fuera de `archive/`
+
+key: ARCHIVE_STALE_TOTAL
+en: %s documents the brain already declared out of date are still loaded. `archive` moves them.
+es: %s documentos que el brain ya declaró fuera de vigencia se siguen cargando. `archive` los mueve.
+
+key: ARCHIVE_STALE_NONE
+en: nothing the brain declared out of date is outside `archive/`.
+es: nada de lo que el brain declaró fuera de vigencia quedó fuera de `archive/`.

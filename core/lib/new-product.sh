@@ -110,6 +110,8 @@ os_check_identity_cap "$dir/$head"
 os_tree_ensure "$brain" "$wsdir/*/products/*/$head" || true
 os_tree_ensure "$brain" "$wsdir/*/products/*/resolver.md" || true
 os_tree_ensure "$brain" "$wsdir/*/products/*/decisions.md" || true
+# El cuerpo de esa pregunta, uno por decisión: alcanzado, nunca leído como cabeza (spec 043).
+os_tree_ensure "$brain" "$wsdir/*/products/*/decisions/*.md" content || true
 
 # Las dos carpetas de un producto nacen con su primer dato y son contenido, nunca cabeza: `context/`
 # es la capa estratégica y `research/` todo documento fechado (spec 040). Se declaran acá para que el

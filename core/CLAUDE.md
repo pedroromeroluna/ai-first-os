@@ -131,6 +131,14 @@ in the product's root resolver.
   channel — whatever a `glob:` line of the tree reaches. It names exactly one, and the focus read
   loads that head and the `resolver.md` beside it and stops there: one jump, never a chain. A value
   that names no head is a finding of the startup scan, never a key that gets ignored.
+- **Archiving a document is moving it into the node's `archive/`**, with `archive`. The focus prints
+  the names of what is archived and opens none of it; the lateral search still looks inside it and
+  `supersede` still audits it. Nothing archives itself, and nothing suggests archiving by age: what
+  the operator is offered is `archive --stale`, the documents the brain already declared replaced and
+  still keeps outside `archive/`.
+- **A lateral question — anything not already loaded by the startup or the focus — runs `recall` in
+  the session's own scope before any `grep`.** Two `current` results that contradict each other are
+  reported as ❓, never picked between in silence.
 - **The brain works on `main` and commits as it goes.** Every file created or edited in the brain
   during a session —a draft, a sketch, a note— is committed and pushed in the same turn it appears;
   nothing of the brain's own work waits for the close to be committed, and no draft is added to

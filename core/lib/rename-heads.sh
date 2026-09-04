@@ -27,20 +27,16 @@
 #      de reescritura igual, que es lo que hace reanudable el paso 4); ninguno (nada).
 #   3. Los movimientos, en el orden del plan. `git mv` en un brain git —así el índice lo registra
 #      como rename— y `mv -n` si no; nunca uno que pise.
-#   4. La reescritura de rutas. **Solo se reescribe un token que coincide exactamente con una ruta
-#      que este comando movió**, o con esa misma ruta relativa al nodo dueño del archivo que se está
-#      reescribiendo. Nunca por sufijo: una ruta con el mismo final que no es cabeza de nadie queda
-#      intacta, igual que una URL que lleve la misma ruta adentro. Del token se separan y se
-#      conservan el `#ancla`, el `:línea` del final y el `./` del principio; **un nombre pelado —sin
-#      una sola barra— nunca se resuelve contra la carpeta del archivo**: el nombre de la cabeza
-#      suelto en la prosa de un resolver es un archivo de otro repo, no una ruta de este brain.
+#   4. La reescritura de rutas, con el mapa completo de lo que se movió. La regla —coincidencia
+#      exacta, nunca por sufijo; un nombre pelado sin una sola barra no se resuelve contra la
+#      carpeta— vive en `common.sh` (`os_rw_line`/`os_rw_file`) y no se repite acá: la spec 048 le
+#      sumó un segundo llamador y dos copias se desincronizan.
 #   5. El árbol.
 #   6. Lo que quedó nombrando la forma anterior se lista, sin tocarlo.
 #   7. No commitea: la sesión commitea después, como todo lo demás del brain.
 #
-# Límites conocidos, por diseño: una ruta con espacios adentro no se reescribe (el texto se parte en
-# tokens por espacio), y se ve en el listado del paso 6. No reescribir es el modo seguro de fallar;
-# corromper, no.
+# Límite conocido de la reescritura —una ruta con espacios adentro no se reescribe— está enunciado
+# junto a la regla, en `common.sh`. Acá se ve en el listado del paso 6.
 #
 # Solo bash, carácter a carácter — nada de sed ni awk (E7, PATH restringido).
 #
@@ -231,104 +227,10 @@ $plan
 PLAN
 
 # ---------------------------------------------------------------- (4) la reescritura de rutas
-# rt_lookup RUTA -> el destino de una ruta que este comando movió, por stdout. Exit 1 si esa ruta no
-# está en el mapa: entonces el token no se toca. La coincidencia es exacta, nunca por sufijo.
-rt_lookup() {
-  local linea
-  [ -n "$1" ] || return 1
-  while IFS= read -r linea || [ -n "$linea" ]; do
-    [ -n "$linea" ] || continue
-    case "$linea" in
-      "$1$OS_SEP"*) printf '%s' "${linea#*$OS_SEP}"; return 0 ;;
-    esac
-  done <<MAPA
-$mapa
-MAPA
-  return 1
-}
-
-rt_out=""
-
-rewrite_token() {
-  # rewrite_token TOKEN DIR — DIR es la carpeta del archivo que se está reescribiendo, relativa al
-  # brain, para resolver una referencia relativa al propio nodo.
-  local tok="$1" dir="${2:-}" ruta="" ancla="" punto="" linea="" destino
-  # Una URL —con esquema o con la forma `usuario@host:ruta`— no es una ruta de este brain.
-  case "$tok" in
-    *://*|*@*:*) rt_out="$rt_out$tok"; return 0 ;;
-  esac
-  ruta="$tok"
-  # el ancla del final
-  case "$ruta" in
-    *'#'*) ancla="#${ruta#*#}"; ruta="${ruta%%#*}" ;;
-  esac
-  # el `:línea` del final, y el `:` suelto de una cita
-  case "$ruta" in
-    *:) linea=":"; ruta="${ruta%:}" ;;
-    *:[0-9]) linea=":${ruta##*:}"; ruta="${ruta%:*}" ;;
-    *:[0-9][0-9]|*:[0-9][0-9][0-9]|*:[0-9][0-9][0-9][0-9]) linea=":${ruta##*:}"; ruta="${ruta%:*}" ;;
-  esac
-  # el `./` del principio
-  case "$ruta" in
-    ./*) punto="./"; ruta="${ruta#./}" ;;
-  esac
-  if [ -n "$ruta" ]; then
-    if destino=$(rt_lookup "$ruta"); then
-      rt_out="$rt_out$punto$destino$linea$ancla"; return 0
-    fi
-    # Relativa al nodo dueño del archivo. Solo si el token es una ruta —tiene al menos una barra—:
-    # un nombre pelado adentro de la carpeta de un nodo no es una referencia a la cabeza de ese
-    # nodo, y resolverlo contra la carpeta reescribía prosa que hablaba de otro repo.
-    case "$ruta" in
-      */*)
-        if [ -n "$dir" ] && destino=$(rt_lookup "$dir/$ruta"); then
-          rt_out="$rt_out$punto${destino#$dir/}$linea$ancla"; return 0
-        fi
-        ;;
-    esac
-  fi
-  rt_out="$rt_out$tok"
-}
-
-# rewrite_line LINEA DIR -> la línea con las rutas de cabeza reescritas, por stdout.
-rewrite_line() {
-  local line="$1" dir="${2:-}" i=0 len=${#1} c tok=""
-  rt_out=""
-  while [ "$i" -lt "$len" ]; do
-    c="${line:$i:1}"
-    case "$c" in
-      ' '|$'\t'|'`'|'|'|'('|')'|'['|']'|'<'|'>'|'"'|"'"|','|';'|'!')
-        rewrite_token "$tok" "$dir"; tok=""; rt_out="$rt_out$c" ;;
-      *) tok="$tok$c" ;;
-    esac
-    i=$(( i + 1 ))
-  done
-  rewrite_token "$tok" "$dir"
-  printf '%s' "$rt_out"
-}
-
-# rewrite_paths ARCHIVO_RELATIVO -> reescribe el archivo si alguna línea cambió; exit 0 si reescribió.
-rewrite_paths() {
-  local rel="$1" file="$brain/$1" dir tmp line nueva cambio=0
-  [ -f "$file" ] || return 1
-  case "$rel" in
-    */*) dir="${rel%/*}" ;;
-    *) dir="" ;;
-  esac
-  tmp="$file.os-tmp"
-  : > "$tmp"
-  while IFS= read -r line || [ -n "$line" ]; do
-    nueva=$(rewrite_line "$line" "$dir")
-    [ "$nueva" = "$line" ] || cambio=1
-    printf '%s\n' "$nueva"
-  done < "$file" >> "$tmp"
-  if [ "$cambio" = "1" ]; then
-    mv "$tmp" "$file"
-    return 0
-  fi
-  rm -f "$tmp"
-  return 1
-}
+# La regla —coincidencia exacta, nunca por sufijo; un nombre pelado no se resuelve contra la
+# carpeta— vive en `common.sh` (`os_rw_map`/`os_rw_file`) desde la spec 048, que le sumó un segundo
+# llamador. El mapa se pasa entero, después de todos los movimientos.
+OS_RW_MAP="$mapa"
 
 objetivos="operator.md${OS_SEP}resolver.md${OS_SEP}backlog.md${OS_SEP}decisions.md${OS_SEP}learnings.md${OS_SEP}"
 objetivos="$objetivos${OS_MOUNTS_ARCHIVO:-mounts.md}$OS_SEP"
@@ -348,9 +250,12 @@ old_ifs="$IFS"
 IFS="$OS_SEP"
 for rel in $objetivos; do
   IFS="$old_ifs"
-  if [ -n "$rel" ] && rewrite_paths "$rel"; then
-    reescritos="$reescritos  $rel$nl"
-    hubo_cambio=1
+  if [ -n "$rel" ]; then
+    os_rw_file "$brain" "$rel"; rc_rw=$?
+    case "$rc_rw" in
+      0) reescritos="$reescritos  $rel$nl"; hubo_cambio=1 ;;
+      2) os_die "no se pudo reescribir $rel" ;;
+    esac
   fi
   IFS="$OS_SEP"
 done
