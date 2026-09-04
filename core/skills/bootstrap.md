@@ -78,11 +78,8 @@ is answered in a line. Whatever the system can learn with use is not asked.
 4. **Your voice**: tone, and words you would never use. **Optional** — say so when asking: if the
    operator does not know, "later" is an answer and the file says it is pending.
 5. **Your workspace.** A workspace is each company or client you work for; a course case is one
-   too. For the typical case —one person, one employer— that is one. **Optional** — say so when
-   asking: someone who works alone, or who is between jobs, has none, and "none" is an answer. Say
-   what it means before they answer: their own work lives at the root of the brain, which is a node
-   like any other, and the day a company or a client appears, `new-workspace` adds it. Ask **what it
-   does** and **what you do there**. What you do there is a title — identity, written to the body of
+   too. For the typical case —one person, one employer— that is one. Ask **what it does** and
+   **what you do there**. What you do there is a title — identity, written to the body of
    the head, never to `role:`. `role:` activates an oficio from the pack (today: `cpo`) and is
    born empty; filling it in is a separate, deliberate step, not part of this interview.
 
@@ -107,19 +104,13 @@ language: en|es
 name: <name>
 profile: <the role, one line>
 voice: <one item>
-workspace: <Name> | <title> | <owner> | <identity file>
-skipped: voice | workspace
+org: <Name> | <title> | <owner> | <identity file>
 ```
 
-`voice`, `workspace` and `skipped` repeat. `language` first: with no `language` the brain is written
-in English and the script declares the gap. In `workspace`, the owner and the identity file are
-optional: with no owner the operator is used, and with no identity a placeholder text is left. The
-title is never `role:` — see the interview above.
-
-**`skipped:` is what the operator answered, not what they left out.** One line per optional question
-the operator deliberately left empty —`skipped: voice`, `skipped: workspace`—, and never together
-with a line of the same key. Without it the script cannot tell "did not answer" from "answered they
-have none", and it asks again for something already answered.
+`voice` and `org` repeat. `language` first: with no `language` the brain is written in English and
+the script declares the gap. In `org`, the owner and the identity file are optional: with no owner
+the operator is used, and with no identity a placeholder text is left. The title is never `role:` —
+see the interview above.
 
 The result is `operator.md`, `voice.md`, `resolver.md`, `tree.md`, the system manual at the root of
 the brain —`HOW-IT-WORKS.md` or `COMO-FUNCIONA.md`, in the chosen language— and one folder per
@@ -200,9 +191,6 @@ bootstrap aborted halfway because a download failed is the worse outcome of the 
 - If the identity cap warning appears, pass it through as is: the operator chooses the way out.
 - If the script reports `sin dato:` or `sin crear:`, pass it through whole and ask again for what is
   missing. A gap nobody names is a gap nobody fills.
-- If it reports `declarado vacío:`, that gap was answered: pass it through and **do not ask again**.
-  When it names `workspace`, say the work lives at the root of the brain and that `new-workspace`
-  adds one the day a company or a client appears.
 - Say whether the brain is versioned and whether the remote is resolved or pending.
 - **Say whether the pack landed.** If it was installed, name what it added and that the harness
   offers it directly. If it was left for later, say the pending line is in the root backlog with the

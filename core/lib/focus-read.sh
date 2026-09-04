@@ -18,8 +18,6 @@
 #      `LC_ALL=C sort` by path
 #   3. only if that head declares `about:` — the head it names
 #   4. and the `resolver.md` next to that head, when a `glob:` line reaches it
-#   5. the **names** of what an `archive:` line reaches directly inside that node's folder — never
-#      their bodies (spec 048)
 #
 # ONE JUMP IS ONE JUMP. Step 3 reads the `about:` of the focus and of nothing else: the head loaded
 # there may declare its own `about:`, and it is not followed. The value of this system is that the
@@ -34,10 +32,6 @@
 #     are the documents the node accumulates, and loading them turns one jump into the whole folder.
 #   · The body of any node other than the focus.
 #   · Anything a second `about:` names.
-#   · The body of anything an `archive:` line reaches. Step 5 prints file names and nothing else:
-#     archiving a document is the operator saying it is no longer what you read to work, and a
-#     listing that opened them would put back exactly the cost the archive exists to remove. The
-#     folder is the index — there is no file to keep in sync — and `recall` is what searches inside.
 # The pair loaded in steps 3 and 4 —a head and the `resolver.md` beside it— is the same pair the
 # startup read already loads for a workspace (`session-read.sh`, steps 3 and 4): what "loading a
 # node" means is stated once, and this command repeats the shape instead of inventing a second one.
@@ -58,9 +52,6 @@
 #   - An `about:` that does not resolve prints `about-unresolved: <value> · <reason>` in place of
 #     the jump and the read goes on: the startup scan is where a broken link is a finding, and a
 #     read that dies over one leaves the operator with nothing.
-#   - The archived listing opens with the fixed marker `archived: <n>` —English in both languages,
-#     like `about-jump:`— and one `· <file name>` line per file, `LC_ALL=C sort`. A node with
-#     nothing archived prints no marker and no lines.
 #
 # Exit: 0 the focus was read, with or without a jump and with or without missing files. 1 invalid
 # arguments, or a `--focus` that is not a head the tree reaches. 2 the file named by `--focus` does
@@ -107,7 +98,6 @@ os_rel_ok "$focus" || os_die "--focus is not a path relative to the brain: $focu
 # focus and no body, which reads exactly like a node with nothing in it.
 heads=$(os_tree_files "$brain") || os_die "no tree.md to read in: $brain"
 contents=$(os_tree_content_files "$brain") || os_die "no tree.md to read in: $brain"
-archived=$(os_tree_archive_files "$brain") || archived=""
 
 es_cabeza() {
   case "$nl$heads$nl" in *"$nl$1$nl"*) return 0 ;; esac
@@ -188,47 +178,6 @@ $(printf '%s' "$cuerpos" | LC_ALL=C sort)
 ORDENADOS
 fi
 
-# ---------------------------------------------------------------- 5 · what is archived, by name
-# Runs on every exit path of this script, because the operator's answer to "what does this node have
-# that I am not reading" cannot depend on whether the head declared an `about:`.
-#
-# Same "direct children" rule as step 2, one level deeper: a file an `archive:` line reaches whose
-# path, relative to the node's folder, is `<folder>/<name>` or `<name>`. A node that holds other
-# nodes does not list the archives of the nodes under it: three segments away is somebody else's
-# node, and listing those would make one focus grow with every node somebody adds beneath it.
-listar_archivado() {
-  local f resto lista="" n=0
-  [ -n "$archived" ] || return 0
-  [ "$base" = "$head_file" ] && [ "$dir" != "$focus" ] || return 0
-  while IFS= read -r f || [ -n "$f" ]; do
-    [ -n "$f" ] || continue
-    case "$f" in
-      "$dir"/*) ;;
-      *) continue ;;
-    esac
-    resto="${f#"$dir"/}"
-    case "$resto" in
-      */*/*) continue ;;
-    esac
-    lista="$lista${f##*/}$nl"
-    n=$(( n + 1 ))
-  done <<ARCHIVADOS
-$archived
-ARCHIVADOS
-  [ "$n" -gt 0 ] || return 0
-  separar
-  # Fixed marker, in English, the same in both languages — the criterion of `about-jump:` and
-  # `active-role:`: a reader matches it as a structural identifier, not as translatable prose.
-  printf 'archived: %s\n' "$n"
-  while IFS= read -r f || [ -n "$f" ]; do
-    [ -n "$f" ] || continue
-    printf '· %s\n' "$f"
-  done <<ORDENADOS
-$(printf '%s' "$lista" | LC_ALL=C sort)
-ORDENADOS
-  return 0
-}
-
 # ---------------------------------------------------------------- 3 y 4 · the jump
 # The same checks the startup scan applies to the key, because the answer to "does this link resolve"
 # has to be the same in both places: normalised, relative to the brain, a single path, a head a
@@ -237,13 +186,9 @@ fm_read "$brain/$focus"
 if [ -n "$fm_roto" ]; then
   printf '\n'
   printf "$S_FOCUS_UNREADABLE_HEAD\n" "$fm_roto"
-  listar_archivado
   exit 0
 fi
-if [ -z "$fm_about" ]; then
-  listar_archivado
-  exit 0
-fi
+[ -n "$fm_about" ] || exit 0
 
 destino=$(os_rel_norm "$fm_about")
 motivo=""
@@ -259,7 +204,6 @@ if [ -z "$motivo" ] && ! os_inside_brain "$brain" "$destino"; then motivo="$S_AB
 if [ -n "$motivo" ]; then
   printf '\n'
   printf "$S_FOCUS_ABOUT_UNRESOLVED\n" "$fm_about" "$motivo"
-  listar_archivado
   exit 0
 fi
 
@@ -275,8 +219,5 @@ if [ "$destino_dir" != "$destino" ] && es_cabeza "$destino_dir/resolver.md"; the
   primera=0
   emitir "$destino_dir/resolver.md"
 fi
-
-primera=0
-listar_archivado
 
 exit 0

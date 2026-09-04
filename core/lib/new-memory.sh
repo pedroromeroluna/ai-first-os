@@ -146,14 +146,11 @@ os_check_identity_cap "$dir/$head"
 
 # Un tipo declara 5 líneas del árbol (spec 041 decisión cerrada): mismo reparto que `products/` ya
 # usaba — 3 `glob:` (cabeza, resolver.md, decisions.md) y 2 `content:` (context/*.md, research/*.md)
-# — a la altura del espacio de trabajo o de la raíz. La 043 suma una sexta: el cuerpo de las
-# decisiones, alcanzado y nunca leído como cabeza, mismo criterio que las otras dos `content:`.
-# Idempotente vía `os_tree_ensure`, así que sumar un segundo nodo al mismo tipo (mismo `--type`,
-# otro `--slug`) no duplica ninguna línea.
+# — a la altura del espacio de trabajo o de la raíz. Idempotente vía `os_tree_ensure`, así que sumar
+# un segundo nodo al mismo tipo (mismo `--type`, otro `--slug`) no duplica ninguna línea.
 os_tree_ensure "$brain" "${tree_prefix}${type}/*/$head" || true
 os_tree_ensure "$brain" "${tree_prefix}${type}/*/resolver.md" || true
 os_tree_ensure "$brain" "${tree_prefix}${type}/*/decisions.md" || true
-os_tree_ensure "$brain" "${tree_prefix}${type}/*/decisions/*.md" content || true
 os_tree_ensure "$brain" "${tree_prefix}${type}/*/context/*.md" content || true
 os_tree_ensure "$brain" "${tree_prefix}${type}/*/research/*.md" content || true
 

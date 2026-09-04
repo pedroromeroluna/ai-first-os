@@ -27,13 +27,10 @@
 #     why:         Por qué
 #     replaces:    Qué decisión reemplaza          (opcional)
 #     invalidates: Qué la haría falsa              (opcional)
-#     when:        Cuándo se lee esta decisión     (opcional, spec 043 — ver más abajo)
 #   learning:      Título
 #     body:        El cuerpo
-#     when:        Cuándo se lee este aprendizaje  (opcional, spec 043)
 #   provisional:   Título                          el intento sin conclusión, el "casi funcionó"
 #     body:        El cuerpo
-#     when:        Cuándo se lee                   (opcional, spec 043)
 #   pending:       Texto de la tarea               al backlog de la organización
 #   pending-from:  iniciativa | Texto de la tarea  lo mismo, atribuido a la iniciativa que lo dejó
 #   waiting:       iniciativa | quién destraba     escribe `waiting_on:` en el frontmatter de esa cabeza
@@ -46,14 +43,6 @@
 # accepts the old Spanish ones (que/porque/reemplaza/invalidaria/cuerpo/pending-de/sin-fila/
 # no-capturado/tocado/retomar) during this version, and the verdict notes "old key: <es> → <en>"
 # once per old key used.
-#
-# Una decisión y un aprendizaje son un archivo propio (spec 043) — `decisions/<fecha>-<slug>.md` y
-# `learnings/<slug>.md`, sin fecha en el nombre porque un aprendizaje que se actualiza no cambia de
-# identidad. `decisions.md`/`learnings.md` no cambian de nombre ni de lugar: pasan a ser el índice,
-# una línea por cuerpo (fecha, título, link, la línea "Cuándo se lee" de ese cuerpo). `when:` es el
-# campo que llena esa línea; sin él, el cuerpo sale con un marcador de hueco en vez de inventarse
-# uno. Reemplazar una decisión marca al índice de la vieja —nunca toca su cuerpo—: `replaces:` hace
-# que su línea en el índice sume "reemplazada por" apuntando a la nueva.
 #
 # Un registro se cierra cuando empieza el siguiente o cuando termina el archivo. Una clave que no
 # corresponde al registro abierto no se adivina: se declara en el veredicto.
@@ -223,14 +212,6 @@ declarar_glob() {
   esac
 }
 
-declarar_content() {
-  os_tree_ensure "$brain" "$1" content
-  case "$?" in
-    0) push_capturado "tree.md — content declarado: $1"; marcar_escrito "tree.md" ;;
-    2) push_no_capturado "falta tree.md — el content \"$1\" quedó sin declarar" ;;
-  esac
-}
-
 # ---------------------------------------------------------------- los canónicos del nodo
 # Un archivo que solo guarda contenido nace con su primer dato. `decisions` y `learnings` son dos de
 # las cinco preguntas del nodo: en un nodo carpeta, cada una es su archivo. Con `--root` son dos de
@@ -250,69 +231,40 @@ nace_canonico() {
 }
 
 escribir_decision() {
-  # escribir_decision TITULO QUE PORQUE REEMPLAZA INVALIDARIA CUANDO
-  local titulo="$1" que="$2" porque="$3" reemplaza="$4" invalidaria="$5" cuando="$6"
-  local idx="$brain/${orgprefix}decisions.md" contentglob rel full
+  # escribir_decision TITULO QUE PORQUE REEMPLAZA INVALIDARIA
+  local file="$brain/${orgprefix}decisions.md"
   nace_canonico "decisions.md" "Decisiones" \
     "Registro append-only. Nunca se corrige: si una decisión cambia, se agrega otra que la reemplaza y la nombra."
-  if [ "$root" = "1" ]; then contentglob="decisions/*.md"; else contentglob="$wsdir/*/decisions/*.md"; fi
-  declarar_content "$contentglob"
-  mkdir -p "$brain/${orgprefix}decisions"
-  rel=$(os_decision_path "$brain" "$orgprefix" "$hoy" "$titulo")
-  full="$brain/${orgprefix}$rel"
-  [ -n "$cuando" ] || cuando="$OS_CUANDO_FALTA"
   {
-    printf '# %s\n\n' "$titulo"
-    printf '> **Cuándo se lee**: %s\n\n' "$cuando"
-    printf '**Qué se decide**: %s\n\n' "$que"
-    printf '**Por qué**: %s\n\n' "$porque"
-    [ -n "$reemplaza" ] && printf '**Reemplaza a**: %s\n\n' "$reemplaza"
-    [ -n "$invalidaria" ] && printf '**La invalidaría**: %s\n\n' "$invalidaria"
-  } > "$full"
-  os_index_line "$hoy" "$titulo" "$rel" "$cuando" >> "$idx"
-  if [ -n "$reemplaza" ]; then
-    os_index_mark_superseded "$idx" "$reemplaza" "$titulo" "$rel" || true
-  fi
-  push_capturado "decisión → ${orgprefix}$rel: $titulo"
-  marcar_escrito "${orgprefix}$rel"
+    printf -- '---\n\n'
+    printf '## %s · %s\n\n' "$hoy" "$1"
+    printf '**Qué se decide**: %s\n\n' "$2"
+    printf '**Por qué**: %s\n\n' "$3"
+    [ -n "$4" ] && printf '**Reemplaza a**: %s\n\n' "$4"
+    [ -n "$5" ] && printf '**La invalidaría**: %s\n\n' "$5"
+  } >> "$file"
+  push_capturado "decisión → ${orgprefix}decisions.md: $1"
   marcar_escrito "${orgprefix}decisions.md"
 }
 
 escribir_learning() {
-  # escribir_learning TITULO CUERPO STATUS CUANDO
-  local titulo="$1" cuerpo="$2" status="$3" cuando="$4"
-  local idx="$brain/${orgprefix}learnings.md" contentglob rel full existia=0
+  # escribir_learning TITULO CUERPO STATUS
+  local file="$brain/${orgprefix}learnings.md"
   nace_canonico "learnings.md" "Aprendizajes" \
     "Vivo: se actualiza o se borra. Lo que se intentó y no cerró queda con status: provisional, para que nadie lo reintente sin saberlo."
-  if [ "$root" = "1" ]; then contentglob="learnings/*.md"; else contentglob="$wsdir/*/learnings/*.md"; fi
-  declarar_content "$contentglob"
-  mkdir -p "$brain/${orgprefix}learnings"
-  [ -n "$cuando" ] || cuando="$OS_CUANDO_FALTA"
-  if rel=$(os_learning_path "$brain" "$orgprefix" "$titulo"); then existia=1; fi
-  full="$brain/${orgprefix}$rel"
-  if [ "$existia" = "1" ]; then
-    # El mismo título ya tiene archivo: es el mismo aprendizaje actualizándose, nunca un segundo
-    # archivo (spec 043, C2) — el índice ya tiene su línea, no se agrega otra.
-    {
-      printf '\n---\n\n## %s\n\n' "$hoy"
-      [ "$status" = "provisional" ] && printf 'status: provisional\n\n'
-      printf '%s\n' "$cuerpo"
-    } >> "$full"
+  {
+    printf -- '---\n\n'
+    printf '## %s · %s\n\n' "$hoy" "$1"
+    # Solo el intento sin conclusión lleva marca. Un aprendizaje cerrado no necesita estado, y
+    # ponerle uno inventaría un vocabulario que el esquema no tiene.
+    [ "$3" = "provisional" ] && printf 'status: provisional\n\n'
+    printf '%s\n\n' "$2"
+  } >> "$file"
+  if [ "$3" = "provisional" ]; then
+    push_capturado "intento sin conclusión → ${orgprefix}learnings.md (status: provisional): $1"
   else
-    {
-      printf '# %s\n\n' "$titulo"
-      printf '> **Cuándo se lee**: %s\n\n' "$cuando"
-      [ "$status" = "provisional" ] && printf 'status: provisional\n\n'
-      printf '%s\n' "$cuerpo"
-    } > "$full"
-    os_index_line "$hoy" "$titulo" "$rel" "$cuando" >> "$idx"
+    push_capturado "aprendizaje → ${orgprefix}learnings.md: $1"
   fi
-  if [ "$status" = "provisional" ]; then
-    push_capturado "intento sin conclusión → ${orgprefix}$rel (status: provisional): $titulo"
-  else
-    push_capturado "aprendizaje → ${orgprefix}$rel: $titulo"
-  fi
-  marcar_escrito "${orgprefix}$rel"
   marcar_escrito "${orgprefix}learnings.md"
 }
 
@@ -320,7 +272,6 @@ escribir_learning() {
 # Un registro se acumula hasta que empieza el siguiente. `r_tipo` dice cuál está abierto: una clave
 # de continuación que no corresponde no se adivina, se declara.
 r_tipo=""; r_titulo=""; r_que=""; r_porque=""; r_reemplaza=""; r_invalidaria=""; r_cuerpo=""
-r_cuando=""
 
 cerrar_registro() {
   case "$r_tipo" in
@@ -329,14 +280,13 @@ cerrar_registro() {
       if [ -z "$r_que" ]; then
         push_no_capturado "decisión sin qué se decide, no se archivó: $r_titulo"
       else
-        escribir_decision "$r_titulo" "$r_que" "$r_porque" "$r_reemplaza" "$r_invalidaria" "$r_cuando"
+        escribir_decision "$r_titulo" "$r_que" "$r_porque" "$r_reemplaza" "$r_invalidaria"
       fi
       ;;
-    learning) escribir_learning "$r_titulo" "$r_cuerpo" "activo" "$r_cuando" ;;
-    provisional) escribir_learning "$r_titulo" "$r_cuerpo" "provisional" "$r_cuando" ;;
+    learning) escribir_learning "$r_titulo" "$r_cuerpo" "activo" ;;
+    provisional) escribir_learning "$r_titulo" "$r_cuerpo" "provisional" ;;
   esac
   r_tipo=""; r_titulo=""; r_que=""; r_porque=""; r_reemplaza=""; r_invalidaria=""; r_cuerpo=""
-  r_cuando=""
   return 0
 }
 
@@ -396,7 +346,6 @@ while IFS= read -r line || [ -n "$line" ]; do
     replaces)    continuacion_valida "$key" decision && r_reemplaza="$value" ;;
     invalidates) continuacion_valida "$key" decision && r_invalidaria="$value" ;;
     body)    continuacion_valida "$key" learning provisional && r_cuerpo="$value" ;;
-    when)    continuacion_valida "$key" decision learning provisional && r_cuando="$value" ;;
 
     pending|pending-from)
       cerrar_registro

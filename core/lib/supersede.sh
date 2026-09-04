@@ -162,16 +162,8 @@ chain_reaches() {
 # and has no status to govern. A brain whose `tree.md` cannot be read is not a clean brain: both
 # readers exit 1 there, and swallowing that turned `--check` into a command that reports "all good"
 # about a brain it never read.
-# The `archive:` class (spec 048) joins `contents` here and nowhere else in this script: an
-# archived document is still a document of the brain, so a mark written on it — or a mark on
-# another file that names it — has to be auditable. What archiving changes is what a read loads,
-# never what an audit sees.
 heads=$(os_tree_files "$brain"); rc_heads=$?
 contents=$(os_tree_content_files "$brain"); rc_contents=$?
-archived=$(os_tree_archive_files "$brain"); rc_archived=$?
-if [ "$rc_archived" = "0" ] && [ -n "$archived" ]; then
-  if [ -n "$contents" ]; then contents="$contents$nl$archived"; else contents="$archived"; fi
-fi
 if [ "$rc_heads" != "0" ] || [ "$rc_contents" != "0" ]; then
   printf "$S_SUPERSEDE_NO_TREE\n" "$brain" >&2
   exit 1

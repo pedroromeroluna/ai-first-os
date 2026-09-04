@@ -18,11 +18,7 @@
 # Lo que no se pudo clasificar —sin `status`, sin `horizon`, frontmatter ilegible— se declara. Un
 # barrido incompleto presentado como completo es peor que uno latente: nada le avisa al operador.
 #
-# Exit: 0 siempre que los argumentos sean válidos. Un barrido avisa, no bloquea — con una sola
-# excepción (spec 043, C10): el índice de decisiones/aprendizajes desincronizado de su carpeta
-# (una línea sin cuerpo, un cuerpo sin línea) deja el barrido en 1. Es el único chequeo de esta
-# lista con arreglo mecánico y barato —correr `migrate-canonicals.sh` o escribir la línea a mano—,
-# a diferencia del resto (frontmatter roto, montaje sin clonar) que sí quedan en 0.
+# Exit: 0 siempre que los argumentos sean válidos. Un barrido avisa, no bloquea.
 #
 # Sin `set -e` a propósito: un chequeo que falla no puede vaciar el resto del barrido.
 
@@ -88,81 +84,6 @@ s_chequeos=""
 push_chequeo() { s_chequeos="$s_chequeos  $1$nl"; }
 
 leidos=0
-
-# ---------------------------------------------------------------- índice contra carpeta (spec 043)
-# `decisions.md`/`learnings.md` son el índice; `decisions/`/`learnings/` son el cuerpo. Los dos se
-# pueden desincronizar a mano —una línea borrada, un archivo borrado— y nada más los compara: acá es
-# el único lugar que lo hace, corre siempre (no depende de `--mode`) y nombra archivo y línea, nunca
-# se los salta.
-# canon_desincronizado — 1 en cuanto os_canon_check encuentra un solo caso; deja el barrido en
-# exit 1 al final (spec 043, C10). Único chequeo de esta lista que lo hace — ver el comentario del
-# encabezado.
-canon_desincronizado=0
-
-os_canon_check() {
-  # os_canon_check PREFIJO NOMBRE — PREFIJO es "" en la raíz o "<wsdir>/<org>/" (o
-  # "<wsdir>/<org>/<tipo>/<slug>/") en cualquier otro nodo; NOMBRE es "decisions" o "learnings".
-  local prefijo="$1" nombre="$2"
-  local idx carpeta relidx nl2 line link linked="" f base rel
-  idx="$brain/${prefijo}${nombre}.md"
-  carpeta="$brain/${prefijo}${nombre}"
-  relidx="${prefijo}${nombre}.md"
-  nl2=$(printf '\nx'); nl2="${nl2%x}"
-  if [ -f "$idx" ]; then
-    while IFS= read -r line || [ -n "$line" ]; do
-      case "$line" in
-        "- "*"]("*")"*)
-          link="${line#*](}"
-          link="${link%%)*}"
-          linked="$linked$link$nl2"
-          if [ ! -f "$brain/${prefijo}${link}" ]; then
-            push_chequeo "$relidx: el link \"$link\" no existe"
-            canon_desincronizado=1
-          fi
-          ;;
-      esac
-    done < "$idx"
-  fi
-  if [ -d "$carpeta" ]; then
-    for f in "$carpeta"/*.md; do
-      [ -e "$f" ] || continue
-      base=$(basename "$f")
-      rel="$nombre/$base"
-      case "$nl2$linked" in
-        *"$nl2$rel$nl2"*) ;;
-        *)
-          push_chequeo "${prefijo}${rel}: sin línea en $relidx"
-          canon_desincronizado=1
-          ;;
-      esac
-    done
-  fi
-}
-
-os_canon_check_all() {
-  local o d t
-  os_canon_check "" decisions
-  os_canon_check "" learnings
-  for o in $(os_org_slugs "$brain"); do
-    os_canon_check "$wsdir/$o/" decisions
-    os_canon_check "$wsdir/$o/" learnings
-    for t in $memory_types_org; do
-      [ -d "$brain/$wsdir/$o/$t" ] || continue
-      for d in "$brain/$wsdir/$o/$t"/*; do
-        [ -d "$d" ] || continue
-        os_canon_check "$wsdir/$o/$t/$(basename "$d")/" decisions
-      done
-    done
-  done
-  for t in $memory_types_root; do
-    [ -d "$brain/$t" ] || continue
-    for d in "$brain/$t"/*; do
-      [ -d "$d" ] || continue
-      os_canon_check "$t/$(basename "$d")/" decisions
-    done
-  done
-}
-os_canon_check_all
 
 # ---------------------------------------------------------------- el recorrido
 # Los globs del brain, más los montajes. Cada entrada del recorrido es "raíz|ruta relativa": la raíz
@@ -469,5 +390,4 @@ fi
 
 t_fin=$(os_now_ms)
 printf '%s nodos · %s\n' "$leidos" "$(os_elapsed "$t_inicio" "$t_fin")"
-[ "$canon_desincronizado" = "1" ] && exit 1
 exit 0

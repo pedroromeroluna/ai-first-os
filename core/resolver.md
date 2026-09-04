@@ -25,5 +25,3 @@ from the brain: the operator's rows go in `resolver.md`, at the root of the brai
 | Mount a repo as the body of a node, or give birth to it if it does not exist yet | `mount-repo` | `.os/core/skills/mount-repo.md` |
 | Pressure the facts before a decision closes | `grill` | `.os/core/skills/grill.md` |
 | Write a new spec | `new-spec` | `.os/core/skills/new-spec.md` |
-| Move a document out of what a focus loads, without losing it | `archive` | `.os/core/skills/archive.md` |
-| Search everything the tree reaches for a lateral question | `recall` | `.os/core/skills/recall.md` |

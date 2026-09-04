@@ -1,17 +1,12 @@
 # Tree — which paths a scan walks
 
-Three classes of line, each with its prefix. No scan discovers the tree and none assumes depth: it
+Two classes of line, each with its prefix. No scan discovers the tree and none assumes depth: it
 reads these lines. Adding a level is adding a line here, not touching scripts.
 
 - `glob:` — what a scan reads as a head: frontmatter with `status`, `horizon`, and so on.
 - `content:` — what a scan counts as reached but **never** reads as a head: the voice, a record, the
-  `context/` and the `research/` of a product node, the body of an initiative next to its `README.md`,
-  the body of a decision or a learning next to its index (`decisions.md`/`learnings.md`, spec 043).
-  Without this line, that file gets flagged as unreached by any glob even when it is written correctly.
-- `archive:` — what a scan counts as reached, never reads as a head, and **never loads**: the
-  `archive/` of a node (spec 048). The focus prints the names of these files and opens none of them;
-  `recall` still searches inside them and `supersede --check` still audits them. A document gets here
-  because the operator ran `archive`, never on its own.
+  `context/` and the `research/` of a product node, the body of an initiative next to its `README.md`. Without this line, that
+  file gets flagged as unreached by any glob even when it is written correctly.
 
 The commands that create a level add their glob or their content line. A file that neither of the
 two reaches is a finding of the check, not a case to ignore.
@@ -46,11 +41,3 @@ content: workspaces/*/products/*/context/*.md
 content: workspaces/*/products/*/research/*.md
 content: initiatives/*/*.md
 content: workspaces/*/initiatives/*/*.md
-content: decisions/*.md
-content: learnings/*.md
-content: workspaces/*/decisions/*.md
-content: workspaces/*/learnings/*.md
-
-archive: workspaces/*/products/*/archive/*.md
-archive: workspaces/*/initiatives/*/archive/*.md
-archive: initiatives/*/archive/*.md

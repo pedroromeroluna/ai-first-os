@@ -226,17 +226,8 @@ if cmatches=$(os_tree_content_files "$brain"); then
   [ -n "$cmatches" ] && content_files="$cmatches$nl"
 fi
 
-# Lo que un `archive:` alcanza (spec 048) también cuenta como alcanzado, por el mismo motivo: un
-# documento archivado que el árbol no alcanza es invisible para la auditoría de vigencia. No entra a
-# `tree_files` —nunca se lee como cabeza— ni se carga en ninguna lectura; acá solo evita el falso
-# hallazgo de "ningún glob de tree.md alcanza".
-archive_files=""
-if amatches=$(os_tree_archive_files "$brain"); then
-  [ -n "$amatches" ] && archive_files="$amatches$nl"
-fi
-
 en_tree() {
-  case "$nl$tree_files$content_files$archive_files" in
+  case "$nl$tree_files$content_files" in
     *"$nl$1$nl"*) return 0 ;;
   esac
   return 1
