@@ -9,9 +9,15 @@
 #   name:     nombre del operador
 #   profile:  el rol en una línea ("Senior PM en una fintech")
 #   voice:    una línea por ítem de la voz (se repite; la entrevista la declara opcional)
-#   org:      Nombre | título | dueño | archivo-de-identidad   (se repite; los dos últimos, opcionales)
+#   workspace: Nombre | título | dueño | archivo-de-identidad  (se repite; los dos últimos, opcionales)
 #             El título es identidad —"qué hacés ahí"— y va al cuerpo de la cabeza, nunca a
 #             `role:` (spec 020): ese campo activa un oficio del pack y nace vacío.
+#   skipped:  el nombre de una pregunta opcional que el operador dejó vacía a propósito: `voice` o
+#             `workspace` (se repite). Es la diferencia entre "no contestó" y "contestó que no
+#             tiene" (spec 052): lo declarado vacío no se vuelve a preguntar.
+# `org:` no existe más (spec 052): el espacio de trabajo se declara con `workspace:`, que es el
+# nombre que el usuario ve desde la spec 039. Sin retrocompatibilidad: el archivo de respuestas lo
+# escribe la sesión que conduce la entrevista, en el momento, y una clave vieja frena con el motivo.
 # `reply:` no existe más (spec 021): "cómo querés que te conteste" no se pregunta, y el default vive
 # en el template de `operator.md` marcado como sección que se aprende con el uso. Sin
 # retrocompatibilidad: un archivo viejo con `reply:` frena con el motivo.
@@ -60,7 +66,8 @@ name=""
 language=""
 profile=""
 voice=""
-orgs=""
+workspaces=""
+skipped=""
 nl=$(printf '\n.')
 nl="${nl%.}"
 
@@ -129,12 +136,35 @@ while IFS= read -r line || [ -n "$line" ]; do
     profile) profile=$(os_append "$profile" "$value") ;;
     voice) voice=$(os_append_kv "$voice" "voice" "$value") ;;
     reply) os_die "la clave reply: no existe desde la spec 021: el default de cómo se contesta vive en el template de operator.md" ;;
-    org) orgs="$orgs$value$nl" ;;
+    org) os_die "la clave org: no existe desde la spec 052: el espacio de trabajo se declara con workspace:" ;;
+    workspace) workspaces="$workspaces$value$nl" ;;
+    skipped) skipped="$skipped $value" ;;
     *) os_die "clave desconocida en las respuestas: $key" ;;
   esac
 done < "$answers"
 
 [ -n "$name" ] || os_die "falta la clave name: en las respuestas"
+
+# `skipped:` solo nombra preguntas opcionales de la entrevista, y nunca convive con la respuesta que
+# dice vacía: las dos cosas juntas son un error de quien escribió el archivo, no un caso a resolver.
+os_skipped() {
+  case " $skipped " in
+    *" $1 "*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+for k in $skipped; do
+  case "$k" in
+    voice|workspace) ;;
+    *) os_die "skipped: solo nombra una pregunta opcional de la entrevista (voice, workspace): $k" ;;
+  esac
+done
+if os_skipped voice && [ -n "$voice" ]; then
+  os_die "skipped: voice junto con líneas voice: en el mismo archivo — o la voz se declaró vacía, o se contestó"
+fi
+if os_skipped workspace && [ -n "$workspaces" ]; then
+  os_die "skipped: workspace junto con líneas workspace: en el mismo archivo — o el espacio de trabajo se declaró vacío, o se contestó"
+fi
 
 # El idioma es la primera pregunta de la entrevista y gobierna todo lo que se escribe. Sin dato, se
 # escribe en inglés y el hueco se declara abajo: elegir por el operador en silencio le deja un brain
@@ -197,38 +227,43 @@ printf 'operator.md · voice.md · resolver.md · tree.md\n'
 vacias=""
 [ "$sin_language" = "0" ] || vacias="$vacias language"
 [ -n "$profile" ] || vacias="$vacias profile"
-[ -n "$voice" ] || vacias="$vacias voice"
-[ -n "$orgs" ] || vacias="$vacias org"
+if [ -z "$voice" ] && ! os_skipped voice; then vacias="$vacias voice"; fi
+if [ -z "$workspaces" ] && ! os_skipped workspace; then vacias="$vacias workspace"; fi
 if [ -n "$vacias" ]; then
   printf 'sin dato:%s — las secciones quedaron vacías y hay que volver a preguntarlas\n' "$vacias"
 fi
+# Lo que se preguntó y volvió vacío a propósito se declara igual —nada desaparece en silencio— pero
+# con otro verbo: no es un hueco que haya que ir a llenar, y el skill no lo vuelve a preguntar.
+if [ -n "$skipped" ]; then
+  printf 'declarado vacío:%s — se preguntó y la respuesta fue "no tengo" o "después"; no se vuelve a preguntar\n' "$skipped"
+fi
 
-# Una organización que falla no aborta las demás, y las que no se crearon se nombran.
+# Un espacio de trabajo que falla no aborta los demás, y los que no se crearon se nombran.
 fallidas=""
-while IFS= read -r org; do
-  [ -n "$org" ] || continue
-  IFS='|' read -r org_name org_title org_owner org_identity <<EOF
-$org
+while IFS= read -r ws; do
+  [ -n "$ws" ] || continue
+  IFS='|' read -r ws_name ws_title ws_owner ws_identity <<EOF
+$ws
 EOF
-  org_name=$(os_trim "$org_name")
-  org_title=$(os_trim "${org_title:-}")
-  org_owner=$(os_trim "${org_owner:-}")
-  org_identity=$(os_trim "${org_identity:-}")
-  # El dueño por omisión es el operador: la organización la crea él.
-  [ -n "$org_owner" ] || org_owner="$name"
+  ws_name=$(os_trim "$ws_name")
+  ws_title=$(os_trim "${ws_title:-}")
+  ws_owner=$(os_trim "${ws_owner:-}")
+  ws_identity=$(os_trim "${ws_identity:-}")
+  # El dueño por omisión es el operador: el espacio de trabajo lo crea él.
+  [ -n "$ws_owner" ] || ws_owner="$name"
   # El segundo campo es identidad —"qué hacés ahí"—, no activación (spec 020): va al cuerpo vía
   # --title, nunca a --role. `role:` nace vacío; completarlo con el slug de un oficio del pack es
   # un acto aparte, posterior.
-  set -- --brain "$brain" --name "$org_name" --role "" --title "$org_title" --owner "$org_owner"
-  if [ -n "$org_identity" ]; then
-    set -- "$@" --identity-file "$org_identity"
+  set -- --brain "$brain" --name "$ws_name" --role "" --title "$ws_title" --owner "$ws_owner"
+  if [ -n "$ws_identity" ]; then
+    set -- "$@" --identity-file "$ws_identity"
   fi
   if ! "$here/new-workspace.sh" "$@"; then
-    fallidas="$fallidas $org_name"
+    fallidas="$fallidas $ws_name"
   fi
-done <<ORGS
-$orgs
-ORGS
+done <<WORKSPACES
+$workspaces
+WORKSPACES
 
 # ---------------------------------------------------------------- la mitad local del respaldo
 # Corre siempre, sin cuenta ni pregunta (spec 021, decisión 3). Es la única mitad que no depende de

@@ -1,12 +1,19 @@
 # Tree — which paths a scan walks
 
-Two classes of line, each with its prefix. No scan discovers the tree and none assumes depth: it
+Three classes of line, each with its prefix. No scan discovers the tree and none assumes depth: it
 reads these lines. Adding a level is adding a line here, not touching scripts.
 
 - `glob:` — what a scan reads as a head: frontmatter with `status`, `horizon`, and so on.
 - `content:` — what a scan counts as reached but **never** reads as a head: the voice, a record, the
-  `context/` and the `research/` of a product node, the body of an initiative next to its `README.md`. Without this line, that
-  file gets flagged as unreached by any glob even when it is written correctly.
+  `context/` and the `research/` of a product node, the body of an initiative next to its `README.md`,
+  the body of a decision or a learning next to its index (`decisions.md`/`learnings.md`, spec 043), a
+  workspace's `people/` (spec 058) — who a person is, never a node, and never what the scan or the
+  focus load on their own.
+  Without this line, that file gets flagged as unreached by any glob even when it is written correctly.
+- `archive:` — what a scan counts as reached, never reads as a head, and **never loads**: the
+  `archive/` of a node (spec 048). The focus prints the names of these files and opens none of them;
+  `recall` still searches inside them and `supersede --check` still audits them. A document gets here
+  because the operator ran `archive`, never on its own.
 
 The commands that create a level add their glob or their content line. A file that neither of the
 two reaches is a finding of the check, not a case to ignore.
@@ -37,7 +44,16 @@ content: voice.md
 content: voice/*.md
 content: workspaces/*/voice.md
 content: workspaces/*/records/*.md
+content: workspaces/*/people/*.md
 content: workspaces/*/products/*/context/*.md
 content: workspaces/*/products/*/research/*.md
 content: initiatives/*/*.md
 content: workspaces/*/initiatives/*/*.md
+content: decisions/*.md
+content: learnings/*.md
+content: workspaces/*/decisions/*.md
+content: workspaces/*/learnings/*.md
+
+archive: workspaces/*/products/*/archive/*.md
+archive: workspaces/*/initiatives/*/archive/*.md
+archive: initiatives/*/archive/*.md

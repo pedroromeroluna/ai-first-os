@@ -250,6 +250,10 @@ key: SESSION_MISSING_STATUS
 en: no status
 es: sin status
 
+key: SESSION_MISSING_ABOUT
+en: no about
+es: sin about
+
 key: SESSION_UNCLASSIFIED
 en: unclassified (%s): %s
 es: sin clasificar (%s): %s
@@ -293,6 +297,10 @@ es: ningún glob de tree.md alcanza (%s): %s
 key: SESSION_BACKLOG_READY
 en: backlog: %s ready of %s pending
 es: backlog: %s listas de %s pendientes
+
+key: SESSION_BACKLOG_OUTSIDE_INITIATIVE
+en: backlog outside an initiative: %s — %s tasks
+es: backlog fuera de una iniciativa: %s — %s tareas
 
 key: SESSION_OLD_MARKER_LINE
 en: (line %s)
@@ -933,3 +941,421 @@ es: es un enlace simbólico, y un enlace nunca se sigue
 key: ABOUT_OUT_OF_BRAIN
 en: resolves outside the brain
 es: resuelve fuera del brain
+
+key: ABOUT_TARGET_IS_INITIATIVE
+en: points at another initiative — there is no chain
+es: apunta a otra iniciativa — no hay cadena
+
+key: ABOUT_TARGET_NOT_ENTITY
+en: does not point at an entity (a product, an account, a channel, a course)
+es: no apunta a una entidad (un producto, una cuenta, un canal, un curso)
+
+key: ABOUT_TARGET_OTHER_WORKSPACE
+en: points at an entity of another workspace
+es: apunta a una entidad de otro workspace
+
+key: RECALL_NO_RESULTS
+en: no results
+es: sin resultados
+
+key: ARCHIVE_REFUSED
+en: %s — %s
+es: %s — %s
+
+key: ARCHIVE_NOT_RELATIVE
+en: is not a path relative to the brain
+es: no es una ruta relativa al brain
+
+key: ARCHIVE_NOT_MD
+en: is not a `.md`, and this command only moves documents of the brain
+es: no es un `.md`, y este comando solo mueve documentos del brain
+
+key: ARCHIVE_OUT_OF_BRAIN
+en: resolves outside the brain
+es: resuelve fuera del brain
+
+key: ARCHIVE_IS_A_LINK
+en: is a symbolic link, and a link is never followed
+es: es un enlace simbólico, y un enlace nunca se sigue
+
+key: ARCHIVE_NOT_THERE
+en: is not there
+es: no está
+
+key: ARCHIVE_NOT_IN_TREE
+en: no line of `tree.md` reaches it
+es: ninguna línea de `tree.md` lo alcanza
+
+key: ARCHIVE_TWICE
+en: was named twice in the same batch
+es: se nombró dos veces en el mismo lote
+
+key: ARCHIVE_NOT_IN_A_NODE
+en: does not live in a folder of a node, so there is no `archive/` next to it
+es: no vive en una carpeta de un nodo, así que no hay `archive/` al lado
+
+key: ARCHIVE_ALREADY
+en: is already archived
+es: ya está archivado
+
+key: ARCHIVE_NOT_ARCHIVED
+en: is not archived, so there is nothing to bring back
+es: no está archivado, así que no hay nada que traer de vuelta
+
+key: ARCHIVE_DEST_TAKEN
+en: %s already exists, and choosing which of the two wins is not this command's call
+es: %s ya existe, y elegir cuál de los dos gana no es de este comando
+
+key: ARCHIVE_DEST_NOT_ARCHIVE
+en: no `archive:` line of the tree reaches %s, and an archived file the tree does not reach is invisible to the audit
+es: ninguna línea `archive:` del árbol alcanza %s, y un archivo archivado que el árbol no alcanza es invisible para la auditoría
+
+key: ARCHIVE_DEST_NOT_CONTENT
+en: no `content:` line of the tree reaches %s
+es: ninguna línea `content:` del árbol alcanza %s
+
+key: ARCHIVE_NOTHING_MOVED
+en: nothing was moved: the batch is checked whole before the first move.
+es: no se movió nada: el lote se chequea entero antes del primer movimiento.
+
+key: ARCHIVE_NOTHING_TO_DO
+en: nothing to do.
+es: nada que hacer.
+
+key: ARCHIVE_ARCHIVED
+en: archived:
+es: archivados:
+
+key: ARCHIVE_UNARCHIVED
+en: brought back:
+es: traídos de vuelta:
+
+key: ARCHIVE_REWROTE
+en: references rewritten:
+es: referencias reescritas:
+
+key: ARCHIVE_REWRITE_FAILED
+en: %s — the reference could not be rewritten; it still names the old path.
+es: %s — no se pudo reescribir la referencia; sigue nombrando la ruta vieja.
+
+key: ARCHIVE_STOPPED
+en: the batch stopped here; these were not moved, and re-running the same command finishes it:
+es: el lote se cortó acá; estos no se movieron, y volver a correr el mismo comando lo termina:
+
+key: ARCHIVE_STALE_ROW
+en: %s — replaced by %s, and still outside `archive/`
+es: %s — reemplazado por %s, y todavía fuera de `archive/`
+
+key: ARCHIVE_STALE_TOTAL
+en: %s documents the brain already declared out of date are still loaded. `archive` moves them.
+es: %s documentos que el brain ya declaró fuera de vigencia se siguen cargando. `archive` los mueve.
+
+key: ARCHIVE_STALE_NONE
+en: nothing the brain declared out of date is outside `archive/`.
+es: nada de lo que el brain declaró fuera de vigencia quedó fuera de `archive/`.
+
+key: WIKI_TITLE
+en: My Wiki
+es: Mi wiki
+
+key: WIKI_PEOPLE
+en: People
+es: Personas
+
+key: WIKI_SEARCH
+en: Search your brain…
+es: Buscá en tu cerebro…
+
+key: WIKI_EDIT
+en: Edit markdown
+es: Editar markdown
+
+key: WIKI_EDIT_COPIED
+en: Obsidian could not be opened from here; the path is copied:
+es: Obsidian no se pudo abrir desde acá; la ruta quedó copiada:
+
+key: WIKI_EDIT_PATH
+en: Open in Obsidian:
+es: Abrir en Obsidian:
+
+key: WIKI_THREAD_RESUME
+en: Copy the command to resume it
+es: Copiar el comando para retomarlo
+
+key: WIKI_THREAD_COPIED
+en: Copied — paste it in a terminal:
+es: Copiado — pegalo en una terminal:
+
+key: WIKI_GRAPH_LABELS
+en: Labels
+es: Etiquetas
+
+key: WIKI_APPEARANCE
+en: Appearance
+es: Apariencia
+
+key: WIKI_ACCENT
+en: Accent
+es: Acento
+
+key: WIKI_TYPE
+en: Type
+es: Letra
+
+key: WIKI_SIZE
+en: Size
+es: Tamaño
+
+key: WIKI_THEME
+en: Theme
+es: Tema
+
+key: WIKI_LIGHT
+en: Light
+es: Claro
+
+key: WIKI_DARK
+en: Dark
+es: Oscuro
+
+key: WIKI_INITIATIVES
+en: Initiatives
+es: Iniciativas
+
+key: WIKI_DOCUMENTS
+en: Documents
+es: Documentos
+
+key: WIKI_DEVELOPMENT
+en: Development
+es: Desarrollo
+
+key: WIKI_MENTIONS
+en: Mentions
+es: Menciones
+
+key: WIKI_NO_ENTITY
+en: No entity
+es: Sin entidad
+
+key: WIKI_EMPTY
+en: Nothing here yet
+es: Todavía no hay nada acá
+
+key: WIKI_ENTITIES
+en: entities
+es: entidades
+
+key: WIKI_RESULTS
+en: results
+es: resultados
+
+key: WIKI_NO_RESULTS
+en: No results.
+es: Sin resultados.
+
+key: WIKI_NO_PEOPLE
+en: No people in this workspace yet.
+es: Todavía no hay personas en este espacio de trabajo.
+
+key: WIKI_NO_MENTIONS
+en: Nobody mentions this page yet.
+es: Todavía nadie menciona esta página.
+
+key: WIKI_REPO_UNMOUNTED
+en: Repo not mounted on this machine.
+es: El repo no está montado en esta máquina.
+
+key: WIKI_NO_SPECS
+en: No specs in this repo yet.
+es: Todavía no hay specs en este repo.
+
+key: WIKI_LAST_MERGE
+en: last merge
+es: último merge
+
+key: WIKI_DECISION
+en: decision
+es: decisión
+
+key: WIKI_PERSON
+en: person
+es: persona
+
+key: WIKI_NOT_FOUND
+en: Nothing here
+es: Acá no hay nada
+
+key: WIKI_WROTE
+en: Page written: %s · %s KB · %s pages · %s workspaces
+es: Página escrita: %s · %s KB · %s páginas · %s espacios de trabajo
+
+key: WIKI_PUBLISH_HINT
+en: It publishes from the session with the Artifact tool, never from here.
+es: Se publica desde la sesión con la herramienta Artifact, nunca desde acá.
+
+key: WIKI_FILES
+en: files
+es: archivos
+
+key: WIKI_GRAPH
+en: Graph
+es: Grafo
+
+key: WIKI_GRAPH_WORKSPACE
+en: Workspace
+es: Espacio de trabajo
+
+key: WIKI_GRAPH_ENTITY
+en: Entities
+es: Entidades
+
+key: WIKI_GRAPH_INITIATIVE
+en: Initiatives
+es: Iniciativas
+
+key: WIKI_GRAPH_PERSON
+en: People
+es: Personas
+
+key: WIKI_GRAPH_DOCUMENT
+en: Documents
+es: Documentos
+
+key: WIKI_GRAPH_SHOW_DOCS
+en: Show documents
+es: Mostrar documentos
+
+key: WIKI_GRAPH_SHOW_PEOPLE
+en: Show people
+es: Mostrar personas
+
+key: WIKI_GRAPH_GREW
+en: How it grew
+es: Cómo creció
+
+key: WIKI_GRAPH_PLAY
+en: Play
+es: Reproducir
+
+key: WIKI_GRAPH_PAUSE
+en: Pause
+es: Pausar
+
+key: WIKI_GRAPH_PAGES
+en: pages
+es: páginas
+
+key: WIKI_GRAPH_LINKS
+en: links
+es: vínculos
+
+key: WIKI_GRAPH_HINT
+en: Hover a node to see its neighbours · click opens the page
+es: Pasá el mouse por un nodo para ver sus vecinos · clic abre la página
+key: WIKI_BACK
+en: Back
+es: Atrás
+
+key: WIKI_FORWARD
+en: Forward
+es: Adelante
+key: WIKI_OVERVIEW
+en: Overview
+es: Panorama
+
+key: WIKI_THREADS
+en: Threads waiting for you
+es: Hilos que te esperan
+
+key: WIKI_THREADS_WINDOW
+en: last %s days · grouped by focus
+es: últimos %s días · agrupados por foco
+
+key: WIKI_NO_THREADS
+en: No thread is waiting for you.
+es: No hay ningún hilo esperándote.
+
+key: WIKI_NO_SESSIONS
+en: No local Claude Code sessions to read on this machine.
+es: En esta máquina no hay sesiones locales de Claude Code para leer.
+
+key: WIKI_NO_FOCUS
+en: No focus
+es: Sin foco
+
+key: WIKI_THREAD_ASKS
+en: asks you
+es: te pregunta
+
+key: WIKI_THREAD_GATE1
+en: Gate 1
+es: Gate 1
+
+key: WIKI_THREAD_UNREAD
+en: finished · unread
+es: terminado · sin leer
+
+key: WIKI_UNREAD_WHY
+en: Claude Code keeps no record of what you opened: a finished thread is shown as unread for lack of that datum.
+es: Claude Code no deja registro de lo que abriste: un hilo terminado se muestra como sin leer por falta de ese dato.
+
+key: WIKI_GATES
+en: Gates
+es: Gates
+
+key: WIKI_NO_GATES
+en: No gate is open.
+es: No hay ningún gate abierto.
+
+key: WIKI_GATE_1
+en: Gate 1
+es: Gate 1
+
+key: WIKI_GATE_2
+en: Gate 2 · merge
+es: Gate 2 · merge
+
+key: WIKI_WAITING_OTHERS
+en: Waiting on others
+es: Esperando a otros
+
+key: WIKI_NO_WAITING
+en: Nobody owes you an answer.
+es: Nadie te debe una respuesta.
+
+key: WIKI_THIS_WEEK
+en: This week
+es: Esta semana
+
+key: WIKI_WEEK_WINDOW
+en: next %s days
+es: próximos %s días
+
+key: WIKI_NO_WEEK
+en: Nothing has a date this week.
+es: Nada tiene fecha esta semana.
+
+key: WIKI_AGO_MIN
+en: min
+es: min
+
+key: WIKI_AGO_HOUR
+en: h
+es: h
+
+key: WIKI_AGO_DAY
+en: d
+es: d
+
+key: WIKI_COUNT_THREADS
+en: threads wait for you
+es: hilos te esperan
+
+key: WIKI_COUNT_GATES
+en: gates
+es: gates
+
+key: WIKI_COUNT_WAITING
+en: waiting on others
+es: esperando a otros

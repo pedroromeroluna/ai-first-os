@@ -62,7 +62,8 @@ fi
 
 # Sin gh no se puede armar el remoto hoy: la tarea queda en el backlog de la raíz, con la guía
 # adentro, y el que la termina es cualquier sesión posterior. Un pendiente que nadie escribe es un
-# pendiente que nadie completa.
+# pendiente que nadie completa. Ese `backlog.md` de la raíz, fuera de toda iniciativa, es el
+# hallazgo que la spec 057 declara aparte (S057-C5) hasta que el operador arma el remoto.
 language=$(os_language "$brain")
 os_lang_load "$language"
 tarea="$S_BACKUP_TASK"
@@ -72,5 +73,12 @@ if [ -f "$brain/backlog.md" ] && grep -qF "$tarea" "$brain/backlog.md"; then
   exit 0
 fi
 
-"$here/capture.sh" --brain "$brain" --root --text "$tarea"
+# No pasa por `capture` (spec 057, decisión 2): este paso corre determinístico, sin ningún modelo
+# en el medio que pueda nombrar una iniciativa y esperar la confirmación del operador — armar el
+# remoto de respaldo no es trabajo de ninguna iniciativa. Mismo criterio y mismo formato que
+# `pack-install.sh --defer`.
+hoy=$(date +%Y-%m-%d)
+[ -f "$brain/backlog.md" ] || os_backlog_cabecera "$brain" "$(os_titulo "$brain/operator.md")" > "$brain/backlog.md"
+id=$(os_backlog_next_id "$brain")
+printf '%s\n' "$(os_backlog_linea "$id" "$tarea" "" "" "" "0" "$hoy")" >> "$brain/backlog.md"
 printf 'respaldo remoto: pendiente — sin gh autenticado, la tarea guiada quedó en el backlog de la raíz\n'

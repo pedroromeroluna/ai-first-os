@@ -39,10 +39,11 @@ question is a file:
 | `tree.md` | Which paths a scan walks — the map of the system |
 | `workspaces/<name>/README.md` | What that workspace is and which standing craft it activates |
 | `workspaces/<name>/<type>/<slug>/README.md` | What a memory node is, for whom, and what is known about it — `products/` is the one type this system ships with its own tool |
-| `initiatives/<slug>/README.md` | The work: one head per initiative, with its state and its horizon |
-| `backlog.md` | What is missing and belongs to no initiative |
-| `decisions.md` | What was decided, why, and what would make it false |
-| `learnings.md` | What was learned, including what was tried and did not close |
+| `workspaces/<name>/people/<slug>.md` | Who a person is, their organization and title, their contact and how it is best to deal with them — content of the workspace, never a node: the scan never reads it |
+| `initiatives/<slug>/README.md` | The work: one head per initiative, with its state, its horizon, and `about:` naming the entity it hangs from — mandatory, and checked at the start of every session |
+| `initiatives/<slug>/backlog.md` | That initiative's own tasks, and only that initiative's — a task hangs from an initiative and never from a workspace or the root |
+| `decisions.md` | The index of what was decided — one line per decision, each linking to its own file under `decisions/` with why and what would make it false |
+| `learnings.md` | The index of what was learned — one line per learning, each linking to its own file under `learnings/`, including what was tried and did not close |
 | `inbox.md` | What could not be classified — it is never dropped in silence |
 
 **Every node has the same shape: a folder with the name of the thing, and `README.md` inside.** The
@@ -79,6 +80,32 @@ anything that is memory and not push — is exactly as legitimate: the folder pl
 `tree.md`, and a `context/` you fill by hand until a purpose-built tool like `prd` exists for it, if
 one ever does.
 
+### People, and the relationship that mentions them
+
+A person is never a node. `workspaces/<name>/people/<slug>.md` is content, the same class as a
+workspace's `voice.md` or a product's `research/`: the tree reaches it and counts it, and neither the
+scan nor a focus opens it unless the session names it by path. Who someone is, who they work for and
+their title, how to reach them, and how it is best to deal with them all live in that one file, written by
+hand from `core/templates/person.md` — no command creates it, and a person's frontmatter is never
+checked against a fixed list: an extra key is not a finding, and this manual does not promise it is.
+
+**What ties a person to a node is a line in the node itself, never a field on the person.** The same
+person can decide one initiative and sit on the workspace's own team at the same time, and writing
+both relationships on the person's file would keep two copies in sync by hand instead of one. The line
+carries the person's path in backticks, their role, and since when:
+
+`` `people/<slug>.md` · <role> · since <date> ``
+
+Nothing parses it on its own — a check that opened every initiative's body to verify a path would undo
+the reason the scan stays fast — and it is written at three heights, each its own section:
+
+- **Stakeholders of an initiative** — its own `## Stakeholders` section, for whoever decides on or is
+  affected by that one piece of work.
+- **Stakeholders of an entity** — the same section on a product's, an account's or a channel's head,
+  for whoever is a stakeholder of the thing itself, not of one initiative built around it.
+- **Team of the workspace** — a `## Team` section on the workspace's own head, for whoever is part of
+  it on a standing basis, tied to no initiative.
+
 ## The cycle of one session
 
 1. **Start.** You name the scope —a workspace, or your own work— and the agent runs the **scan**
@@ -94,6 +121,23 @@ one ever does.
    Never a plain "done": a close that only says it finished cannot be told apart from one that lost
    something.
 
+## Living Memory: finding what the focus does not load
+
+The scan and the focus only ever load a fixed list of files, plus one jump through `about:`. A
+decision written months ago in another workspace is real, but nothing surfaces it on its own — until
+you, or the agent on your behalf, ask `recall` for it.
+
+`recall` searches every file the tree reaches, split into entries — a heading and its body, or one
+list item, never a whole file at a time — and returns the closest matches with their file, line and
+date, current work ahead of anything a file says replaced it. `recall --expand <path>` shows a
+result's immediate neighbours: what it is about, what is about it, what replaced it, what it
+replaced.
+
+**It finds, it does not decide.** Two results that are both current and say different things are
+handed to you as a contradiction to resolve, never quietly picked between. And it is disposable: what
+it searches is a small file it rebuilds from your own files on its own, never something you write to
+or back up.
+
 ## Where the machinery lives
 
 The tools —skills, scripts, agents— live in `.os/` and `.claude/`. Those two folders are hidden in
@@ -101,7 +145,7 @@ Obsidian and visible from the terminal, and they are **links** to the installed 
 the system never touches your data, and your data never travels inside the product.
 
 **Where the skills live**, since it is the first thing everyone asks: the
-<!--count-->fourteen<!--/count--> skills of the system are in `.os/core/skills/`, one file each,
+<!--count-->seventeen<!--/count--> skills of the system are in `.os/core/skills/`, one file each,
 reached through the resolver — not copied into this folder, linked to the product. The skills of a
 pack are in `.claude/skills/<name>/SKILL.md`, one folder per skill, which is where your harness
 reads skills from and why they answer to their name. Any skill you write yourself goes next to them,
@@ -119,23 +163,26 @@ the session", "capture this"— and the agent looks up which tool covers that ca
 answer that: the product's, which travels with the system, and yours (`resolver.md`), where you add
 a row when the agent would have chosen wrong without it. Your rows win.
 
-The catalog below is the system itself — the <!--count-->fourteen<!--/count--> tools that come with
+The catalog below is the system itself — the <!--count-->seventeen<!--/count--> tools that come with
 it. You can also invoke any of them by name.
 
 <!-- catalog: generated by scripts/manual-catalog.sh — do not edit by hand -->
 
 **The core** — the tools that run the system:
 
+- **`archive`** — Move a document into the node's `archive/` so the focus stops loading it and starts listing it by name, rewriting every reference that pointed at it — and bring it back the same way.
 - **`bootstrap`** — Create the brain from scratch — the gateway skill.
-- **`capture`** — File what the operator throws in mid-conversation into the right backlog —a workspace's, the root's, or the inbox when it cannot be classified— without opening a discussion about it.
+- **`capture`** — File what the operator throws in mid-conversation into the backlog of the initiative that consumes it, once an initiative is named — nothing is filed unclassified.
 - **`check-resolvable`** — Audit the root's capability-to-tool graph and report the three failures it can have — a tool nothing routes to, a handoff no row provides, and a row pointing at a tool that does not exist.
 - **`close-session`** — Close a session by distributing what it produced —decisions, learnings, pending items, what stayed waiting, where to resume— into the loaded node's canonical files, and end with a four-part verdict that names what was not captured.
 - **`grill`** — Pressure the facts behind a claim before a decision closes — counter-question with a concrete example, capped attempts, escape hatches, evidence hierarchy — and route what comes out to the loaded node's decisions or backlog.
 - **`mount-repo`** — Give an initiative a body: write the remote into the head's frontmatter, clone the checkout outside the brain —or, with --new, give birth to the repo from the product's scaffold when it does not exist yet— and record the remote-to-local-path row in the machine's environment table.
+- **`my-wiki`** — Project the brain as one navigable page — a workspace selector, a shelf per entity type the tree declares, the initiatives hanging from the entity each one is about, the people, and a search that runs inside the page.
 - **`new-memory`** — Create a memory-node type the first time it is used —a folder plus its five lines in `tree.md`— and add a node to it.
 - **`new-product`** — Add a product to a workspace that already exists.
 - **`new-spec`** — Turn concrete build work that came out of a conversation into a spec file under the target repo's specs/, with runnable evals per criterion, decisions split by who closes them, and effects that escape the system declared.
 - **`new-workspace`** — Add a workspace to an existing brain.
+- **`recall`** — Search over every file `tree.md` reaches — not only what the startup scan and the focus load — and return the entries that match, with file, line, date and whether each is current or replaced.
 - **`rename-heads`** — Move a brain born before the single node shape to it — every node becomes a folder with its `README.md` inside, every initiative gets its own folder, and each product's dated documents move to `research/` — rewriting the head paths everywhere the system reads them as routing and listing what it leaves untouched.
 - **`rename-workspaces`** — Move a brain still using the previous name of the workspaces folder to the current one, rewriting the prefix everywhere the system reads it as structure or routing, and listing what it leaves untouched for the operator to review.
 - **`supersede`** — Write on a file the mark that says which other file replaced it, so a session that opens the old one knows what to read instead, and audit the marks of the whole brain — the ones that point at a file that is not there, the ones that close a cycle, and the heads that were replaced and still read as open work.
@@ -145,7 +192,7 @@ it. You can also invoke any of them by name.
 
 ### Packs: the craft on top
 
-Those <!--count-->fourteen<!--/count--> run the system. **The craft —building product, and whatever
+Those <!--count-->seventeen<!--/count--> run the system. **The craft —building product, and whatever
 comes next— arrives in packs**, and a pack is installed separately, with its own command, into
 `.claude/skills/` of this folder. **A pack is offered, never required**: the install ended by asking
 whether you wanted one now or later, and if you said later the task is in your backlog with the

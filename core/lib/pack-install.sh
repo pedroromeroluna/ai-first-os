@@ -6,7 +6,9 @@
 # Uso: pack-install.sh --brain DIR [--defer] [--line]
 #
 #   (sin flags)  el ofrecimiento: qué hay instalado, qué falta y el comando exacto.
-#   --defer      la salida "después": deja la tarea en el backlog de la raíz, con el comando adentro.
+#   --defer      la salida "después": deja la tarea en el backlog de la raíz, con el comando
+#                adentro. Escribe el archivo directo, sin pasar por `capture` (spec 057): este paso
+#                es determinístico, sin ningún modelo que pueda nombrar una iniciativa.
 #   --line       una línea, para el aviso de capacidad no instalada del arranque de sesión.
 #
 # El script NUNCA corre `npx`: bajar software a la máquina del operador escapa del sistema y se hace
@@ -74,7 +76,19 @@ if [ "$modo" = "defer" ]; then
     printf 'pack: la tarea pendiente ya estaba en el backlog de la raíz\n'
     exit 0
   fi
-  "$here/capture.sh" --brain "$brain" --root --text "$tarea"
+  # No pasa por `capture` (spec 057, decisión 2: nada entra sin clasificar): este paso corre
+  # determinístico, sin ningún modelo en el medio que pueda proponer una iniciativa y esperar la
+  # confirmación del operador — instalar el pack de skills no es trabajo de ninguna iniciativa, es
+  # un paso pendiente del propio sistema. Escribe directo en `backlog.md` de la raíz, con el mismo
+  # formato de línea y el mismo contador global que usa el resto del sistema; ese archivo, fuera de
+  # toda iniciativa, es justo el hallazgo que la spec 057 declara aparte (S057-C5) hasta que el
+  # operador corra el comando.
+  hoy=$(date +%Y-%m-%d)
+  nacio=0
+  [ -f "$brain/backlog.md" ] || nacio=1
+  [ "$nacio" = "1" ] && os_backlog_cabecera "$brain" "$(os_titulo "$brain/operator.md")" > "$brain/backlog.md"
+  id=$(os_backlog_next_id "$brain")
+  printf '%s\n' "$(os_backlog_linea "$id" "$tarea" "" "" "" "0" "$hoy")" >> "$brain/backlog.md"
   printf 'pack: pendiente — la tarea quedó en el backlog de la raíz, con el comando adentro\n'
   exit 0
 fi

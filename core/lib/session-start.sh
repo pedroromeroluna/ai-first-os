@@ -226,8 +226,17 @@ if cmatches=$(os_tree_content_files "$brain"); then
   [ -n "$cmatches" ] && content_files="$cmatches$nl"
 fi
 
+# Lo que un `archive:` alcanza (spec 048) también cuenta como alcanzado, por el mismo motivo: un
+# documento archivado que el árbol no alcanza es invisible para la auditoría de vigencia. No entra a
+# `tree_files` —nunca se lee como cabeza— ni se carga en ninguna lectura; acá solo evita el falso
+# hallazgo de "ningún glob de tree.md alcanza".
+archive_files=""
+if amatches=$(os_tree_archive_files "$brain"); then
+  [ -n "$amatches" ] && archive_files="$amatches$nl"
+fi
+
 en_tree() {
-  case "$nl$tree_files$content_files" in
+  case "$nl$tree_files$content_files$archive_files" in
     *"$nl$1$nl"*) return 0 ;;
   esac
   return 1
@@ -537,14 +546,46 @@ while IFS="$sep" read -r raiz f || [ -n "$raiz" ]; do
     if [ -z "$about_motivo" ] && ! os_inside_brain "$brain" "$about_dest"; then
       about_motivo="$S_ABOUT_OUT_OF_BRAIN"
     fi
+    # El destino tiene que ser una entidad del modelo de nodos (spec 056): una iniciativa no
+    # encadena, y una cabeza que no es entidad —workspace, raíz, cualquier otra— tampoco. Las dos
+    # cabezas se clasifican por su ruta, sin abrir ni un archivo más.
+    if [ -z "$about_motivo" ]; then
+      kind_dest=$(os_head_kind "$wsdir" "$head" "$about_dest")
+      kind_dest_tipo="${kind_dest%% *}"
+      kind_dest_ws="${kind_dest#* }"
+      [ "$kind_dest_ws" = "$kind_dest_tipo" ] && kind_dest_ws=""
+      case "$kind_dest_tipo" in
+        initiative) about_motivo="$S_ABOUT_TARGET_IS_INITIATIVE" ;;
+        entity)
+          kind_own=$(os_head_kind "$wsdir" "$head" "$f")
+          kind_own_ws="${kind_own#* }"
+          [ "$kind_own_ws" = "${kind_own%% *}" ] && kind_own_ws=""
+          if [ "$kind_dest_ws" != "$kind_own_ws" ]; then
+            about_motivo="$S_ABOUT_TARGET_OTHER_WORKSPACE"
+          fi
+          ;;
+        *) about_motivo="$S_ABOUT_TARGET_NOT_ENTITY" ;;
+      esac
+    fi
     if [ -n "$about_motivo" ]; then
       push_chequeo "$(printf "$S_SESSION_CHECK_ABOUT_BROKEN" "$f" "$fm_about" "$about_motivo")"
     else
-      sufijo_about=" · $(printf "$S_SESSION_ABOUT" "$(os_node_name "$about_dest")")"
+      sufijo_about=" · $(printf "$S_SESSION_ABOUT" "$(os_entity_name "$about_dest")")"
     fi
   fi
 
-  [ -n "$fm_horizon" ] || falta="$S_SESSION_MISSING_HORIZON"
+  # `about:` es obligatorio en toda iniciativa (spec 056), nunca en el resto de las cabezas: una
+  # entidad puede no tenerlo y no es un hallazgo. Se cuenta junto a `status` y `horizon`, con el
+  # mismo mecanismo de "sin clasificar" — no una sección nueva.
+  if [ -z "$fm_about" ]; then
+    kind_own_falta=$(os_head_kind "$wsdir" "$head" "$f")
+    case "$kind_own_falta" in
+      initiative*) falta="$S_SESSION_MISSING_ABOUT" ;;
+    esac
+  fi
+  if [ -n "$fm_horizon" ]; then :; else
+    [ -n "$falta" ] && falta="$falta, $S_SESSION_MISSING_HORIZON" || falta="$S_SESSION_MISSING_HORIZON"
+  fi
   if [ -z "$fm_status" ]; then
     [ -n "$falta" ] && falta="$falta, $S_SESSION_MISSING_STATUS" || falta="$S_SESSION_MISSING_STATUS"
   fi
@@ -680,18 +721,26 @@ push_cola "next $n_next · later $n_later"
 # viven en common.sh: los comparten quien escribe la tarea y quien la cuenta. Reconocer los
 # marcadores por substring convertía el texto del operador en estructura — "revisar el blocked-by:
 # de la spec 3" desaparecía del conteo de listas sin que nada lo dijera.
+#
+# Spec 057: una tarea cuelga de una iniciativa y solo de ahí. El conteo es un glob de disco sobre
+# `initiatives/*/backlog.md` — nunca abre la cabeza (`README.md`) de ninguna iniciativa, y nunca lee
+# `tree.md`: el `backlog.md` de una iniciativa ya está alcanzado por un `content:` (spec 007), así
+# que no hace falta pasar por `os_tree_content_files` para saber dónde están.
 if [ "$root" = "1" ]; then
-  backlog="$brain/backlog.md"
-  backlog_rel="backlog.md"
+  ini_prefix=""
 else
-  backlog="$brain/$wsdir/$org/backlog.md"
-  backlog_rel="$wsdir/$org/backlog.md"
+  ini_prefix="$wsdir/$org/"
 fi
-if [ -f "$backlog" ]; then
+
+hoy=$(date +%Y-%m-%d)
+b_pend=0
+b_listas=0
+b_alguno=0
+for backlog in "$brain/${ini_prefix}initiatives/"*/backlog.md; do
+  [ -f "$backlog" ] || continue
+  b_alguno=1
   marcar_leido
-  hoy=$(date +%Y-%m-%d)
-  b_pend=0
-  b_listas=0
+  backlog_rel="${backlog#$brain/}"
   b_n=0
   b_viejos=0
   b_viejo_linea=""
@@ -709,7 +758,6 @@ if [ -f "$backlog" ]; then
     b_pend=$(( b_pend + 1 ))
     if os_backlog_lista "$hoy"; then b_listas=$(( b_listas + 1 )); fi
   done < "$backlog"
-  push_cola "$(printf "$S_SESSION_BACKLOG_READY" "$b_listas" "$b_pend")"
   if [ "$b_viejos" -gt 0 ]; then
     if [ "$b_viejos" = "1" ]; then
       push_chequeo "$backlog_rel — $b_viejo_linea"
@@ -717,6 +765,29 @@ if [ -f "$backlog" ]; then
       push_chequeo "$backlog_rel — $b_viejo_linea $(printf "$S_SESSION_MORE" "$(( b_viejos - 1 ))")"
     fi
   fi
+done
+if [ "$b_alguno" = "1" ]; then
+  push_cola "$(printf "$S_SESSION_BACKLOG_READY" "$b_listas" "$b_pend")"
+fi
+
+# Un `backlog.md` que no vive adentro de una iniciativa es un hallazgo, no un destino: desde esta
+# spec ninguna herramienta escribe ahí, y el que quede es trabajo de antes de la migración —o de
+# otra sesión escribiendo a mano—. Se cuenta y se nombra, sin sumarlo a la cola de arriba.
+if [ "$root" = "1" ]; then
+  stray_backlog="$brain/backlog.md"
+  stray_rel="backlog.md"
+else
+  stray_backlog="$brain/$wsdir/$org/backlog.md"
+  stray_rel="$wsdir/$org/backlog.md"
+fi
+if [ -f "$stray_backlog" ]; then
+  marcar_leido
+  stray_n=0
+  while IFS= read -r line || [ -n "$line" ]; do
+    os_backlog_lee "$line" || continue
+    stray_n=$(( stray_n + 1 ))
+  done < "$stray_backlog"
+  push_chequeo "$(printf "$S_SESSION_BACKLOG_OUTSIDE_INITIATIVE" "$stray_rel" "$stray_n")"
 fi
 
 if [ -f "$brain/inbox.md" ]; then

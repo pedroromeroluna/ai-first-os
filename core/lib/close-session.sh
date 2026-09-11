@@ -9,10 +9,12 @@
 #      close-session.sh --brain DIR --root --material ARCHIVO
 #
 # `--workspace` es sinónimo exacto de `--org` (spec 039). Con `--root` distribuye a los canónicos
-# de la raíz (spec 018) en vez de a los de una organización: `backlog.md`, `decisions.md`,
-# `learnings.md` y la cabeza de la iniciativa, todos en la raíz del brain. `--org`/`--workspace` y
-# `--root` son excluyentes, y la raíz no exige `--session-org` ni `--load-context` — su identidad
-# (`operator.md`) ya está cargada en cualquier sesión.
+# de la raíz (spec 018) en vez de a los de una organización: `decisions.md`, `learnings.md` y la
+# cabeza de la iniciativa, todos en la raíz del brain. Un `pending-from:`/`resume:` con iniciativa va
+# al `backlog.md` de esa iniciativa —de la raíz o de la organización, según el ámbito—, nunca a un
+# backlog del ámbito mismo (spec 057: una tarea cuelga de una iniciativa y solo de ahí).
+# `--org`/`--workspace` y `--root` son excluyentes, y la raíz no exige `--session-org` ni
+# `--load-context` — su identidad (`operator.md`) ya está cargada en cualquier sesión.
 #
 # Formato del material — una clave por línea, `clave: valor`.
 #
@@ -27,26 +29,42 @@
 #     why:         Por qué
 #     replaces:    Qué decisión reemplaza          (opcional)
 #     invalidates: Qué la haría falsa              (opcional)
+#     when:        Cuándo se lee esta decisión     (opcional, spec 043 — ver más abajo)
 #   learning:      Título
 #     body:        El cuerpo
+#     when:        Cuándo se lee este aprendizaje  (opcional, spec 043)
 #   provisional:   Título                          el intento sin conclusión, el "casi funcionó"
 #     body:        El cuerpo
-#   pending:       Texto de la tarea               al backlog de la organización
-#   pending-from:  iniciativa | Texto de la tarea  lo mismo, atribuido a la iniciativa que lo dejó
+#     when:        Cuándo se lee                   (opcional, spec 043)
+#   pending:       Texto de la tarea               nunca se archiva: sin iniciativa, va a No capturado
+#   pending-from:  iniciativa | Texto de la tarea  al backlog de esa iniciativa (spec 057)
 #   waiting:       iniciativa | quién destraba     escribe `waiting_on:` en el frontmatter de esa cabeza
 #   unrouted:      destino | contenido             escritura decidida sin fila del resolver
 #   not-captured:  Texto                           lo que la sesión no pudo archivar
 #   touched:       Ruta relativa al ámbito         archivo que la sesión modificó a mano, para commitear
-#   resume:        Texto                           el puntero de reanudación
+#   resume:        iniciativa | Texto              el puntero de reanudación, al backlog de esa iniciativa
+#                  Texto (sin `|`)                 mismo texto, pero sin iniciativa: no capturado (spec 057)
 #
 # Keys in English since spec 033 (the 15-key catalog, spec's own criterion) — the script still
 # accepts the old Spanish ones (que/porque/reemplaza/invalidaria/cuerpo/pending-de/sin-fila/
 # no-capturado/tocado/retomar) during this version, and the verdict notes "old key: <es> → <en>"
 # once per old key used.
 #
+# Una decisión y un aprendizaje son un archivo propio (spec 043) — `decisions/<fecha>-<slug>.md` y
+# `learnings/<slug>.md`, sin fecha en el nombre porque un aprendizaje que se actualiza no cambia de
+# identidad. `decisions.md`/`learnings.md` no cambian de nombre ni de lugar: pasan a ser el índice,
+# una línea por cuerpo (fecha, título, link, la línea "Cuándo se lee" de ese cuerpo). `when:` es el
+# campo que llena esa línea; sin él, el cuerpo sale con un marcador de hueco en vez de inventarse
+# uno. Reemplazar una decisión marca al índice de la vieja —nunca toca su cuerpo—: `replaces:` hace
+# que su línea en el índice sume "reemplazada por" apuntando a la nueva.
+#
 # Un registro se cierra cuando empieza el siguiente o cuando termina el archivo. Una clave que no
 # corresponde al registro abierto no se adivina: se declara en el veredicto.
 # Las líneas vacías y las que empiezan con `#` se ignoran.
+#
+# El backlog de iniciativa que este cierre escribió pierde sus líneas `- [x]` (spec 057): git guarda
+# la historia y el archivo deja de crecer. Nunca un backlog que este cierre no tocó — podar de más es
+# reescribir el trabajo de otra sesión sin que nadie lo pida. Una segunda corrida no cambia nada.
 #
 # El cierre commitea lo que escribió más lo que el material declaró con `touched:`, y solo eso —
 # nunca `git add -A`: una sesión no barre lo que otra tiene a medias. Una ruta de `touched:` que no
@@ -173,6 +191,7 @@ capturado=""
 no_capturado=""
 candidatas=""
 puntero=""
+puntero_ini=""
 n_piezas=0
 
 # Las rutas que el script mismo escribió, más las de `touched:` una vez validadas. Es lo único que el
@@ -212,6 +231,14 @@ declarar_glob() {
   esac
 }
 
+declarar_content() {
+  os_tree_ensure "$brain" "$1" content
+  case "$?" in
+    0) push_capturado "tree.md — content declarado: $1"; marcar_escrito "tree.md" ;;
+    2) push_no_capturado "falta tree.md — el content \"$1\" quedó sin declarar" ;;
+  esac
+}
+
 # ---------------------------------------------------------------- los canónicos del nodo
 # Un archivo que solo guarda contenido nace con su primer dato. `decisions` y `learnings` son dos de
 # las cinco preguntas del nodo: en un nodo carpeta, cada una es su archivo. Con `--root` son dos de
@@ -231,40 +258,69 @@ nace_canonico() {
 }
 
 escribir_decision() {
-  # escribir_decision TITULO QUE PORQUE REEMPLAZA INVALIDARIA
-  local file="$brain/${orgprefix}decisions.md"
+  # escribir_decision TITULO QUE PORQUE REEMPLAZA INVALIDARIA CUANDO
+  local titulo="$1" que="$2" porque="$3" reemplaza="$4" invalidaria="$5" cuando="$6"
+  local idx="$brain/${orgprefix}decisions.md" contentglob rel full
   nace_canonico "decisions.md" "Decisiones" \
     "Registro append-only. Nunca se corrige: si una decisión cambia, se agrega otra que la reemplaza y la nombra."
+  if [ "$root" = "1" ]; then contentglob="decisions/*.md"; else contentglob="$wsdir/*/decisions/*.md"; fi
+  declarar_content "$contentglob"
+  mkdir -p "$brain/${orgprefix}decisions"
+  rel=$(os_decision_path "$brain" "$orgprefix" "$hoy" "$titulo")
+  full="$brain/${orgprefix}$rel"
+  [ -n "$cuando" ] || cuando="$OS_CUANDO_FALTA"
   {
-    printf -- '---\n\n'
-    printf '## %s · %s\n\n' "$hoy" "$1"
-    printf '**Qué se decide**: %s\n\n' "$2"
-    printf '**Por qué**: %s\n\n' "$3"
-    [ -n "$4" ] && printf '**Reemplaza a**: %s\n\n' "$4"
-    [ -n "$5" ] && printf '**La invalidaría**: %s\n\n' "$5"
-  } >> "$file"
-  push_capturado "decisión → ${orgprefix}decisions.md: $1"
+    printf '# %s\n\n' "$titulo"
+    printf '> **Cuándo se lee**: %s\n\n' "$cuando"
+    printf '**Qué se decide**: %s\n\n' "$que"
+    printf '**Por qué**: %s\n\n' "$porque"
+    [ -n "$reemplaza" ] && printf '**Reemplaza a**: %s\n\n' "$reemplaza"
+    [ -n "$invalidaria" ] && printf '**La invalidaría**: %s\n\n' "$invalidaria"
+  } > "$full"
+  os_index_line "$hoy" "$titulo" "$rel" "$cuando" >> "$idx"
+  if [ -n "$reemplaza" ]; then
+    os_index_mark_superseded "$idx" "$reemplaza" "$titulo" "$rel" || true
+  fi
+  push_capturado "decisión → ${orgprefix}$rel: $titulo"
+  marcar_escrito "${orgprefix}$rel"
   marcar_escrito "${orgprefix}decisions.md"
 }
 
 escribir_learning() {
-  # escribir_learning TITULO CUERPO STATUS
-  local file="$brain/${orgprefix}learnings.md"
+  # escribir_learning TITULO CUERPO STATUS CUANDO
+  local titulo="$1" cuerpo="$2" status="$3" cuando="$4"
+  local idx="$brain/${orgprefix}learnings.md" contentglob rel full existia=0
   nace_canonico "learnings.md" "Aprendizajes" \
     "Vivo: se actualiza o se borra. Lo que se intentó y no cerró queda con status: provisional, para que nadie lo reintente sin saberlo."
-  {
-    printf -- '---\n\n'
-    printf '## %s · %s\n\n' "$hoy" "$1"
-    # Solo el intento sin conclusión lleva marca. Un aprendizaje cerrado no necesita estado, y
-    # ponerle uno inventaría un vocabulario que el esquema no tiene.
-    [ "$3" = "provisional" ] && printf 'status: provisional\n\n'
-    printf '%s\n\n' "$2"
-  } >> "$file"
-  if [ "$3" = "provisional" ]; then
-    push_capturado "intento sin conclusión → ${orgprefix}learnings.md (status: provisional): $1"
+  if [ "$root" = "1" ]; then contentglob="learnings/*.md"; else contentglob="$wsdir/*/learnings/*.md"; fi
+  declarar_content "$contentglob"
+  mkdir -p "$brain/${orgprefix}learnings"
+  [ -n "$cuando" ] || cuando="$OS_CUANDO_FALTA"
+  if rel=$(os_learning_path "$brain" "$orgprefix" "$titulo"); then existia=1; fi
+  full="$brain/${orgprefix}$rel"
+  if [ "$existia" = "1" ]; then
+    # El mismo título ya tiene archivo: es el mismo aprendizaje actualizándose, nunca un segundo
+    # archivo (spec 043, C2) — el índice ya tiene su línea, no se agrega otra.
+    {
+      printf '\n---\n\n## %s\n\n' "$hoy"
+      [ "$status" = "provisional" ] && printf 'status: provisional\n\n'
+      printf '%s\n' "$cuerpo"
+    } >> "$full"
   else
-    push_capturado "aprendizaje → ${orgprefix}learnings.md: $1"
+    {
+      printf '# %s\n\n' "$titulo"
+      printf '> **Cuándo se lee**: %s\n\n' "$cuando"
+      [ "$status" = "provisional" ] && printf 'status: provisional\n\n'
+      printf '%s\n' "$cuerpo"
+    } > "$full"
+    os_index_line "$hoy" "$titulo" "$rel" "$cuando" >> "$idx"
   fi
+  if [ "$status" = "provisional" ]; then
+    push_capturado "intento sin conclusión → ${orgprefix}$rel (status: provisional): $titulo"
+  else
+    push_capturado "aprendizaje → ${orgprefix}$rel: $titulo"
+  fi
+  marcar_escrito "${orgprefix}$rel"
   marcar_escrito "${orgprefix}learnings.md"
 }
 
@@ -272,6 +328,7 @@ escribir_learning() {
 # Un registro se acumula hasta que empieza el siguiente. `r_tipo` dice cuál está abierto: una clave
 # de continuación que no corresponde no se adivina, se declara.
 r_tipo=""; r_titulo=""; r_que=""; r_porque=""; r_reemplaza=""; r_invalidaria=""; r_cuerpo=""
+r_cuando=""
 
 cerrar_registro() {
   case "$r_tipo" in
@@ -280,13 +337,14 @@ cerrar_registro() {
       if [ -z "$r_que" ]; then
         push_no_capturado "decisión sin qué se decide, no se archivó: $r_titulo"
       else
-        escribir_decision "$r_titulo" "$r_que" "$r_porque" "$r_reemplaza" "$r_invalidaria"
+        escribir_decision "$r_titulo" "$r_que" "$r_porque" "$r_reemplaza" "$r_invalidaria" "$r_cuando"
       fi
       ;;
-    learning) escribir_learning "$r_titulo" "$r_cuerpo" "activo" ;;
-    provisional) escribir_learning "$r_titulo" "$r_cuerpo" "provisional" ;;
+    learning) escribir_learning "$r_titulo" "$r_cuerpo" "activo" "$r_cuando" ;;
+    provisional) escribir_learning "$r_titulo" "$r_cuerpo" "provisional" "$r_cuando" ;;
   esac
   r_tipo=""; r_titulo=""; r_que=""; r_porque=""; r_reemplaza=""; r_invalidaria=""; r_cuerpo=""
+  r_cuando=""
   return 0
 }
 
@@ -346,10 +404,12 @@ while IFS= read -r line || [ -n "$line" ]; do
     replaces)    continuacion_valida "$key" decision && r_reemplaza="$value" ;;
     invalidates) continuacion_valida "$key" decision && r_invalidaria="$value" ;;
     body)    continuacion_valida "$key" learning provisional && r_cuerpo="$value" ;;
+    when)    continuacion_valida "$key" decision learning provisional && r_cuando="$value" ;;
 
     pending|pending-from)
       cerrar_registro
       texto="$value"
+      ini=""
       if [ "$key" = "pending-from" ]; then
         # El único campo estructural va primero y termina en `|`; el texto libre se queda con el
         # resto, pipes incluidos. Sin el separador no se adivina cuál es cuál: se declara.
@@ -362,24 +422,29 @@ $value
 CAMPOS
         ini=$(os_trim "$ini")
         texto=$(os_trim "$texto")
-        [ -n "$ini" ] && texto="($ini) $texto"
       fi
       if [ -z "$texto" ]; then push_no_capturado "pendiente sin texto"; continue; fi
       # Archivar una tarea suelta ya es `capture`: el cierre la llama en vez de repetir su escritura.
-      # La raíz no manda `--session-org`: capture.sh nunca la pide para su propio ámbito.
+      # La raíz no manda `--session-org`: capture.sh nunca la pide para su propio ámbito. Sin
+      # iniciativa (`pending:` a secas, o `pending-from:` sin el nombre antes del `|`) capture no
+      # escribe nada (spec 057, decisión 2): se declara no capturado, nombrando qué falta.
+      if [ -z "$ini" ]; then
+        push_no_capturado "pendiente sin iniciativa, no se archivó: $texto"
+        continue
+      fi
       if [ "$root" = "1" ]; then
-        salida=$("$here/capture.sh" --brain "$brain" --root --text "$texto" 2>&1)
+        salida=$("$here/capture.sh" --brain "$brain" --root --initiative "$ini" --text "$texto" 2>&1)
       else
         salida=$("$here/capture.sh" --brain "$brain" --org "$org" --session-org "$org" \
-                 --text "$texto" 2>&1)
+                 --initiative "$ini" --text "$texto" 2>&1)
       fi
       rc=$?
       if [ "$rc" = "0" ]; then
         detalle=$(os_trim "$(printf '%s\n' "$salida" | grep 'backlog.md — ' | head -1)")
         push_capturado "pendiente → $detalle"
-        if [ "$root" = "1" ]; then marcar_escrito "backlog.md"; else marcar_escrito "$wsdir/$org/backlog.md"; fi
+        marcar_escrito "$(os_ini_backlog_rel "$orgprefix" "$ini")"
       else
-        push_no_capturado "pendiente no archivado: $texto"
+        push_no_capturado "pendiente no archivado (${ini}): $texto"
       fi
       ;;
 
@@ -450,8 +515,24 @@ CAMPOS
       ;;
 
     resume)
+      # Spec 057, decisión 4: el puntero se escribe en el backlog de la iniciativa que el cierre
+      # nombra. El único campo estructural va primero y termina en `|`, como en `pending-from` y
+      # `waiting`; sin él, el valor entero es el texto y queda sin iniciativa — se declara más
+      # abajo, nunca se pierde en silencio.
       cerrar_registro
-      puntero="$value"
+      case "$value" in
+        *'|'*)
+          IFS='|' read -r puntero_ini puntero <<CAMPOS
+$value
+CAMPOS
+          puntero_ini=$(os_trim "$puntero_ini")
+          puntero=$(os_trim "$puntero")
+          ;;
+        *)
+          puntero_ini=""
+          puntero="$value"
+          ;;
+      esac
       ;;
 
     *)
@@ -463,33 +544,62 @@ done < "$material"
 cerrar_registro
 
 # ---------------------------------------------------------------- el puntero de reanudación
-# Una línea, greppeable, que la próxima sesión pueda leer sin contexto. Vive en el backlog del nodo
-# —lo que ya contesta "qué falta"— y hay una sola: la última pisa a la anterior. No lleva checkbox,
-# así que no cuenta como tarea en ningún conteo.
+# Una línea, greppeable, que la próxima sesión pueda leer sin contexto. Vive en el backlog de la
+# iniciativa que el cierre nombra (spec 057, decisión 4) y hay una sola: la última pisa a la
+# anterior. No lleva checkbox, así que no cuenta como tarea en ningún conteo. Sin iniciativa nombrada
+# el puntero no se pierde en silencio: se declara no capturado, nunca se inventa un destino.
 if [ -n "$puntero" ]; then
-  nacio=0
-  if [ "$root" = "1" ]; then
-    os_root_backlog_asegurar "$brain" || nacio=1
-    glob="backlog.md"
+  if [ -z "$puntero_ini" ]; then
+    push_no_capturado "puntero de reanudación sin iniciativa, no se escribió: $puntero"
   else
-    os_backlog_asegurar "$brain" "$org" || nacio=1
-    glob="$wsdir/*/backlog.md"
+    nacio=0
+    os_ini_backlog_asegurar "$brain" "$orgprefix" "$puntero_ini" || nacio=1
+    backlog_rel_puntero=$(os_ini_backlog_rel "$orgprefix" "$puntero_ini")
+    backlog="$brain/$backlog_rel_puntero"
+    tmp="$backlog.os-tmp"
+    : > "$tmp"
+    while IFS= read -r line || [ -n "$line" ]; do
+      case "$line" in
+        'retomar: '*) continue ;;
+      esac
+      printf '%s\n' "$line" >> "$tmp"
+    done < "$backlog"
+    mv "$tmp" "$backlog"
+    printf 'retomar: %s (%s)\n' "$puntero" "$hoy" >> "$backlog"
+    [ "$nacio" = "1" ] && push_capturado "$backlog_rel_puntero nació con este dato"
+    marcar_escrito "$backlog_rel_puntero"
   fi
-  backlog="$brain/${orgprefix}backlog.md"
-  tmp="$backlog.os-tmp"
+fi
+
+# ---------------------------------------------------------------- podar lo hecho (spec 057)
+# El backlog que este cierre tocó —escribió un `pending-from:` o un `resume:` ahí— pierde sus líneas
+# `- [x]`: git guarda la historia, y el archivo deja de crecer para siempre. Nunca un backlog que el
+# cierre no tocó: podar de más sería reescribir el trabajo de otra sesión sin que nadie lo haya
+# pedido. Una segunda corrida sobre un archivo ya podado no cambia nada — no hay `- [x]` que sacar.
+while IFS= read -r ruta || [ -n "$ruta" ]; do
+  [ -n "$ruta" ] || continue
+  case "$ruta" in
+    */backlog.md|backlog.md) ;;
+    *) continue ;;
+  esac
+  full="$brain/$ruta"
+  [ -f "$full" ] || continue
+  tmp="$full.os-tmp"
   : > "$tmp"
   while IFS= read -r line || [ -n "$line" ]; do
     case "$line" in
-      'retomar: '*) continue ;;
+      '- [x] '*) continue ;;
     esac
     printf '%s\n' "$line" >> "$tmp"
-  done < "$backlog"
-  mv "$tmp" "$backlog"
-  printf 'retomar: %s (%s)\n' "$puntero" "$hoy" >> "$backlog"
-  [ "$nacio" = "1" ] && push_capturado "${orgprefix}backlog.md nació con este dato"
-  marcar_escrito "${orgprefix}backlog.md"
-  declarar_glob "$glob"
-fi
+  done < "$full"
+  if diff -q "$tmp" "$full" > /dev/null 2>&1; then
+    rm -f "$tmp"
+  else
+    mv "$tmp" "$full"
+  fi
+done <<ESCRITOS_BACKLOG
+$escritos
+ESCRITOS_BACKLOG
 
 # ---------------------------------------------------------------- el commit del cierre
 # El cierre commitea lo que escribió más lo que el material declaró con `tocado:` — nunca
@@ -619,8 +729,11 @@ fi
 printf '\nPara retomar\n'
 if [ -z "$puntero" ]; then
   printf '  sin puntero de reanudación: la próxima sesión arranca sin por dónde seguir\n'
+elif [ -z "$puntero_ini" ]; then
+  printf '  puntero sin iniciativa, no capturado: %s\n' "$puntero"
 else
-  printf '  retomar: %s (%s) — escrito en %sbacklog.md\n' "$puntero" "$hoy" "$orgprefix"
+  printf '  retomar: %s (%s) — escrito en %s\n' "$puntero" "$hoy" \
+    "$(os_ini_backlog_rel "$orgprefix" "$puntero_ini")"
 fi
 
 t_fin=$(os_now_ms)

@@ -48,18 +48,26 @@ thing being done.
 ### Bringing the product down
 
 Everything below assumes the product is hooked into the brain (`.os/core` resolves). If it does
-not, install it first:
+not, install it first. **Check for `~/.ai-first-os/core/install.sh` before cloning anything** — if
+it is there, `npx ai-first-os` already brought the product down and there is nothing to fetch:
 
-1. Clone `github.com/pedroromeroluna/ai-first-os` to a fixed local folder outside the brain (the
-   operator will need it to update later).
-2. Run `<clone>/core/install.sh <brain-path>` — idempotent; it hooks the session contract, the
-   resolvers, the subagents and the nine skills of the system by symlink. The packs are not in
-   that repository: each one is published as its own set of skills, and the step at the close of
-   this bootstrap offers one.
+1. If `~/.ai-first-os/core/install.sh` exists, use it directly. Otherwise, clone
+   `github.com/pedroromeroluna/ai-first-os` to a fixed local folder outside the brain (the operator
+   will need it to update later).
+2. Run `<product>/core/install.sh <brain-path>` — idempotent; it hooks the session contract, the
+   resolvers, the subagents and the nine skills of the system by symlink. The packs are not in that
+   repository: each one is published as its own set of skills, and the step at the close of this
+   bootstrap offers one.
 3. Continue with the interview.
 
-There is one way in and only one: the clone above. If `.os/core` already resolves, skip this step
-entirely.
+**Never reimplement either step by hand.** Writing `operator.md`, `voice.md`, `resolver.md` and
+`tree.md` yourself instead of running `install.sh` and this skill's own script leaves a brain with
+no symlinks and no `.os/core` — a install that looks done and is not. The script is the deliverable;
+running it is always cheaper and safer than replicating what it does.
+
+There is one way in through the browser and one through `npx`, and no third path: the clone above,
+or the folder `npx ai-first-os` already left at `~/.ai-first-os`. If `.os/core` already resolves,
+skip this step entirely.
 
 ## The interview
 
@@ -78,8 +86,11 @@ is answered in a line. Whatever the system can learn with use is not asked.
 4. **Your voice**: tone, and words you would never use. **Optional** — say so when asking: if the
    operator does not know, "later" is an answer and the file says it is pending.
 5. **Your workspace.** A workspace is each company or client you work for; a course case is one
-   too. For the typical case —one person, one employer— that is one. Ask **what it does** and
-   **what you do there**. What you do there is a title — identity, written to the body of
+   too. For the typical case —one person, one employer— that is one. **Optional** — say so when
+   asking: someone who works alone, or who is between jobs, has none, and "none" is an answer. Say
+   what it means before they answer: their own work lives at the root of the brain, which is a node
+   like any other, and the day a company or a client appears, `new-workspace` adds it. Ask **what it
+   does** and **what you do there**. What you do there is a title — identity, written to the body of
    the head, never to `role:`. `role:` activates an oficio from the pack (today: `cpo`) and is
    born empty; filling it in is a separate, deliberate step, not part of this interview.
 
@@ -104,13 +115,19 @@ language: en|es
 name: <name>
 profile: <the role, one line>
 voice: <one item>
-org: <Name> | <title> | <owner> | <identity file>
+workspace: <Name> | <title> | <owner> | <identity file>
+skipped: voice | workspace
 ```
 
-`voice` and `org` repeat. `language` first: with no `language` the brain is written in English and
-the script declares the gap. In `org`, the owner and the identity file are optional: with no owner
-the operator is used, and with no identity a placeholder text is left. The title is never `role:` —
-see the interview above.
+`voice`, `workspace` and `skipped` repeat. `language` first: with no `language` the brain is written
+in English and the script declares the gap. In `workspace`, the owner and the identity file are
+optional: with no owner the operator is used, and with no identity a placeholder text is left. The
+title is never `role:` — see the interview above.
+
+**`skipped:` is what the operator answered, not what they left out.** One line per optional question
+the operator deliberately left empty —`skipped: voice`, `skipped: workspace`—, and never together
+with a line of the same key. Without it the script cannot tell "did not answer" from "answered they
+have none", and it asks again for something already answered.
 
 The result is `operator.md`, `voice.md`, `resolver.md`, `tree.md`, the system manual at the root of
 the brain —`HOW-IT-WORKS.md` or `COMO-FUNCIONA.md`, in the chosen language— and one folder per
@@ -155,23 +172,28 @@ Run the offer, which reads what is already in `.claude/skills/` and prints the e
 .os/core/lib/pack-install.sh --brain .
 ```
 
-**Ask one question with two exits, and say what each one costs:**
+**Check Node first (`node --version`) — the branch is the state of the machine, not how the system
+got installed.** Whoever came in through `npx ai-first-os` has Node by construction; whoever pasted
+the git-clone prompt may or may not.
 
-> The craft on top —discovery, the metric brief, the interview that writes a product's strategic
-> layer— travels in a pack of skills. Do you want it now or later? Now: it needs Node.js, and the
-> download asks you to confirm once. Later: the exact command stays in your backlog and you run it
-> the day you need something from the pack.
+- **Node present: one question, not two.** There is nothing to defer when the download can run right
+  now:
 
-- **Now.** Check Node (`node --version`). Missing: point at the LTS installer on nodejs.org, wait,
-  check again — you guide, the operator installs, and a no is an answer, not an error. With Node
-  present, run the command the offer printed, from the brain folder, with the operator's yes. `npx`
-  may ask to confirm the download the first time; the operator is right here, so answer it with them.
+  > The craft on top —discovery, the metric brief, the interview that writes a product's strategic
+  > layer— travels in a pack of skills. Install it now? The download asks you to confirm once.
+
+  Yes: run the command the offer printed, from the brain folder, with the operator's yes. `npx` may
+  ask to confirm the download the first time; the operator is right here, so answer it with them.
   What lands: one folder per skill under `.claude/skills/`, plus the pack's own index
   (`<pack>-resolver`), which is what the session contract reads to route a request to the pack. The
-  harness also offers those skills natively, because that is where it looks for them.
-- **Later.** Run `.os/core/lib/pack-install.sh --brain . --defer`: the task lands in the root backlog
-  with the exact command inside it, and any later session can run it. This is the same offer any
-  session makes when something asks for a capability of the pack that is not installed.
+  harness also offers those skills natively, because that is where it looks for them. No: leave it as
+  is — **nothing gets written to the backlog**; the same offer comes back the day a session needs a
+  capability of the pack that is not installed.
+- **Node missing: the only exit is later.** Point at the LTS installer on nodejs.org — you guide, the
+  operator installs, and a no is an answer, not an error. Whether they install it right now or not,
+  run `.os/core/lib/pack-install.sh --brain . --defer`: the task lands in the root backlog with the
+  exact command inside it, and any later session can run it. This is the same offer any session makes
+  when something asks for a capability of the pack that is not installed.
 
 **The command brings down only what is missing, and nobody has to name what that is.** What the
 system already provides travels marked internal in the pack, and the CLI skips it on its own — there
@@ -191,6 +213,9 @@ bootstrap aborted halfway because a download failed is the worse outcome of the 
 - If the identity cap warning appears, pass it through as is: the operator chooses the way out.
 - If the script reports `sin dato:` or `sin crear:`, pass it through whole and ask again for what is
   missing. A gap nobody names is a gap nobody fills.
+- If it reports `declarado vacío:`, that gap was answered: pass it through and **do not ask again**.
+  When it names `workspace`, say the work lives at the root of the brain and that `new-workspace`
+  adds one the day a company or a client appears.
 - Say whether the brain is versioned and whether the remote is resolved or pending.
 - **Say whether the pack landed.** If it was installed, name what it added and that the harness
   offers it directly. If it was left for later, say the pending line is in the root backlog with the

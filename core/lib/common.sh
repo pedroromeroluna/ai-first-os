@@ -17,6 +17,11 @@ OS_SEP=$(printf '\037')
 OS_ESTADOS_VALIDOS="active blocked ongoing closed"
 OS_ESTADOS_CERRADOS="closed"
 
+# La línea "Cuándo se lee" de un cuerpo (decisión o aprendizaje) sin dato — ni el cierre en vivo ni
+# la migración inventan una: la dejan marcada como hueco (spec 043). Una sola enunciación: el cierre
+# y `migrate-canonicals.sh` la comparten en vez de llevar cada uno su propio texto.
+OS_CUANDO_FALTA='❓ sin definir — no se declaró en el cierre'
+
 # Los archivos propios de un nodo organización, sin la cabeza: las preguntas canónicas del nodo, más
 # el backlog. Todo lo demás que un glob alcance adentro de la carpeta de un espacio de trabajo es una
 # cabeza de iniciativa. Se enuncia acá una sola vez: los dos lectores —arranque de sesión y barridos
@@ -102,6 +107,21 @@ os_slugify() {
   while [ "${s#-}" != "$s" ]; do s="${s#-}"; done
   while [ "${s%-}" != "$s" ]; do s="${s%-}"; done
   printf '%s' "$s"
+}
+
+# os_slug_cap SLUG MAX -> SLUG cut to at most MAX chars (spec 053: a title long enough to overflow
+# the filesystem's own limit lost its file with exit 0). Cuts on a hyphen boundary when the first
+# MAX chars contain one, so the name still reads as words; never leaves a trailing hyphen either
+# way. A slug already within MAX passes through untouched.
+os_slug_cap() {
+  local slug="$1" max="$2" cut
+  [ "${#slug}" -le "$max" ] && { printf '%s' "$slug"; return; }
+  cut="${slug:0:$max}"
+  case "$cut" in
+    *-*) cut="${cut%-*}" ;;
+  esac
+  while [ "${cut%-}" != "$cut" ]; do cut="${cut%-}"; done
+  printf '%s' "$cut"
 }
 
 # os_render TEMPLATE CLAVE=valor ...
@@ -374,6 +394,28 @@ os_tree_files() {
   return 0
 }
 
+# os_tree_globs BRAIN -> the `glob:` patterns themselves, one per line, unexpanded. Exit 1 if there
+# is no declaration: the caller decides what to say.
+#
+# Fourth reader of the same file, and the reason it lives here like the other three: a caller that
+# needs to know which levels the tree DECLARES — not which files exist at them today — would
+# otherwise parse `tree.md` on its own. `my-wiki.sh` (spec 060) derives the entity types of a brain
+# from these patterns, so a type declared with no node in it yet is still a type.
+os_tree_globs() {
+  local brain="$1" line g
+  [ -f "$brain/tree.md" ] || return 1
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      glob:*) ;;
+      *) continue ;;
+    esac
+    g=$(os_trim "${line#glob:}")
+    [ -n "$g" ] || continue
+    printf '%s\n' "$g"
+  done < "$brain/tree.md"
+  return 0
+}
+
 # os_tree_content_files BRAIN -> las rutas que alcanzan las líneas `content:` declaradas, una por
 # línea, relativas al brain. Exit 1 si no hay declaración: quien llama decide qué decir.
 #
@@ -392,6 +434,30 @@ os_tree_content_files() {
       *) continue ;;
     esac
     g=$(os_trim "${line#content:}")
+    [ -n "$g" ] || continue
+    ( cd "$brain" && for f in $g; do [ -e "$f" ] && printf '%s\n' "$f"; done )
+  done < "$brain/tree.md"
+  return 0
+}
+
+# os_tree_archive_files BRAIN -> the paths the declared `archive:` lines reach, one per line,
+# relative to the brain. Exit 1 if there is no declaration: the caller decides what to say.
+#
+# Third class of line of the same tree (spec 048). What an `archive:` line reaches is **reached** —
+# it never shows up as "no glob of tree.md reaches it" — is never read as a head, and, unlike the
+# `content:` class, is never **loaded** either: the focus prints its name and stops there. That is
+# the whole point of the class, and it is why it is a third reader instead of a flag on the second
+# one: a caller that loads bodies reads `content:` and stops, and cannot pick up archived files by
+# forgetting to filter them out. The only file that parses `tree.md` is still this one.
+os_tree_archive_files() {
+  local brain="$1" line g
+  [ -f "$brain/tree.md" ] || return 1
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      archive:*) ;;
+      *) continue ;;
+    esac
+    g=$(os_trim "${line#archive:}")
     [ -n "$g" ] || continue
     ( cd "$brain" && for f in $g; do [ -e "$f" ] && printf '%s\n' "$f"; done )
   done < "$brain/tree.md"
@@ -522,6 +588,72 @@ os_memory_own_file() {
   return 1
 }
 
+# ---------------------------------------------------------------- qué es una cabeza, por su ruta (spec 056)
+# os_head_kind WSDIR HEAD F -> clasifica F (una cabeza ya resuelta por un `glob:` del árbol) por su
+# segmento de ruta, sin abrir ningún archivo: imprime "<kind> <scope>" en una línea. `kind` es
+# `root`, `workspace`, `initiative`, `entity` u `other`; `scope` es el slug del espacio de trabajo
+# en el que vive F, vacío cuando F es de la raíz. Las cuatro entidades son fijas —`products`,
+# `accounts`, `channels`, `courses`— por criterio delegado de la spec: no se reutiliza
+# `os_memory_types` porque esa lista es abierta (cualquier carpeta que el operador declare) y acá el
+# modelo de nodos solo reconoce esas cuatro.
+os_head_kind() {
+  local wsdir="$1" head="$2" f="$3" ws inner mid tipo
+
+  if [ "$f" = "operator.md" ]; then printf 'root'; return 0; fi
+
+  case "$f" in
+    "$wsdir"/*)
+      ws="${f#"$wsdir"/}"; ws="${ws%%/*}"
+      inner="${f#"$wsdir"/"$ws"/}"
+      ;;
+    *)
+      ws=""
+      inner="$f"
+      ;;
+  esac
+
+  if [ -n "$ws" ] && [ "$inner" = "$head" ]; then
+    printf 'workspace %s' "$ws"
+    return 0
+  fi
+
+  # La forma de la cabeza (spec 040) trata a las iniciativas distinto del resto: la forma anterior
+  # (`legacy`) las guarda como archivo suelto —`initiatives/<slug>.md`, sin carpeta ni el nombre de
+  # `head`— mientras que products/accounts/channels/courses conservan la carpeta más el archivo de
+  # cabeza en las dos formas. Las dos formas de iniciativa se prueban acá, nunca una sola: un brain
+  # a medio migrar tiene las dos a la vez (`os_head_file` ya contempla ese caso mixto).
+  case "$inner" in
+    initiatives/*/"$head")
+      mid="${inner#initiatives/}"; mid="${mid%/"$head"}"
+      case "$mid" in
+        */*) ;;
+        *) printf 'initiative %s' "$ws"; return 0 ;;
+      esac
+      ;;
+    initiatives/*.md)
+      mid="${inner#initiatives/}"
+      case "$mid" in
+        */*) ;;
+        *) printf 'initiative %s' "$ws"; return 0 ;;
+      esac
+      ;;
+  esac
+
+  for tipo in products accounts channels courses; do
+    case "$inner" in
+      "$tipo"/*/"$head")
+        mid="${inner#"$tipo"/}"; mid="${mid%/"$head"}"
+        case "$mid" in
+          */*) ;;
+          *) printf 'entity %s' "$ws"; return 0 ;;
+        esac
+        ;;
+    esac
+  done
+
+  printf 'other'
+}
+
 # os_tree_ensure BRAIN GLOB [CLASE]
 # Deja declarado el glob en `tree.md` si faltaba. Es la contracara de que los archivos de solo
 # contenido nazcan con su primer dato: el archivo aparece y ningún glob lo alcanza hasta que el
@@ -542,6 +674,81 @@ os_tree_ensure() {
   done < "$brain/tree.md"
   printf '%s: %s\n' "$clase" "$glob" >> "$brain/tree.md"
   return 0
+}
+
+# ---------------------------------------------------------------- one file per decision, per learning (spec 043)
+# `decisions/<YYYY-MM-DD>-<slug>.md` and `learnings/<slug>.md` — the body, one per fact — with
+# `decisions.md`/`learnings.md` left as the index (unchanged name, unchanged place, unchanged
+# `OS_NODE_CANONICOS`). Both `close-session.sh` (the live writer) and `migrate-canonicals.sh` (the
+# one-time split of what already exists) call these, so the file name a fact gets and the line its
+# index carries are the same lookup either way — a second copy of either would desync the day one
+# of the two callers changes.
+
+# os_decision_path BRAIN PREFIX DATE TITLE -> a free path for a decision's body, relative to the
+# node (PREFIX already applied, so the caller joins it as "$brain/$PREFIX$path"). A same-date
+# collision on the slug is resolved with -2, -3…, never by silently overwriting (spec's own
+# criterion for the slug).
+os_decision_path() {
+  local brain="$1" prefix="$2" date="$3" title="$4" slug base rel n=1
+  slug=$(os_slugify "$title")
+  [ -n "$slug" ] || slug="sin-titulo"
+  slug=$(os_slug_cap "$slug" 80)
+  base="decisions/${date}-${slug}"
+  rel="${base}.md"
+  while [ -e "$brain/${prefix}${rel}" ]; do
+    n=$((n + 1))
+    rel="${base}-${n}.md"
+  done
+  printf '%s' "$rel"
+}
+
+# os_learning_path BRAIN PREFIX TITLE -> the path for a learning's body, relative to the node. No
+# date in the name (spec's own criterion: a learning that gets updated does not change its
+# identity), so the same title always resolves to the same file — exit 0 when that file already
+# existed (the caller's cue to update in place instead of writing a fresh header), 1 when it is new.
+os_learning_path() {
+  local brain="$1" prefix="$2" title="$3" slug rel
+  slug=$(os_slugify "$title")
+  [ -n "$slug" ] || slug="sin-titulo"
+  slug=$(os_slug_cap "$slug" 80)
+  rel="learnings/${slug}.md"
+  printf '%s' "$rel"
+  [ -f "$brain/${prefix}${rel}" ] && return 0
+  return 1
+}
+
+# os_index_line DATE TITLE REL WHEN -> the one line an index (`decisions.md`/`learnings.md`) carries
+# per body (C3): date, title linking to the body, and the body's own "when it is read" line, which
+# is what makes the index worth reading instead of a table of contents (C4).
+os_index_line() {
+  printf -- '- %s · [%s](%s) — %s\n' "$1" "$2" "$3" "$4"
+}
+
+# os_index_mark_superseded INDEXFILE OLD_TITLE NEW_TITLE NEW_REL -> rewrites, in place, the single
+# index line whose link text is OLD_TITLE, appending the supersession mark (C5: the mark lives on
+# the index line, never on the superseded body — `diff` on that body stays empty). Copied line by
+# line to a temp file and moved back: never a whole-file regen, so a line the operator edited by
+# hand elsewhere survives untouched. Only the first match is marked, in case two decisions ever
+# share a title.
+os_index_mark_superseded() {
+  local idx="$1" old="$2" new="$3" rel="$4" tmp line marker found=0
+  [ -f "$idx" ] || return 1
+  tmp="$idx.os-tmp"
+  marker=" — **reemplazada por**: [${new}](${rel})"
+  : > "$tmp"
+  while IFS= read -r line || [ -n "$line" ]; do
+    if [ "$found" = "0" ]; then
+      case "$line" in
+        "- "*"[$old]("*)
+          line="${line}${marker}"
+          found=1
+          ;;
+      esac
+    fi
+    printf '%s\n' "$line" >> "$tmp"
+  done < "$idx"
+  mv "$tmp" "$idx"
+  [ "$found" = "1" ]
 }
 
 # os_buscar_oficio BRAIN SLUG -> la ruta del archivo con `command: SLUG`, relativa al brain, por
@@ -746,21 +953,6 @@ os_una_linea() {
   printf '%s' "$(os_trim "$s")"
 }
 
-# os_backlog_asegurar BRAIN ORG
-# Deja existiendo el `backlog.md` de la organización y declarado su glob. Un archivo de solo
-# contenido nace con su primer dato, no con el bootstrap.
-#   0  ya estaba       1  nació con este dato
-os_backlog_asegurar() {
-  local brain="$1" org="$2" file titulo wsdir
-  wsdir=$(os_ws_dir "$brain")
-  file="$brain/$wsdir/$org/backlog.md"
-  [ -f "$file" ] && return 0
-  titulo=$(os_titulo "$brain/$wsdir/$org/$(os_head_file "$brain" || true)")
-  [ -n "$titulo" ] || titulo="$org"
-  os_backlog_cabecera "$brain" "$titulo" > "$file"
-  return 1
-}
-
 # os_backlog_cabecera BRAIN TITULO -> la cabecera de un backlog nuevo, en el idioma del brain.
 # El texto sale del catálogo (`templates/strings.md`): un archivo que nace en la sesión sale en el
 # mismo idioma que los que escribió el bootstrap.
@@ -772,19 +964,92 @@ os_backlog_cabecera() {
   printf '%s\n\n' "$S_BACKLOG_INTRO"
 }
 
-# os_root_backlog_asegurar BRAIN
-# Deja existiendo `backlog.md` en la raíz del brain y declarado su glob. Mismo criterio que
-# `os_backlog_asegurar`, para el nodo del operador: el título sale del nombre en `operator.md`, no de
-# una cabeza de nodo que la raíz no tiene.
-#   0  ya estaba       1  nació con este dato
-os_root_backlog_asegurar() {
-  local brain="$1" file titulo
-  file="$brain/backlog.md"
+# ---------------------------------------------------------------- backlog by initiative (spec 057)
+# A task hangs from an initiative and only from there: there is no workspace-level or root-level
+# backlog to write into any more (decision 1). The functions below are the only place that names
+# where an initiative's own `backlog.md` lives — everything that writes or counts tasks calls
+# through here instead of concatenating the path by hand.
+
+# os_ini_head_rel BRAIN PREFIX SLUG -> the initiative's head, relative to the brain. PREFIX is
+# `<wsdir>/<org>/` for a workspace initiative, or empty for a root one — always with the trailing
+# slash already in it, or no slash at all.
+os_ini_head_rel() {
+  printf '%s%s' "$2" "$(os_head_path "$1" initiative "$3")"
+}
+
+# os_ini_existe BRAIN PREFIX SLUG -> 0 if that initiative's head exists under PREFIX.
+os_ini_existe() {
+  [ -f "$1/$(os_ini_head_rel "$1" "$2" "$3")" ]
+}
+
+# os_ini_slugs BRAIN PREFIX -> the slugs of the initiatives that live under PREFIX, one per line —
+# the folders that carry a head (the new form) or the loose files (the old one, spec 040). The head
+# name is never hardcoded here (spec 040): `os_head_file` is the only reader of that form.
+os_ini_slugs() {
+  local brain="$1" prefix="$2" dir="$brain/${prefix}initiatives" d base head
+  [ -d "$dir" ] || return 0
+  head=$(os_head_file "$brain") || true
+  for d in "$dir"/*; do
+    if [ -d "$d" ]; then
+      [ -f "$d/$head" ] || continue
+      printf '%s\n' "$(basename "$d")"
+    else
+      case "$d" in
+        *.md)
+          base=$(basename "$d")
+          printf '%s\n' "${base%.md}"
+          ;;
+      esac
+    fi
+  done
+  return 0
+}
+
+# os_ini_backlog_rel PREFIX SLUG -> the path of that initiative's own `backlog.md`, relative to the
+# brain. Only the new form — a folder per initiative — has room for a backlog next to the head; the
+# old form (a loose file) has none, and this spec does not give it one.
+os_ini_backlog_rel() {
+  printf '%sinitiatives/%s/backlog.md' "$1" "$2"
+}
+
+# os_ini_backlog_asegurar BRAIN PREFIX SLUG
+# Leaves that initiative's `backlog.md` existing. A content-only file is born with its first piece
+# of data, never with the bootstrap — same criterion every other backlog followed. No glob gets
+# declared here: `content: initiatives/*/*.md` (and its workspace twin) already reach it, so unlike
+# the workspace/root backlogs of before this spec, this one needs no line of its own in `tree.md`.
+#   0  already there      1  born with this piece of data
+os_ini_backlog_asegurar() {
+  local brain="$1" prefix="$2" slug="$3" file titulo
+  file="$brain/$(os_ini_backlog_rel "$prefix" "$slug")"
   [ -f "$file" ] && return 0
-  titulo=$(os_titulo "$brain/operator.md")
-  [ -n "$titulo" ] || titulo="la raíz"
+  titulo=$(os_titulo "$brain/$(os_ini_head_rel "$brain" "$prefix" "$slug")")
+  [ -n "$titulo" ] || titulo="$slug"
   os_backlog_cabecera "$brain" "$titulo" > "$file"
   return 1
+}
+
+# os_backlog_next_id BRAIN -> the next `tsk-XXX`, unique across the whole brain (decision 3: the
+# counter stays global, never per initiative — ids already written get cited by number in a README
+# or a decision). One pass over every `backlog.md` the brain has, initiative or stray, instead of a
+# state file of its own: an id already sitting in a leftover workspace/root backlog still has to be
+# respected, or the next capture would collide with it.
+os_backlog_next_id() {
+  local brain="$1" f line num max=0
+  while IFS= read -r f || [ -n "$f" ]; do
+    [ -n "$f" ] || continue
+    while IFS= read -r line || [ -n "$line" ]; do
+      os_backlog_lee "$line" || continue
+      num="${bl_id#tsk-}"
+      case "$num" in
+        ''|*[!0-9]*) continue ;;
+      esac
+      while [ "${num#0}" != "$num" ] && [ -n "${num#0}" ]; do num="${num#0}"; done
+      [ "$num" -gt "$max" ] && max="$num"
+    done < "$f"
+  done <<FILES
+$(find "$brain" -name 'backlog.md' -not -path '*/.git/*' -not -path '*/.os/*' 2>/dev/null)
+FILES
+  printf 'tsk-%03d' "$(( max + 1 ))"
 }
 
 # ---------------------------------------------------------------- el nombre de la carpeta (spec 039)
@@ -949,6 +1214,20 @@ os_node_name() {
   printf '%s' "${base%.md}"
 }
 
+# os_entity_name RUTA -> el nombre de la entidad que una cabeza de `about:` encabeza (spec 056),
+# siempre por su carpeta. A diferencia de `os_node_name`, acá no hay caso de iniciativa suelta que
+# distinguir: quien llama ya validó con `os_head_kind` que RUTA es una entidad —producto, cuenta,
+# canal o curso—, y las cuatro viven siempre en una carpeta propia en las dos formas de cabeza (spec
+# 040): la cabeza vieja de esa forma no es la identidad del nodo ahí, la carpeta lo es. Una función propia, en vez
+# de sumarle a `os_node_name` un segundo caso especial: esa función también nombra iniciativas
+# sueltas de la forma vieja, donde el archivo sí es la identidad, y confundir los dos casos por el
+# nombre de archivo rompería esa otra lectura.
+os_entity_name() {
+  local ruta="$1" carpeta
+  carpeta="${ruta%/*}"
+  printf '%s' "${carpeta##*/}"
+}
+
 # os_org_propios BRAIN -> los archivos propios de un nodo espacio de trabajo, cabeza incluida.
 os_org_propios() {
   printf '%s %s' "$(os_head_file "$1" || true)" "$OS_NODE_CANONICOS"
@@ -1032,6 +1311,169 @@ os_replace_file() {
   fi
   mv -f "$tmp" "$dest" 2>/dev/null || { rm -f "$tmp"; return 1; }
   return 0
+}
+
+# os_tree_class_matches BRAIN CLASE RUTA -> 0 si algún glob de esa clase (`glob`, `content` o
+# `archive`) coincide con la ruta. A diferencia de los tres lectores de arriba, que expanden los
+# globs contra lo que hay en disco, esto contesta por una ruta que todavía no existe: es lo que
+# necesita quien va a **escribir** ahí. Sin esto, un comando escribe un archivo en una carpeta que
+# ningún árbol alcanza y el resultado es invisible para el barrido y para la auditoría de vigencia.
+#
+# La comparación es segmento por segmento, y por eso no es un `case "$ruta" in $glob)` pelado: en un
+# patrón de `case` el `*` **cruza las barras**, así que `workspaces/*/initiatives/*/*.md` le daría
+# por bueno `workspaces/a/initiatives/i/research/x.md` — una altura que ese glob no declara. Al
+# expandir contra el disco eso no pasa (ahí el `*` no cruza), y una respuesta distinta según si el
+# archivo ya existe es la peor de las dos.
+os_tree_class_matches() {
+  local brain="$1" clase="$2" ruta="$3" line g
+  [ -f "$brain/tree.md" ] || return 1
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      "$clase":*) ;;
+      *) continue ;;
+    esac
+    g=$(os_trim "${line#$clase:}")
+    [ -n "$g" ] || continue
+    os_glob_path_match "$g" "$ruta" && return 0
+  done < "$brain/tree.md"
+  return 1
+}
+
+# os_glob_path_match GLOB RUTA -> 0 si coinciden con la semántica de los globs del árbol: el `*` vale
+# adentro de un segmento y nunca cruza una barra. Los dos tienen que tener la misma cantidad de
+# segmentos.
+os_glob_path_match() {
+  local g="$1" r="$2" gs rs
+  while [ -n "$g" ] || [ -n "$r" ]; do
+    case "$g" in */*) gs="${g%%/*}"; g="${g#*/}" ;; *) gs="$g"; g="" ;; esac
+    case "$r" in */*) rs="${r%%/*}"; r="${r#*/}" ;; *) rs="$r"; r="" ;; esac
+    [ -n "$gs" ] || [ -n "$rs" ] || return 1
+    case "$rs" in
+      $gs) ;;
+      *) return 1 ;;
+    esac
+  done
+  return 0
+}
+
+# ---------------------------------------------------------------- una ruta que se movió se reescribe una sola vez
+# La regla —**solo se reescribe un token que coincide exactamente con una ruta que este comando
+# movió**, o con esa misma ruta relativa al nodo dueño del archivo que se está reescribiendo; nunca
+# por sufijo, y un nombre pelado sin una sola barra nunca se resuelve contra la carpeta— está
+# decidida el 2026-08-22 (`decisions.md`, "Una ruta se reescribe solo si coincide exactamente con
+# una que se movió" y "Un nombre suelto no es una ruta"). Vivía adentro de `rename-heads.sh`; la
+# spec 048 le agregó un segundo llamador (`archive.sh`), y dos copias de esta regla se desincronizan
+# la primera vez que alguien la afine. Vive acá, y los dos comandos la llaman.
+#
+# Solo bash, carácter a carácter — nada de sed ni awk (E7, PATH restringido).
+#
+# Límite conocido, por diseño: una ruta con espacios adentro no se reescribe (el texto se parte en
+# tokens por espacio). No reescribir es el modo seguro de fallar; corromper, no.
+#
+# El mapa es `OS_RW_MAP`: una línea por movimiento, `origen<OS_SEP>destino`. Lo escribe el llamador
+# antes de reescribir el primer archivo, y con todos los movimientos adentro — un mapa a medio
+# llenar deja una referencia apuntando a donde el archivo ya no está.
+OS_RW_MAP=""
+OS_RW_OUT=""
+
+# os_rw_lookup RUTA -> el destino de una ruta que el llamador movió, por stdout. Exit 1 si esa ruta
+# no está en el mapa: entonces el token no se toca.
+os_rw_lookup() {
+  local linea
+  [ -n "$1" ] || return 1
+  while IFS= read -r linea || [ -n "$linea" ]; do
+    [ -n "$linea" ] || continue
+    case "$linea" in
+      "$1$OS_SEP"*) printf '%s' "${linea#*$OS_SEP}"; return 0 ;;
+    esac
+  done <<MAPA
+$OS_RW_MAP
+MAPA
+  return 1
+}
+
+# os_rw_token TOKEN DIR — acumula en `OS_RW_OUT`. DIR es la carpeta del archivo que se está
+# reescribiendo, relativa al brain, para resolver una referencia relativa al propio nodo.
+os_rw_token() {
+  local tok="$1" dir="${2:-}" ruta="" ancla="" punto="" linea="" destino
+  # Una URL —con esquema o con la forma `usuario@host:ruta`— no es una ruta de este brain.
+  case "$tok" in
+    *://*|*@*:*) OS_RW_OUT="$OS_RW_OUT$tok"; return 0 ;;
+  esac
+  ruta="$tok"
+  # el ancla del final
+  case "$ruta" in
+    *'#'*) ancla="#${ruta#*#}"; ruta="${ruta%%#*}" ;;
+  esac
+  # el `:línea` del final, y el `:` suelto de una cita
+  case "$ruta" in
+    *:) linea=":"; ruta="${ruta%:}" ;;
+    *:[0-9]) linea=":${ruta##*:}"; ruta="${ruta%:*}" ;;
+    *:[0-9][0-9]|*:[0-9][0-9][0-9]|*:[0-9][0-9][0-9][0-9]) linea=":${ruta##*:}"; ruta="${ruta%:*}" ;;
+  esac
+  # el `./` del principio
+  case "$ruta" in
+    ./*) punto="./"; ruta="${ruta#./}" ;;
+  esac
+  if [ -n "$ruta" ]; then
+    if destino=$(os_rw_lookup "$ruta"); then
+      OS_RW_OUT="$OS_RW_OUT$punto$destino$linea$ancla"; return 0
+    fi
+    # Relativa al nodo dueño del archivo. Solo si el token es una ruta —tiene al menos una barra—:
+    # un nombre pelado adentro de la carpeta de un nodo no es una referencia a la cabeza de ese
+    # nodo, y resolverlo contra la carpeta reescribía prosa que hablaba de otro repo.
+    case "$ruta" in
+      */*)
+        if [ -n "$dir" ] && destino=$(os_rw_lookup "$dir/$ruta"); then
+          OS_RW_OUT="$OS_RW_OUT$punto${destino#$dir/}$linea$ancla"; return 0
+        fi
+        ;;
+    esac
+  fi
+  OS_RW_OUT="$OS_RW_OUT$tok"
+}
+
+# os_rw_line LINEA DIR -> la línea con las rutas movidas reescritas, por stdout.
+os_rw_line() {
+  local line="$1" dir="${2:-}" i=0 len=${#1} c tok=""
+  OS_RW_OUT=""
+  while [ "$i" -lt "$len" ]; do
+    c="${line:$i:1}"
+    case "$c" in
+      ' '|$'\t'|'`'|'|'|'('|')'|'['|']'|'<'|'>'|'"'|"'"|','|';'|'!')
+        os_rw_token "$tok" "$dir"; tok=""; OS_RW_OUT="$OS_RW_OUT$c" ;;
+      *) tok="$tok$c" ;;
+    esac
+    i=$(( i + 1 ))
+  done
+  os_rw_token "$tok" "$dir"
+  printf '%s' "$OS_RW_OUT"
+}
+
+# os_rw_file BRAIN RUTA_RELATIVA -> reescribe el archivo si alguna línea cambió.
+#   0  reescribió       1  no había nada que cambiar, o el archivo no está
+#   2  había que cambiarlo y la escritura no se pudo hacer
+# El 2 existe por la spec 047: una reescritura que no ocurrió no puede contarse como "sin cambios".
+os_rw_file() {
+  local brain="$1" rel="$2" file="$1/$2" dir tmp line nueva cambio=0
+  [ -f "$file" ] || return 1
+  case "$rel" in
+    */*) dir="${rel%/*}" ;;
+    *) dir="" ;;
+  esac
+  tmp="$file.os-tmp"
+  : > "$tmp" 2>/dev/null || return 2
+  while IFS= read -r line || [ -n "$line" ]; do
+    nueva=$(os_rw_line "$line" "$dir")
+    [ "$nueva" = "$line" ] || cambio=1
+    printf '%s\n' "$nueva"
+  done < "$file" >> "$tmp"
+  if [ "$cambio" = "1" ]; then
+    os_replace_file "$tmp" "$file" || return 2
+    return 0
+  fi
+  rm -f "$tmp"
+  return 1
 }
 
 # os_fm_shape_ok ARCHIVO -> 0 si lo que hay entre los dos `---` es realmente un frontmatter: cada

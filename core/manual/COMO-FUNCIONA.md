@@ -38,10 +38,11 @@ preguntas, y cada pregunta es un archivo:
 | `tree.md` | Qué rutas recorre un barrido — el mapa del sistema |
 | `workspaces/<nombre>/README.md` | Qué es ese espacio de trabajo y qué oficio tuyo activa |
 | `workspaces/<nombre>/<tipo>/<slug>/README.md` | Qué es un nodo de memoria, para quién, y qué se sabe de él — `products/` es el único tipo que el sistema trae con herramienta propia |
-| `initiatives/<slug>/README.md` | El trabajo: una cabeza por iniciativa, con su estado y su horizonte |
-| `backlog.md` | Lo que falta y no es de ninguna iniciativa |
-| `decisions.md` | Qué se decidió, por qué, y qué lo volvería falso |
-| `learnings.md` | Qué se aprendió, incluido lo que se intentó y no cerró |
+| `workspaces/<nombre>/people/<slug>.md` | Quién es una persona, su organización y su cargo, su contacto y cómo conviene tratarla — contenido del espacio de trabajo, nunca un nodo: el barrido nunca lo lee |
+| `initiatives/<slug>/README.md` | El trabajo: una cabeza por iniciativa, con su estado, su horizonte y `about:` con la entidad de la que cuelga — obligatorio, y chequeado al arranque de cada sesión |
+| `initiatives/<slug>/backlog.md` | Las tareas de esa iniciativa, y solo de esa — una tarea cuelga de una iniciativa y nunca de un espacio de trabajo ni de la raíz |
+| `decisions.md` | El índice de lo que se decidió — una línea por decisión, cada una enlaza a su propio archivo en `decisions/` con el porqué y qué lo volvería falso |
+| `learnings.md` | El índice de lo que se aprendió — una línea por aprendizaje, cada una enlaza a su propio archivo en `learnings/`, incluido lo que se intentó y no cerró |
 | `inbox.md` | Lo que no se pudo clasificar — nunca se tira en silencio |
 
 **Todo nodo tiene la misma forma: una carpeta con el nombre de la cosa, y `README.md` adentro.** El
@@ -80,6 +81,33 @@ arrancar, si preferís un catálogo antes que inventar uno: `products` (qué con
 `tree.md`, y un `context/` que llenás a mano hasta que exista una herramienta propia como `prd`, si
 alguna vez existe.
 
+### Las personas, y la relación que las nombra
+
+Una persona nunca es un nodo. `workspaces/<nombre>/people/<slug>.md` es contenido, la misma clase que
+el `voice.md` de un espacio de trabajo o el `research/` de un producto: el árbol lo alcanza y lo
+cuenta, y ni el barrido ni un foco lo abren salvo que la sesión lo nombre por ruta. Quién es, para
+quién trabaja y su cargo, cómo contactarla y cómo conviene tratarla viven todos en ese archivo, escrito
+a mano desde `core/templates/person.md` — ningún comando lo crea, y su frontmatter nunca se chequea
+contra una lista fija: una clave de más no es un hallazgo, y este manual no promete que lo sea.
+
+**Lo que ata a una persona con un nodo es una línea en el nodo, nunca un campo de la persona.** La
+misma persona puede decidir una iniciativa y ser parte del equipo del espacio de trabajo a la vez, y
+escribir las dos relaciones en el archivo de la persona obligaría a mantener dos copias sincronizadas
+a mano en vez de una. La línea lleva la ruta de la persona entre backticks, su rol, y desde cuándo:
+
+`` `people/<slug>.md` · <rol> · desde <fecha> ``
+
+Nada la analiza sola —un chequeo que abriera el cuerpo de cada iniciativa para verificar una ruta
+volvería a pagar el costo que el barrido existe para evitar— y se escribe en tres alturas, cada una su
+propia sección:
+
+- **Stakeholders de una iniciativa** — su propia sección `## Stakeholders`, para quien decide o le
+  afecta ese trabajo puntual.
+- **Stakeholders de una entidad** — la misma sección en la cabeza de un producto, una cuenta o un
+  canal, para quien es stakeholder de la cosa misma, no de una iniciativa construida a su alrededor.
+- **Equipo del espacio de trabajo** — una sección `## Team` en la cabeza del espacio de trabajo, para
+  quien es parte de él de forma permanente, sin atarse a ninguna iniciativa.
+
 ## El ciclo de una sesión
 
 1. **Arranque.** Nombrás el ámbito —un espacio de trabajo, o tu trabajo propio— y el agente corre el
@@ -94,6 +122,23 @@ alguna vez existe.
    partes: qué se archivó, qué no, qué fila podría ganar el resolver y por dónde retomar. Nunca un
    "listo" a secas: un cierre que solo dice que terminó no se distingue de uno que perdió algo.
 
+## Living Memory: encontrar lo que el foco no carga
+
+El barrido y el foco solo cargan una lista fija de archivos, más un salto por `about:`. Una decisión
+escrita meses atrás en otro espacio de trabajo es real, pero nada la saca a la luz sola — hasta que
+vos, o el agente en tu nombre, se la pedís a `recall`.
+
+`recall` busca en todo lo que el árbol alcanza, partido en entradas —un encabezado y su cuerpo, o un
+ítem de lista, nunca un archivo entero de una— y devuelve las coincidencias más cercanas con su
+archivo, línea y fecha, con lo vigente siempre antes de lo que un archivo dice que fue reemplazado.
+`recall --expand <ruta>` muestra los vecinos inmediatos de un resultado: de qué trata, quién trata
+de él, qué lo reemplazó, a qué reemplazó.
+
+**Encuentra, no decide.** Dos resultados vigentes que dicen cosas distintas se te entregan como una
+contradicción para resolver, nunca elegidos en silencio. Y es descartable: lo que busca es un
+archivo chico que se reconstruye solo desde tus propios archivos, nunca algo que vos escribís o
+respaldás.
+
 ## Dónde vive la maquinaria
 
 Las herramientas —skills, scripts, agentes— viven en `.os/` y `.claude/`. Esas dos carpetas están
@@ -101,7 +146,7 @@ ocultas en Obsidian y se ven desde la terminal, y son **enlaces** al producto in
 el sistema no toca tus datos, y tus datos nunca viajan adentro del producto.
 
 **Dónde viven los skills**, porque es lo primero que todo el mundo pregunta: los
-<!--count-->catorce<!--/count--> skills del sistema están en `.os/core/skills/`, un archivo cada uno, y
+<!--count-->diecisiete<!--/count--> skills del sistema están en `.os/core/skills/`, un archivo cada uno, y
 se llega a ellos por el resolver — no están copiados en esta carpeta, están enlazados al producto.
 Los skills de un pack están en `.claude/skills/<nombre>/SKILL.md`, una carpeta por skill, que es de
 donde tu harness lee los skills y por eso responden a su nombre. Cualquier skill que escribas vos va
@@ -119,23 +164,26 @@ sesión", "capturá esto"— y el agente busca qué herramienta cubre esa capaci
 contestan eso: el del producto, que viaja con el sistema, y el tuyo (`resolver.md`), donde agregás
 una fila cuando el agente habría elegido mal sin ella. Tus filas ganan.
 
-El catálogo de abajo es el sistema mismo — las <!--count-->catorce<!--/count--> herramientas que vienen
+El catálogo de abajo es el sistema mismo — las <!--count-->diecisiete<!--/count--> herramientas que vienen
 con él. También podés invocar cualquiera por su nombre.
 
 <!-- catalog: generated by scripts/manual-catalog.sh — do not edit by hand -->
 
 **El núcleo** — las herramientas que hacen andar el sistema:
 
+- **`archive`** — Mueve un documento al `archive/` del nodo para que el foco deje de cargarlo y pase a listarlo por nombre, reescribiendo todas las referencias que lo apuntaban — y lo trae de vuelta igual.
 - **`bootstrap`** — Crea el brain desde cero — la skill de entrada.
-- **`capture`** — Archiva lo que el operador tira al vuelo en el backlog que corresponde —el de un espacio de trabajo, el de la raíz, o el inbox cuando no se puede clasificar— sin abrir una discusión al respecto.
+- **`capture`** — Archiva lo que el operador tira al vuelo en el backlog de la iniciativa que lo consume, una vez que hay una iniciativa nombrada — nada se archiva sin clasificar.
 - **`check-resolvable`** — Audita el grafo capacidad → herramienta de la raíz y reporta las tres fallas que puede tener — una herramienta que nadie rutea, un handoff que ninguna fila provee y una fila que apunta a una herramienta que no existe.
 - **`close-session`** — Cierra la sesión repartiendo lo que produjo —decisiones, aprendizajes, pendientes, lo que quedó esperando, por dónde retomar— en los archivos canónicos del nodo cargado, y termina con un veredicto de cuatro partes que nombra lo que no se capturó.
 - **`grill`** — Presiona los hechos detrás de una afirmación antes de que una decisión cierre — contrapregunta con un ejemplo concreto, intentos acotados, escape hatches, jerarquía de evidencia — y rutea lo que salga a las decisiones o al backlog del nodo cargado.
 - **`mount-repo`** — Le da cuerpo a una iniciativa: escribe el remote en el frontmatter de la cabeza, clona el checkout afuera del brain —o, con --new, hace nacer el repo desde la plantilla del producto cuando todavía no existe— y registra la fila remote → ruta local en la tabla del entorno de la máquina.
+- **`my-wiki`** — Proyecta el cerebro como una sola página navegable — selector de espacio de trabajo, un estante por cada tipo de entidad que declara el árbol, las iniciativas colgando de la entidad de la que tratan, las personas y una búsqueda que corre adentro de la página.
 - **`new-memory`** — Crea un tipo de nodo de memoria la primera vez que se usa —una carpeta más sus cinco líneas en `tree.md`— y le suma un nodo.
 - **`new-product`** — Suma un producto a un espacio de trabajo que ya existe.
 - **`new-spec`** — Convierte en una spec el trabajo de construcción concreto que salió de una conversación, adentro de specs/ del repo destino, con evals ejecutables por criterio, las decisiones separadas por quién las cierra y los efectos que escapan del sistema declarados.
 - **`new-workspace`** — Suma un espacio de trabajo a un brain que ya existe.
+- **`recall`** — Busca en todo lo que `tree.md` alcanza — no solo lo que carga el arranque y el foco — y devuelve las entradas que coinciden, con archivo, línea, fecha y si cada una sigue vigente o fue reemplazada.
 - **`rename-heads`** — Mueve un brain nacido antes de la forma única de nodo a esa forma — cada nodo pasa a ser una carpeta con su `README.md` adentro, cada iniciativa tiene su carpeta, y los documentos fechados de cada producto van a `research/` —, reescribiendo las rutas de cabeza en todo lo que el sistema lee como ruteo y listando lo que deja sin tocar.
 - **`rename-workspaces`** — Mueve un brain que todavía usa el nombre anterior de la carpeta de espacios de trabajo al nombre actual, reescribiendo el prefijo en todo lo que el sistema lee como estructura o ruteo, y listando lo que deja sin tocar para que el operador lo revise.
 - **`supersede`** — Escribe sobre un archivo la marca que dice qué otro archivo lo reemplazó, para que una sesión que abra el viejo sepa qué leer en su lugar, y audita las marcas de todo el brain — las que apuntan a un archivo que no está, las que cierran un ciclo y las cabezas reemplazadas que siguen leyéndose como trabajo abierto.
@@ -145,7 +193,7 @@ con él. También podés invocar cualquiera por su nombre.
 
 ### Los packs: el oficio de arriba
 
-Esas <!--count-->catorce<!--/count--> hacen andar el sistema. **El oficio —construir producto, y lo que
+Esas <!--count-->diecisiete<!--/count--> hacen andar el sistema. **El oficio —construir producto, y lo que
 venga después— llega en packs**, y un pack se instala aparte, con su propio comando, adentro de
 `.claude/skills/` de esta carpeta. **Un pack se ofrece, nunca se exige**: la instalación terminó
 preguntándote si lo querías ahora o después, y si dijiste después la tarea está en tu backlog con el

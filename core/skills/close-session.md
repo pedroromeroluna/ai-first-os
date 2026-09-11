@@ -49,13 +49,12 @@ learning:      Title
 body:          The body
 provisional:   Title
 body:          The body
-pending:       Text of the task
 pending-from:  initiative | Text of the task
 waiting:       initiative | who unblocks it
 unrouted:      destination | content you filed there
 not-captured:  What you could not file, and why
 touched:       Path relative to the scope        a file the session edited by hand, to commit
-resume:        Where the next session picks up
+resume:        initiative | Where the next session picks up
 ```
 
 The keys are the input format the script reads: they are written exactly as shown. The script also
@@ -66,6 +65,11 @@ operator's language, followed by a blank line before "Captured".
 
 `touched:` names a file the session edited directly — not through this script — that belongs in the
 same commit as the rest of the close. One line per file.
+
+**A pending task and a resume pointer both live in the backlog of an initiative, and only there**
+(spec 057): always use `pending-from:`, never the bare `pending:` — an initiative-less pending, or a
+`resume:` with no `initiative |` in front, gets nothing written and shows up under "Not captured"
+instead. This is the same rule `capture` follows on its own: nothing enters unclassified.
 
 **The operator's text always goes at the end of its line and is filed whole.** After the key there
 is at most one structural field —an initiative, a path— ending in `|`; whatever follows is free text

@@ -93,6 +93,10 @@ os_tree_ensure "$brain" "$wsdir/*/resolver.md" || true
 os_tree_ensure "$brain" "$wsdir/*/backlog.md" || true
 os_tree_ensure "$brain" "$wsdir/*/decisions.md" || true
 os_tree_ensure "$brain" "$wsdir/*/learnings.md" || true
+# Los cuerpos de esas dos preguntas, uno por decisión y por aprendizaje: alcanzados, nunca leídos
+# como cabeza (spec 043 — misma clase `content:` que ya usa `context/`/`research/`).
+os_tree_ensure "$brain" "$wsdir/*/decisions/*.md" content || true
+os_tree_ensure "$brain" "$wsdir/*/learnings/*.md" content || true
 # La altura de las iniciativas de ese nodo, en la forma que el brain tenga para esa altura: el
 # glob sale del mismo helper que arma la ruta de una cabeza, con `*` en lugar del slug.
 os_tree_ensure "$brain" "$wsdir/*/$(os_head_path "$brain" initiative '*')" || true

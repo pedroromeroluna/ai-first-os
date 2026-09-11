@@ -28,9 +28,11 @@
 #   2. Mueve `orgs` a `workspaces` si `orgs` existe en disco — `git mv` en un brain git, `mv` si no.
 #   3. Reescribe el prefijo en el resto de lo que el sistema lee como estructura o ruteo:
 #      `resolver.md` de la raíz, `resolver.md` de cada espacio de trabajo, `backlog.md` de la raíz
-#      y de cada espacio, y `mounts.md`.
-#   4. No reescribe ningún otro archivo: lista los `.md` del brain que todavía contienen el prefijo
-#      `orgs`, con su conteo, para que el operador decida.
+#      y de cada espacio, y `mounts.md`; y la línea `about:` (spec 049/056) de toda cabeza del
+#      espacio recién movido que la tenga con el prefijo viejo — nunca el resto de esa cabeza, que
+#      sigue en el paso 4.
+#   4. No reescribe ningún otro archivo ni el resto de ninguna cabeza: lista los `.md` del brain que
+#      todavía contienen el prefijo `orgs`, con su conteo, para que el operador decida.
 #   5. No commitea: la sesión commitea después, como todo lo demás del brain.
 #
 # El reemplazo del prefijo es sensible al contexto — nunca un `${var//orgs\//workspaces\/}` a
@@ -136,6 +138,33 @@ rewrite_prefix() {
   return 1
 }
 
+# rewrite_about FILE -> reescribe solo la línea `about:` de FILE si empieza con el prefijo viejo,
+# nunca el resto del archivo: `about:` (spec 049/056) es una ruta que el sistema resuelve solo, con
+# el mismo criterio que el resto del ruteo de (3) — nunca la prosa libre del cuerpo, que sigue
+# yendo a (4) para que el operador la revise a mano. Exit 0 si reescribió, 1 si no existe o su
+# `about:` no tenía el prefijo viejo.
+rewrite_about() {
+  local file="$1" tmp line nueva cambio=0
+  [ -f "$file" ] || return 1
+  tmp="$file.os-tmp"
+  : > "$tmp"
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      "about: $old_name/"*)
+        nueva=$(rewrite_line "$line")
+        [ "$nueva" = "$line" ] || cambio=1
+        printf '%s\n' "$nueva" ;;
+      *) printf '%s\n' "$line" ;;
+    esac
+  done < "$file" >> "$tmp"
+  if [ "$cambio" = "1" ]; then
+    mv "$tmp" "$file"
+    return 0
+  fi
+  rm -f "$tmp"
+  return 1
+}
+
 # ---------------------------------------------------------------- (1) tree.md primero
 reescritos=""
 hubo_cambio=0
@@ -182,6 +211,23 @@ for rel in $objetivos; do
   fi
 done
 IFS="$old_ifs"
+
+# ---------------------------------------------------------------- (3b) about: de cualquier cabeza (spec 056)
+# `about:` es la única otra ruta que la lectura del sistema resuelve por sí sola, así que se
+# reescribe con el mismo criterio que (3) — nunca los `.md` que quedan para el operador en (4). Solo
+# adentro del espacio de trabajo que se acaba de mover: `about:` de una iniciativa apunta siempre a
+# una entidad del mismo workspace (Gate 1 de esta spec), nunca cruza a otro ni a la raíz, así que no
+# hace falta mirar fuera de `$new_name/`.
+while IFS= read -r f || [ -n "$f" ]; do
+  [ -n "$f" ] || continue
+  if rewrite_about "$f"; then
+    reescritos="$reescritos  ${f#$brain/}
+"
+    hubo_cambio=1
+  fi
+done <<LISTADO_ABOUT
+$(find "$brain/$new_name" -type f -name '*.md' -print 2>/dev/null)
+LISTADO_ABOUT
 
 # Nada cambió: ni tree.md, ni la carpeta, ni ningún archivo de ruteo — es exactamente el estado
 # final de una corrida anterior completa. Se dice y se termina, sin repetir el listado de (4): si
