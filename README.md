@@ -23,8 +23,7 @@ instead of an answer.
 |---|---|---|---|
 | git | To install the system | `git --version` | macOS: `xcode-select --install` · Windows: git-scm.com |
 | python3 | To install the system — `mount-repo` uses it to authorize a checkout for the agent | `python3 --version` | macOS: `xcode-select --install` (same command as git) · Windows: python.org · Linux: your distro's package manager |
-| Node.js | Only for the `npx` install path — the git-clone path below never needs it | `node --version` | The LTS installer at nodejs.org |
-| Node.js | Only for the pack of skills, offered at the end of the install | `node --version` | The LTS installer at nodejs.org |
+| Node.js | Only for the `npx` install path and for the pack of skills offered at the end of the install — installing the system by git clone never needs it | `node --version` | The LTS installer at nodejs.org |
 
 **The agent guides; you install.** System software is never installed by the agent on its own: it
 points at the official channel, waits for you to run it, and checks again.
