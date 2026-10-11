@@ -346,6 +346,30 @@ key: OLD_KEY_LINE
 en: old key: %s → %s
 es: clave vieja: %s → %s
 
+key: DECISION_CONTEXT_HEADING
+en: Context and Problem Statement
+es: Contexto y problema
+
+key: DECISION_OPTIONS_HEADING
+en: Considered Options
+es: Opciones consideradas
+
+key: DECISION_OUTCOME_HEADING
+en: Decision Outcome
+es: Resultado de la decisión
+
+key: DECISION_MORE_HEADING
+en: More Information
+es: Más información
+
+key: DECISION_REPLACES_LABEL
+en: Replaces
+es: Reemplaza a
+
+key: DECISION_REVISIT_LABEL
+en: Revisit if
+es: Revisar si
+
 key: BACKUP_TASK
 en: Remote backup pending: create the account at github.com (the operator creates it, never the agent), run `gh auth login`, and then ask any session to run `.os/core/lib/remote-backup.sh --brain .`
 es: Respaldo remoto pendiente: crear la cuenta en github.com (la crea el operador, nunca el agente), correr `gh auth login`, y después pedirle a cualquier sesión que corra `.os/core/lib/remote-backup.sh --brain .`

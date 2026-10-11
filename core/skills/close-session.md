@@ -43,8 +43,11 @@ identity (`operator.md`) is already loaded in any session.
 decision:      Title
 what:          What is decided
 why:           Why
+option:        A considered option             (optional, repeatable, only under `decision:`)
+deciders:      Who decided                     (optional, only under `decision:`)
 replaces:      Which decision it replaces      (optional)
 invalidates:   What would make it false        (optional)
+key:           Why it is a key decision        (optional, only under `decision:`)
 learning:      Title
 body:          The body
 provisional:   Title
@@ -86,6 +89,64 @@ start. It names an initiative that already exists: the script writes `waiting_on
 declares it when the head is not there. No command creates one — an initiative that is missing is
 written by hand at `initiatives/<slug>/README.md`, a folder with the name of the thing and its head
 inside.
+
+## How a decision is written
+
+A decision is written in **MADR 4.0.0**, the open format of [adr.github.io/madr](https://adr.github.io/madr)
+(template: `template/adr-template.md` of github.com/adr/madr). The template is in English, as the
+standard is, and the section names are shown in the language of the brain through
+`core/templates/strings.md`. The keys of the header stay in English in both languages.
+
+```
+---
+status: accepted
+date: YYYY-MM-DD
+decision-makers: <deciders:>          (only if declared)
+key: <key:>                           (only if declared; extension of this system)
+---
+
+# <Title>
+
+## Context and Problem Statement     <- why:
+## Considered Options                <- one bullet per option:, in order
+## Decision Outcome                  <- what:
+## More Information                  <- Replaces: <replaces:>  ·  Revisit if: <invalidates:>
+```
+
+A section with no data is not written. `option:` can be repeated: each line is one bullet, none is
+dropped. `deciders:` is free text.
+
+**`when:` no longer exists for decisions.** MADR has no such field. Under `decision:` the verdict
+reports it as a key that is no longer used and writes nothing; under `learning:` and `provisional:`
+it works as before. The index line of a decision is `- DATE · [clave · ][Title](path)`, with no
+tail.
+
+**Replacing a decision marks the old one twice, in its header.** When `replaces:` names a decision
+already in the index, the old body gets `status: superseded by <path of the new one>` (MADR's own
+field) and the replacement mark of the session contract, which this skill asks `supersede` to write
+instead of writing it itself. A body written before this format, with no header, gets one. The
+content of the old decision is never rewritten, and the old index line still gets "reemplazada
+por".
+
+**Variant declared against the standard:** the `key:` header key is an extension of this system
+(MADR has no key-decision mark), and the double replacement mark exists because the session
+contract follows its own mark, written by `supersede`. Decisions written before this format keep
+the form they have: they are not migrated.
+
+## Marking a key decision
+
+What counts as a key decision —the three conditions, and the rule that you propose the mark and the
+operator confirms it— is defined once in `core/skills/grill.md#key-decisions`. This skill applies it
+and does not restate it.
+
+`key:` goes under `decision:` and nowhere else. Its value is free text that names the three
+conditions of that decision: what reverting it costs, what would surprise without context, and which
+alternative was discarded. Under `learning:` or `provisional:` it is declared in the verdict as a
+misplaced key and nothing is marked.
+
+A key decision shows up as `key: <value>` in the header of its file and as `clave · ` between the
+date and the title in its index line. The startup read and the focus read
+load those index lines (never the bodies) unless the decision was replaced.
 
 ## The verdict
 

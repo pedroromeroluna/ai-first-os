@@ -29,7 +29,10 @@
 #     why:         Por qué
 #     replaces:    Qué decisión reemplaza          (opcional)
 #     invalidates: Qué la haría falsa              (opcional)
-#     when:        Cuándo se lee esta decisión     (opcional, spec 043 — ver más abajo)
+#     option:      Una opción considerada          (opcional, repetible, spec 070 — solo en `decision:`)
+#     deciders:    Quién decidió                   (opcional, spec 070 — solo en `decision:`)
+#     key:         Por qué es clave                (opcional, spec 069 — solo en `decision:`)
+#     when:        ya no se usa en decisiones      (spec 070: se reporta y no escribe nada)
 #   learning:      Título
 #     body:        El cuerpo
 #     when:        Cuándo se lee este aprendizaje  (opcional, spec 043)
@@ -53,10 +56,27 @@
 # Una decisión y un aprendizaje son un archivo propio (spec 043) — `decisions/<fecha>-<slug>.md` y
 # `learnings/<slug>.md`, sin fecha en el nombre porque un aprendizaje que se actualiza no cambia de
 # identidad. `decisions.md`/`learnings.md` no cambian de nombre ni de lugar: pasan a ser el índice,
-# una línea por cuerpo (fecha, título, link, la línea "Cuándo se lee" de ese cuerpo). `when:` es el
-# campo que llena esa línea; sin él, el cuerpo sale con un marcador de hueco en vez de inventarse
-# uno. Reemplazar una decisión marca al índice de la vieja —nunca toca su cuerpo—: `replaces:` hace
-# que su línea en el índice sume "reemplazada por" apuntando a la nueva.
+# una línea por cuerpo. La de un aprendizaje lleva fecha, título, link y la línea "Cuándo se lee" de
+# su cuerpo (`when:`; sin él el cuerpo sale con un marcador de hueco en vez de inventarse uno).
+#
+# DECISIONS ARE WRITTEN IN MADR 4.0.0 (spec 070, https://adr.github.io/madr). Front matter with
+# `status: accepted`, `date:`, `decision-makers:` (only with `deciders:`) and `key:` (only with
+# `key:`, an extension of this system); then the sections whose data the material gave: why, the
+# options, what, replaces/invalidates. A section with no data is not written. The names of the
+# sections and the labels of the last one come from `core/templates/strings.md`, never from this
+# file. `when:` no longer exists for decisions: the verdict reports it and writes nothing. Its line
+# in the index is `- DATE · [clave · ][TITLE](path)`, with no tail.
+#
+# `replaces:` marks the old decision twice and touches nothing else of it: its index line gets
+# "reemplazada por" (spec 043) and its front matter gets the replacement mark that `supersede`
+# writes (its single writer, spec 046) plus MADR's `status: superseded by <new>`. A body with no
+# front matter gets one; the content of the old decision is never rewritten.
+#
+# `key:` marca la decisión como clave (spec 069) y su valor es texto libre que nombra las tres
+# condiciones (cuánto cuesta revertirla, qué sorprendería sin contexto, qué alternativa se descartó;
+# la definición vive en core/skills/grill.md#key-decisions). Va en la cabecera del cuerpo y su línea
+# del índice suma `clave · ` entre la fecha y el título. Sin `key:` nada de eso aparece. Debajo de
+# `learning:`/`provisional:` se declara como clave fuera de lugar.
 #
 # Un registro se cierra cuando empieza el siguiente o cuando termina el archivo. Una clave que no
 # corresponde al registro abierto no se adivina: se declara en el veredicto.
@@ -258,9 +278,11 @@ nace_canonico() {
 }
 
 escribir_decision() {
-  # escribir_decision TITULO QUE PORQUE REEMPLAZA INVALIDARIA CUANDO
-  local titulo="$1" que="$2" porque="$3" reemplaza="$4" invalidaria="$5" cuando="$6"
-  local idx="$brain/${orgprefix}decisions.md" contentglob rel full
+  # escribir_decision TITULO QUE PORQUE REEMPLAZA INVALIDARIA OPCIONES DECISORES [CLAVE]
+  # OPCIONES: one option per line, in the order of the material.
+  local titulo="$1" que="$2" porque="$3" reemplaza="$4" invalidaria="$5" opciones="$6" decisores="$7"
+  local clave="${8:-}"
+  local idx="$brain/${orgprefix}decisions.md" contentglob rel full viejo_rel opcion
   nace_canonico "decisions.md" "Decisiones" \
     "Registro append-only. Nunca se corrige: si una decisión cambia, se agrega otra que la reemplaza y la nombra."
   if [ "$root" = "1" ]; then contentglob="decisions/*.md"; else contentglob="$wsdir/*/decisions/*.md"; fi
@@ -268,17 +290,52 @@ escribir_decision() {
   mkdir -p "$brain/${orgprefix}decisions"
   rel=$(os_decision_path "$brain" "$orgprefix" "$hoy" "$titulo")
   full="$brain/${orgprefix}$rel"
-  [ -n "$cuando" ] || cuando="$OS_CUANDO_FALTA"
+  # MADR 4.0.0 (spec 070). The keys of the header stay in English in every language; the names of
+  # the sections and the labels of the last one come from the strings catalog. A section with no
+  # data is not written.
   {
+    printf -- '---\n'
+    printf 'status: accepted\n'
+    printf 'date: %s\n' "$hoy"
+    [ -n "$decisores" ] && printf 'decision-makers: %s\n' "$decisores"
+    [ -n "$clave" ] && printf 'key: %s\n' "$clave"
+    printf -- '---\n\n'
     printf '# %s\n\n' "$titulo"
-    printf '> **Cuándo se lee**: %s\n\n' "$cuando"
-    printf '**Qué se decide**: %s\n\n' "$que"
-    printf '**Por qué**: %s\n\n' "$porque"
-    [ -n "$reemplaza" ] && printf '**Reemplaza a**: %s\n\n' "$reemplaza"
-    [ -n "$invalidaria" ] && printf '**La invalidaría**: %s\n\n' "$invalidaria"
+    [ -n "$porque" ] && printf '## %s\n%s\n\n' "$S_DECISION_CONTEXT_HEADING" "$porque"
+    if [ -n "$opciones" ]; then
+      printf '## %s\n' "$S_DECISION_OPTIONS_HEADING"
+      while IFS= read -r opcion || [ -n "$opcion" ]; do
+        [ -n "$opcion" ] || continue
+        printf -- '- %s\n' "$opcion"
+      done <<OPCIONES
+$opciones
+OPCIONES
+      printf '\n'
+    fi
+    printf '## %s\n%s\n\n' "$S_DECISION_OUTCOME_HEADING" "$que"
+    if [ -n "$reemplaza" ] || [ -n "$invalidaria" ]; then
+      printf '## %s\n' "$S_DECISION_MORE_HEADING"
+      [ -n "$reemplaza" ] && printf '%s: %s\n' "$S_DECISION_REPLACES_LABEL" "$reemplaza"
+      [ -n "$invalidaria" ] && printf '%s: %s\n' "$S_DECISION_REVISIT_LABEL" "$invalidaria"
+      printf '\n'
+    fi
   } > "$full"
-  os_index_line "$hoy" "$titulo" "$rel" "$cuando" >> "$idx"
+  # The index line of a decision carries no "when it is read" tail (spec 070).
+  if [ -n "$clave" ]; then
+    os_index_line "$hoy" "$titulo" "$rel" "" key >> "$idx"
+  else
+    os_index_line "$hoy" "$titulo" "$rel" "" >> "$idx"
+  fi
   if [ -n "$reemplaza" ]; then
+    # The replaced body is found through the index line, before that line is marked. Its header gets
+    # the status; its content does not change.
+    if viejo_rel=$(os_index_link_of "$idx" "$reemplaza") && [ -f "$brain/${orgprefix}$viejo_rel" ]; then
+      if os_decision_mark_superseded "$brain" "${orgprefix}$viejo_rel" "${orgprefix}$rel"; then
+        marcar_escrito "${orgprefix}$viejo_rel"
+      else
+        push_no_capturado "decisión reemplazada sin cabecera legible, no se marcó: ${orgprefix}$viejo_rel"
+      fi
+    fi
     os_index_mark_superseded "$idx" "$reemplaza" "$titulo" "$rel" || true
   fi
   push_capturado "decisión → ${orgprefix}$rel: $titulo"
@@ -328,7 +385,7 @@ escribir_learning() {
 # Un registro se acumula hasta que empieza el siguiente. `r_tipo` dice cuál está abierto: una clave
 # de continuación que no corresponde no se adivina, se declara.
 r_tipo=""; r_titulo=""; r_que=""; r_porque=""; r_reemplaza=""; r_invalidaria=""; r_cuerpo=""
-r_cuando=""
+r_cuando=""; r_clave=""; r_opciones=""; r_decisores=""
 
 cerrar_registro() {
   case "$r_tipo" in
@@ -337,14 +394,14 @@ cerrar_registro() {
       if [ -z "$r_que" ]; then
         push_no_capturado "decisión sin qué se decide, no se archivó: $r_titulo"
       else
-        escribir_decision "$r_titulo" "$r_que" "$r_porque" "$r_reemplaza" "$r_invalidaria" "$r_cuando"
+        escribir_decision "$r_titulo" "$r_que" "$r_porque" "$r_reemplaza" "$r_invalidaria" "$r_opciones" "$r_decisores" "$r_clave"
       fi
       ;;
     learning) escribir_learning "$r_titulo" "$r_cuerpo" "activo" "$r_cuando" ;;
     provisional) escribir_learning "$r_titulo" "$r_cuerpo" "provisional" "$r_cuando" ;;
   esac
   r_tipo=""; r_titulo=""; r_que=""; r_porque=""; r_reemplaza=""; r_invalidaria=""; r_cuerpo=""
-  r_cuando=""
+  r_cuando=""; r_clave=""; r_opciones=""; r_decisores=""
   return 0
 }
 
@@ -403,8 +460,20 @@ while IFS= read -r line || [ -n "$line" ]; do
     why)     continuacion_valida "$key" decision && r_porque="$value" ;;
     replaces)    continuacion_valida "$key" decision && r_reemplaza="$value" ;;
     invalidates) continuacion_valida "$key" decision && r_invalidaria="$value" ;;
+    key)     continuacion_valida "$key" decision && r_clave="$value" ;;
+    # `option:` repeats: one bullet per line, in the order of the material, none lost (spec 070).
+    option)  continuacion_valida "$key" decision && [ -n "$value" ] && r_opciones="$r_opciones$value$nl" ;;
+    deciders) continuacion_valida "$key" decision && r_decisores="$value" ;;
     body)    continuacion_valida "$key" learning provisional && r_cuerpo="$value" ;;
-    when)    continuacion_valida "$key" decision learning provisional && r_cuando="$value" ;;
+    when)
+      # MADR has no "when it is read" field: under `decision:` the key is reported and writes
+      # nothing. Learnings and provisionals keep using it (spec 070).
+      if [ "$r_tipo" = "decision" ]; then
+        push_no_capturado "\"when\" ya no se usa en una decisión, no se archivó"
+      else
+        continuacion_valida "$key" learning provisional && r_cuando="$value"
+      fi
+      ;;
 
     pending|pending-from)
       cerrar_registro

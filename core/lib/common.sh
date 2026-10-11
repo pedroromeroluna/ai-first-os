@@ -720,8 +720,62 @@ os_learning_path() {
 # os_index_line DATE TITLE REL WHEN -> the one line an index (`decisions.md`/`learnings.md`) carries
 # per body (C3): date, title linking to the body, and the body's own "when it is read" line, which
 # is what makes the index worth reading instead of a table of contents (C4).
+#
+# A fifth argument "key" (spec 069) marks the decision as a key one: `clave · ` goes between the date
+# and the title. Without it the line is exactly the one above. The label is a literal, like the
+# "Cuándo se lee" label of the body of a learning: it does not come from the strings catalog.
+#
+# An empty WHEN (spec 070) leaves the tail out: `- DATE · [clave · ][TITLE](REL)`. That is the line of
+# a decision written in MADR, which has no "when it is read" field; the learnings and the migration
+# of old decisions always pass one.
 os_index_line() {
-  printf -- '- %s · [%s](%s) — %s\n' "$1" "$2" "$3" "$4"
+  local tail=""
+  [ -z "$4" ] || tail=" — $4"
+  if [ "${5:-}" = "key" ]; then
+    printf -- '- %s · clave · [%s](%s)%s\n' "$1" "$2" "$3" "$tail"
+  else
+    printf -- '- %s · [%s](%s)%s\n' "$1" "$2" "$3" "$tail"
+  fi
+}
+
+# os_index_link_of INDEXFILE TITLE -> prints the link target of the first index line whose link text
+# is TITLE (relative to the node, as the index carries it). Exit 1 when there is none. Same match
+# rule as `os_index_mark_superseded`, so both point at the same line.
+os_index_link_of() {
+  local idx="$1" title="$2" line link
+  [ -f "$idx" ] || return 1
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      "- "*"[$title]("*)
+        link="${line#*"[$title]("}"
+        link="${link%%)*}"
+        printf '%s' "$link"
+        return 0
+        ;;
+    esac
+  done < "$idx"
+  return 1
+}
+
+# os_decision_mark_superseded BRAIN OLD_REL NEW_REL -> marks a replaced decision in its front matter
+# (spec 070): the replacement mark the session contract follows is written by `supersede.sh`, its
+# single writer (spec 046), and then MADR's own `status: superseded by NEW` is set next to it. Both
+# happen in this one call. `supersede.sh` creates a front matter above a headerless body and refuses
+# one it cannot read; the content of the old decision is never rewritten. Exit 1 if either write fails.
+os_decision_mark_superseded() {
+  local brain="$1" old="$2" new="$3"
+  [ -f "$brain/$old" ] || return 1
+  "$OS_LIB_DIR/supersede.sh" --brain "$brain" --file "$old" --by "$new" > /dev/null 2>&1 || return 1
+  os_fm_set "$brain/$old" status "superseded by $new" || return 1
+  return 0
+}
+
+# os_key_decision_lines INDEXFILE -> prints, as they are, the lines of an index that are marked as
+# key (`- DATE · clave · [..`) and not superseded (no `**reemplazada por**` mark). Nothing for a file
+# that is not there or has none. Single reader of the mark (spec 069): both startup reads use it.
+os_key_decision_lines() {
+  [ -f "$1" ] || return 0
+  grep -E '^- [0-9]{4}-[0-9]{2}-[0-9]{2} · clave · \[' "$1" | grep -vF '**reemplazada por**' || true
 }
 
 # os_index_mark_superseded INDEXFILE OLD_TITLE NEW_TITLE NEW_REL -> rewrites, in place, the single

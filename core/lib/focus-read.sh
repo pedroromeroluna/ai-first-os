@@ -20,6 +20,11 @@
 #   4. and the `resolver.md` next to that head, when a `glob:` line reaches it
 #   5. the **names** of what an `archive:` line reaches directly inside that node's folder — never
 #      their bodies (spec 048)
+#   6. the key decisions (spec 069): the lines of the `decisions.md` that sits beside the focus head,
+#      and of the one beside the head named by `about:`, marked `clave · ` and not superseded —
+#      printed right after the head they belong to (steps 1 and 3), under the fixed marker
+#      `key-decisions: <path of the index>`. Lines only, never the bodies they link to.
+#      An index that step 2 already printed whole is not cut a second time.
 #
 # ONE JUMP IS ONE JUMP. Step 3 reads the `about:` of the focus and of nothing else: the head loaded
 # there may declare its own `about:`, and it is not followed. The value of this system is that the
@@ -28,8 +33,10 @@
 # to tune — it is one level, always.
 #
 # WHAT IS NOT LOADED, AND WHY.
-#   · The `decisions.md` of the node named by `about:`: it is append-only and unbounded, and what it
-#     holds is why past decisions were taken, not what this node is.
+#   · The `decisions.md` of the node named by `about:`, except its key decisions (step 6): it is
+#     append-only and unbounded, and what it holds is why past decisions were taken, not what this
+#     node is. Only the lines marked as key and not superseded are loaded; every other line, and
+#     every body, stays out.
 #   · Whatever a `content:` line reaches **under** that node —its `context/`, its `research/`—: those
 #     are the documents the node accumulates, and loading them turns one jump into the whole folder.
 #   · The body of any node other than the focus.
@@ -58,6 +65,9 @@
 #   - An `about:` that does not resolve prints `about-unresolved: <value> · <reason>` in place of
 #     the jump and the read goes on: the startup scan is where a broken link is a finding, and a
 #     read that dies over one leaves the operator with nothing.
+#   - The key decisions open with the fixed marker `key-decisions: <path of the index>` —English in
+#     both languages— and one index line per row, as the index has it. A node whose index has none
+#     prints no marker and no lines.
 #   - The archived listing opens with the fixed marker `archived: <n>` —English in both languages,
 #     like `about-jump:`— and one `· <file name>` line per file, `LC_ALL=C sort`. A node with
 #     nothing archived prints no marker and no lines.
@@ -140,8 +150,10 @@ cuerpo() {
 }
 
 # emitir RUTA — one entry: its header and its body, or its `missing:` line.
+impresos="$nl"
 emitir() {
   separar
+  impresos="$impresos$1$nl"
   if [ -f "$brain/$1" ]; then
     printf '── %s\n' "$1"
     cuerpo "$brain/$1"
@@ -149,6 +161,23 @@ emitir() {
     printf '── '
     printf "$S_SESSION_READ_MISSING\n" "$1"
   fi
+  return 0
+}
+
+# claves HEAD — step 6: the key decisions of the index beside a head, as a cut of the file. Only a
+# node that keeps a folder of its own (head named `$head_file`) has an index beside it. An index that
+# step 2 already printed whole is not cut a second time.
+claves() {
+  local lineas rel d="${1%/*}"
+  [ "$d" != "$1" ] && [ "${1##*/}" = "$head_file" ] || return 0
+  rel="$d/decisions.md"
+  # An index already printed whole (a `content:` line reached it in step 2) carries its key lines.
+  case "$impresos" in *"$nl$rel$nl"*) return 0 ;; esac
+  lineas=$(os_key_decision_lines "$brain/$rel")
+  [ -n "$lineas" ] || return 0
+  separar
+  printf 'key-decisions: %s\n' "$rel"
+  printf '%s\n' "$lineas"
   return 0
 }
 
@@ -187,6 +216,8 @@ CONTENIDOS
 $(printf '%s' "$cuerpos" | LC_ALL=C sort)
 ORDENADOS
 fi
+
+claves "$focus"
 
 # ---------------------------------------------------------------- 5 · what is archived, by name
 # Runs on every exit path of this script, because the operator's answer to "what does this node have
@@ -275,6 +306,8 @@ if [ "$destino_dir" != "$destino" ] && es_cabeza "$destino_dir/resolver.md"; the
   primera=0
   emitir "$destino_dir/resolver.md"
 fi
+
+claves "$destino"
 
 primera=0
 listar_archivado

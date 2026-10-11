@@ -5,6 +5,36 @@ Every published version of AI First OS, newest first. The format follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html): *major* when an already installed brain
 needs a manual step to keep working, *minor* for a new capability, *patch* for a fix.
 
+## [1.10.0] — 2026-10-11
+
+### Added
+
+- `grill` runs the interview in rounds (spec 068): it orders the open decisions by what they depend
+  on and asks every question that can already be answered at once, numbered, each with the answer it
+  recommends, worded so that "yes" accepts it. Facts the environment can answer —files, earlier
+  research, the repo— it looks up itself; only decisions go to the operator. The interview closes
+  when nothing is left open and the operator confirms both understand the same thing.
+- The product glossary is written as the interview goes (spec 068): a term is written to the
+  product's `glossary.md` the moment the operator accepts its exact text, and a word that clashes
+  with the glossary is challenged in the same round.
+- Key decisions (spec 069): every decision is still recorded, and the ones that are hard to reverse,
+  surprising without context and born of a real trade-off are also marked as key. The startup read
+  and the focus read load the index lines of the current key decisions. The definition lives once,
+  in `grill`.
+
+### Changed
+
+- Decisions are written in [MADR 4.0.0](https://adr.github.io/madr/) (spec 070): front matter with
+  `status`, `date` and `decision-makers`, and the sections Context and Problem Statement, Considered
+  Options, Decision Outcome and More Information, shown in the brain's language. Replacing a decision
+  sets `status: superseded by …` in the old one's front matter; its content is never rewritten.
+  Decisions written before this version keep their form.
+- `prd` asks in the rounds of `grill` instead of one question at a time.
+
+### Removed
+
+- The "when it is read" line of a decision. Key decisions now say what the startup loads.
+
 ## [1.9.0] — 2026-09-10
 
 ### Added

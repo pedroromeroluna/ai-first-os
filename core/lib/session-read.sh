@@ -17,16 +17,24 @@
 #   2. voice.md
 #   3. <workspaces-dir>/<slug>/<head>       (only with --org/--workspace)
 #   4. <workspaces-dir>/<slug>/resolver.md  (only with --org/--workspace)
-#   5. .os/core/resolver.md
-#   6. .claude/skills/*-resolver/SKILL.md — zero or more, `LC_ALL=C sort` by path
-#   7. resolver.md
-#   8. the standing role's craft file, when the node declares `role:` and the craft is installed
+#   5. the key decisions of the scope (spec 069): the lines of its `decisions.md` index marked
+#      `clave · ` and not superseded — `<workspaces-dir>/<slug>/decisions.md` with --org/--workspace,
+#      `decisions.md` of the root with --root. Lines only, never the bodies they link to.
+#   6. .os/core/resolver.md
+#   7. .claude/skills/*-resolver/SKILL.md — zero or more, `LC_ALL=C sort` by path
+#   8. resolver.md
+#   9. the standing role's craft file, when the node declares `role:` and the craft is installed
 #      (only with --org)
 #
 # Output format, fixed:
 #   - Header per file: `── <path relative to the brain>`.
 #   - Body: the bytes of the file; a file that does not end in a newline gets one, so the next
 #     header always starts its own line. A 0-byte file exists: header and nothing else.
+#   - The key decisions open with the fixed marker `key-decisions: <path of the index>` —English in
+#     both languages, like `about-jump:` and `active-role:`; it never starts with `── `, because
+#     what follows is a cut of the file and not the file— and one index line per row, as the index
+#     has it. A scope with no key decision prints no marker and no lines: the output is then
+#     byte-identical to the one before spec 069.
 #   - A file that is not there prints `── missing: <path>` and no body, and never stops the read.
 #   - Exactly one blank line between entries, nothing before the first.
 #   - The standing role closes the output: the blank line that separates entries, the line
@@ -167,6 +175,19 @@ if [ "$root" = "0" ]; then
   emitir "$wsdir/$org/$head"
   emitir "$wsdir/$org/resolver.md"
 fi
+
+# claves RUTA — step 5: the key decisions of one index, as a cut of the file under a fixed marker.
+claves() {
+  local lineas
+  lineas=$(os_key_decision_lines "$brain/$1")
+  [ -n "$lineas" ] || return 0
+  separar
+  printf 'key-decisions: %s\n' "$1"
+  printf '%s\n' "$lineas"
+  return 0
+}
+if [ "$root" = "0" ]; then claves "$wsdir/$org/decisions.md"; else claves "decisions.md"; fi
+
 emitir ".os/core/resolver.md"
 
 # The pack indexes are discovered, never declared: zero of them is a legitimate installation, so
