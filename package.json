@@ -1,0 +1,23 @@
+{
+  "name": "ai-first-os",
+  "version": "1.10.1",
+  "description": "A product operating system for working with agents. Install with npx, no clone required.",
+  "license": "MIT",
+  "homepage": "https://github.com/pedroromeroluna/ai-first-os",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pedroromeroluna/ai-first-os.git"
+  },
+  "bin": {
+    "ai-first-os": "bin/ai-first-os.js"
+  },
+  "files": [
+    "core/",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {},
+  "engines": {
+    "node": ">=18"
+  }
+}

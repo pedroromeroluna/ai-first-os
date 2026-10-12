@@ -5,6 +5,16 @@ Every published version of AI First OS, newest first. The format follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html): *major* when an already installed brain
 needs a manual step to keep working, *minor* for a new capability, *patch* for a fix.
 
+## [1.10.1] — 2026-10-11
+
+### Added
+
+- The repository carries what the npm package needs (spec 071): `package.json`, `bin/ai-first-os.js`
+  and a GitHub Actions workflow, `.github/workflows/publish-npm.yml`.
+- The workflow publishes `ai-first-os` to npm by itself whenever `core/VERSION` changes on `main`,
+  with npm trusted publishing (OIDC) and provenance: no stored token, no login. It publishes nothing
+  when that version is already on npm or when `package.json` and `core/VERSION` disagree.
+
 ## [1.10.0] — 2026-10-11
 
 ### Added

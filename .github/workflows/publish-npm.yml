@@ -1,0 +1,64 @@
+name: Publish to npm
+
+# Publishes the package to npm when core/VERSION changes on main, or by hand.
+# Trusted publishing (OIDC): the job proves its identity to npm with a short-lived
+# id-token. No credential is stored in the repository or read by this workflow.
+# The trust relation is configured once on npm (npm trust github) for this
+# repository and this workflow file name.
+
+on:
+  push:
+    branches: [main]
+    paths: [core/VERSION]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: publish-npm
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      # Trusted publishing needs npm 11.5.1 or newer.
+      - name: Update npm
+        run: npm install -g npm@^11.5.1
+
+      - name: Read the versions
+        id: version
+        run: |
+          system_version=$(head -n 1 core/VERSION)
+          package_version=$(node -p "require('./package.json').version")
+          echo "system=$system_version" >> "$GITHUB_OUTPUT"
+          echo "package=$package_version" >> "$GITHUB_OUTPUT"
+
+      - name: Fail if package.json and core/VERSION disagree
+        if: steps.version.outputs.system != steps.version.outputs.package
+        run: |
+          echo "package.json is ${{ steps.version.outputs.package }} but core/VERSION is ${{ steps.version.outputs.system }}: nothing published." >&2
+          exit 1
+
+      - name: Check whether this version is already on npm
+        id: published
+        run: |
+          if npm view "ai-first-os@${{ steps.version.outputs.system }}" version > /dev/null 2>&1; then
+            echo "already=true" >> "$GITHUB_OUTPUT"
+            echo "ai-first-os@${{ steps.version.outputs.system }} is already on npm: nothing to publish."
+          else
+            echo "already=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish
+        if: steps.published.outputs.already == 'false'
+        run: npm publish --provenance --access public
