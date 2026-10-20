@@ -215,7 +215,7 @@ stdin_data="$true_heads
 %%FILES%%
 $all_files"
 
-result=$(printf '%s\n' "$stdin_data" | python3 "$here/recall_index.py" \
+result=$(printf '%s\n' "$stdin_data" | python3 -B "$here/recall_index.py" \
   "$db" "$brain" "$mode" "$scope_kind" "$wsdir" "$scope_slug" "$arg" "$limit")
 rc=$?
 if [ "$rc" != "0" ]; then

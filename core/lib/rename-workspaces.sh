@@ -168,7 +168,7 @@ rewrite_about() {
 # ---------------------------------------------------------------- (1) tree.md primero
 reescritos=""
 hubo_cambio=0
-if rewrite_prefix "$brain/tree.md"; then
+if rewrite_prefix "$brain/$OS_TREE_FILE"; then
   reescritos="$reescritos  tree.md
 "
   hubo_cambio=1
@@ -188,7 +188,7 @@ if [ -d "$brain/$old_name" ]; then
 fi
 
 # ---------------------------------------------------------------- (3) el resto del ruteo
-objetivos="resolver.md${OS_SEP}"
+objetivos="$OS_ROOT_RESOLVER_FILE${OS_SEP}"
 for res in "$brain/$new_name"/*/resolver.md; do
   [ -f "$res" ] || continue
   objetivos="$objetivos${res#$brain/}$OS_SEP"
@@ -198,7 +198,7 @@ for bl in "$brain/$new_name"/*/backlog.md; do
   [ -f "$bl" ] || continue
   objetivos="$objetivos${bl#$brain/}$OS_SEP"
 done
-objetivos="$objetivos${OS_MOUNTS_ARCHIVO:-mounts.md}$OS_SEP"
+objetivos="$objetivos$OS_MOUNTS_ARCHIVO$OS_SEP"
 
 old_ifs="$IFS"
 IFS="$OS_SEP"

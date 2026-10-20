@@ -232,14 +232,14 @@ PLAN
 # llamador. El mapa se pasa entero, después de todos los movimientos.
 OS_RW_MAP="$mapa"
 
-objetivos="operator.md${OS_SEP}resolver.md${OS_SEP}backlog.md${OS_SEP}decisions.md${OS_SEP}learnings.md${OS_SEP}"
-objetivos="$objetivos${OS_MOUNTS_ARCHIVO:-mounts.md}$OS_SEP"
+objetivos="$OS_OPERATOR_FILE${OS_SEP}$OS_ROOT_RESOLVER_FILE${OS_SEP}backlog.md${OS_SEP}decisions.md${OS_SEP}learnings.md${OS_SEP}"
+objetivos="$objetivos$OS_MOUNTS_ARCHIVO$OS_SEP"
 for f in "$brain/initiatives"/*/"$nuevo" \
-         "$brain/$wsdir"/*/resolver.md "$brain/$wsdir"/*/backlog.md \
+         "$brain/$wsdir"/*/.resolver.md "$brain/$wsdir"/*/resolver.md "$brain/$wsdir"/*/backlog.md \
          "$brain/$wsdir"/*/decisions.md "$brain/$wsdir"/*/learnings.md \
          "$brain/$wsdir"/*/"$nuevo" \
          "$brain/$wsdir"/*/initiatives/*/"$nuevo" \
-         "$brain/$wsdir"/*/products/*/resolver.md "$brain/$wsdir"/*/products/*/decisions.md \
+         "$brain/$wsdir"/*/products/*/.resolver.md "$brain/$wsdir"/*/products/*/resolver.md "$brain/$wsdir"/*/products/*/decisions.md \
          "$brain/$wsdir"/*/products/*/"$nuevo"; do
   [ -f "$f" ] || continue
   objetivos="$objetivos${f#$brain/}$OS_SEP"
@@ -262,8 +262,8 @@ done
 IFS="$old_ifs"
 
 # ---------------------------------------------------------------- (5) el árbol, último
-tree_tmp="$brain/tree.md.os-tmp"
-if [ -f "$brain/tree.md" ]; then
+tree_tmp="$brain/$OS_TREE_FILE.os-tmp"
+if [ -f "$brain/$OS_TREE_FILE" ]; then
   cambio_tree=0
   : > "$tree_tmp"
   while IFS= read -r line || [ -n "$line" ]; do
@@ -281,9 +281,9 @@ if [ -f "$brain/tree.md" ]; then
     esac
     [ "$nueva" = "$line" ] || cambio_tree=1
     printf '%s\n' "$nueva"
-  done < "$brain/tree.md" >> "$tree_tmp"
+  done < "$brain/$OS_TREE_FILE" >> "$tree_tmp"
   if [ "$cambio_tree" = "1" ]; then
-    mv "$tree_tmp" "$brain/tree.md"
+    mv "$tree_tmp" "$brain/$OS_TREE_FILE"
     reescritos="$reescritos  tree.md$nl"
     hubo_cambio=1
   else

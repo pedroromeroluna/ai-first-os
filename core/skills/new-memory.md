@@ -16,9 +16,11 @@ writes its strategic layer). Any sibling folder of nodes that hold memory instea
 same way: `accounts/` for client accounts, `channels/` for content channels, or a name the operator
 invents. There is no `type:` field anywhere — the path already says what kind of thing a node is.
 
-A memory node hangs off the workspace that owns it (`workspaces/<ws>/<type>/<slug>/`), or off the
-root when the type belongs to the operator's own work (`<type>/<slug>/`, with `--root`) — `channels/`
-of a personal brain is a case of this.
+A memory node hangs off the workspace that owns it (`workspaces/<ws>/<type>/<slug>/`) — the
+operator's own work is the `personal` workspace every brain is born with, never the root: the root
+only holds machinery (spec 059), and `--root` refuses with an error naming `personal` as the
+destination. A channel of a personal brain, for example, lives at
+`workspaces/personal/channels/<slug>/`.
 
 ## The interview
 
@@ -27,28 +29,28 @@ Two questions. Nothing else.
 1. **What kind of thing is this — an existing type, or a new one?** If the type already exists,
    nothing about its tree lines is asked again; this call only names it (`--type accounts`). If it
    is new, the type is born with its first node, and its five lines land in `tree.md` the same run.
-2. **What is this node, and which workspace does it belong to (or is it the operator's own work)?**
-   Two or three lines — what it is and what is known, not the whole strategic layer. Skip the
-   workspace half of the question if the session already has one loaded — use that. Otherwise ask,
-   and never guess it: the wrong workspace is the most expensive mistake this system can make.
+2. **What is this node, and which workspace does it belong to?** Two or three lines — what it is
+   and what is known, not the whole strategic layer. Skip the workspace half of the question if the
+   session already has one loaded — use that. Otherwise ask, and never guess it: the wrong workspace
+   is the most expensive mistake this system can make. The operator's own work is `personal`, the
+   workspace every brain is born with.
 
 ## What it writes
 
 ```
 .os/core/lib/new-memory.sh --brain . --workspace <slug> --type <type> --name "<Name>" \
   --owner "<person>" [--identity-file <file>]
-.os/core/lib/new-memory.sh --brain . --root --type <type> --name "<Name>" --owner "<person>" \
-  [--identity-file <file>]
 ```
 
-Leaves `<scope>/<type>/<slug>/README.md` with the identity. Nothing else: `context/`, `research/`,
-`resolver.md` and `decisions.md` are born with their first piece of data, same as every other
-canonical file in this system. The first time a type is used, its five lines of `tree.md` are added
-—3 `glob:` (the head, `resolver.md`, `decisions.md`) and 2 `content:` (`context/*.md`,
-`research/*.md`)— so every scan of the system reads it from the first node on; a second node of the
-same type never duplicates those lines.
+Leaves `<scope>/<type>/<slug>/README.md` with the identity. Nothing else: `context/`, `research/`
+and `resources/` are born with their first document, and `.resolver.md` only when the node has a row
+that points outside its folder. Its decisions live in `decisions/` of the workspace with `about:`
+naming it. The first time a type is used, its lines of `tree.md` are added —2 `glob:` (the head,
+`.resolver.md`) and 5 `content:` (the generated `index.md`, `context/*.md`, `research/*.md`,
+`resources/*.md`, `resources/*/*.md`)— so every scan of the system reads it from the first node on; a
+second node of the same type never duplicates those lines.
 
-`--owner` comes from the title of `operator.md`, same as `new-workspace` and `new-product`: the node
+`--owner` comes from the title of `account/operator.md`, same as `new-workspace` and `new-product`: the node
 is created by the operator, so they are the owner unless someone else runs it.
 
 **The head never gets `role:` and never gets `repo:`.** `role:` activates a standing oficio and that
@@ -58,8 +60,8 @@ by folder.
 
 If the workspace named does not exist, the command refuses and lists the workspaces that do — it
 never creates one on the spot. Running it twice with the same type and slug refuses the second time:
-two nodes with the same identity are the operator's call, not a default. `--root` and
-`--workspace`/`--org` together are an error, same as naming two different workspaces at once.
+two nodes with the same identity are the operator's call, not a default. `--root` refuses with an
+error naming `personal` as the destination — the root cannot hold a memory node.
 
 **Naming a type**: a type this product ships with (today, only `products`) is named in English. A
 type the operator invents is named however they like — it is content of their brain, not a

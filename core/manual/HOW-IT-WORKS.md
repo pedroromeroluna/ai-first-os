@@ -1,9 +1,10 @@
 # AI First OS — how this system works
 
-> **This file is the manual of the system, and it is part of the product.** It is linked from the
-> product, so it stays up to date on its own: when the system is updated, this text is updated with
-> it. Nothing you write belongs here — anything you edit in this file is overwritten by the next
-> update. Your things live in the other files, and this manual says which ones.
+> [!NOTE] This file is the manual of the system
+> It is part of the product and linked from it, so it keeps itself current: when the system is
+> updated, this text is updated with it. Nothing you write lives here: whatever you edit in this
+> file is overwritten by the next update. Your things live in the other files, and this manual says
+> which ones.
 
 ## The idea in one line
 
@@ -24,32 +25,96 @@ The analogy is an operating system and your disk: the OS gets updated; your brai
 touched. That is why you do not "install a brain" — you install the OS, and your brain is born
 once, through the interview.
 
-## Everything is a node
+## What you see in this folder
 
-There is one single building block, repeated at every height: the **node**. Your own work is a node
-—the root of this folder—, and each **workspace** —a company or client you work for; a course case
-is one too— is another one (`workspaces/<name>/`). Every node answers the same questions, and each
-question is a file:
+**Four things are visible at the root of this folder. Everything else is hidden, because only the
+system reads it.** The root holds the machinery of the system and your account — never work. Your
+own work is a workspace.
+
+| In the folder | What it is | Who edits it |
+|---|---|---|
+| `AGENTS.md` | The rule book every session follows before it answers. It is a link to the product | Nobody: it is read-only on purpose |
+| `HOW-IT-WORKS.md` | This manual, in your language. Also a link to the product | Nobody |
+| `account/` | You: who you are, how you want to be answered and how you write | You |
+| `workspaces/` | Your work: one folder per workspace — your own, a company, a client | You and the agent, together |
+
+Inside `account/`:
 
 | File | What it answers |
 |---|---|
-| `operator.md` | Who you are and how you want to be answered |
-| `voice.md` | How you write when you write well |
-| `resolver.md` | Capability → tool: which skill resolves which request |
-| `tree.md` | Which paths a scan walks — the map of the system |
+| `account/operator.md` | Who you are and how you want to be answered. **Your own rules for the agent go here** |
+| `account/voice/voice.md` | How you write when you write well. The agent reads it when it is about to write something in your name, not at the start of every session |
+
+### The rule book, and the warning at its top
+
+`AGENTS.md` and `.claude/CLAUDE.md` are two links to the same file, so every agent harness (Claude
+Code, Codex, Cursor, OpenCode) finds the rule book where it looks for it. The file opens with a
+`[!WARNING]` block: it says the file is not edited, why, and that your rules go in
+`account/operator.md`. The reason is simple: that file is the same for everyone who uses the system,
+so editing it in your copy means your changes are lost with the next update. On an installed copy
+the system also takes the write permission off it, so the editor stops you before you start.
+
+> [!TIP] Your own rules go in account/operator.md
+> **Your own rules never go in the rule book.** They go in `account/operator.md`. If this folder
+> already had a rules file of your own when the system was installed, installing with `--adopt`
+> appends its content to the end of `account/operator.md`, under a heading that says where it came
+> from, and puts the system's link in its place. Nothing you wrote is lost.
+
+### What is yours to edit, and what is not
+
+- **Yours:** `account/` (both files), everything inside `workspaces/` — the heads of your
+  workspaces, initiatives and products, their `resources/`, `context/` and `research/` — and any
+  skill you write yourself.
+- **Not yours:** `AGENTS.md`, `HOW-IT-WORKS.md` and `.claude/CLAUDE.md` (links to the product),
+  `.os/` (links to the product's tools) and every **generated file**.
+- **Edited rarely, and with care:** `.system/`. It is the machinery the root needs to work:
+  `tree.md` (the map of the paths a scan walks), `resolver.md` (the table of capabilities and the
+  tool that resolves each one; your rows win over the product's) and, on a machine that mounts repos,
+  `mounts.md` (the environment table: which repos are mounted, and where). It is hidden because
+  nobody needs to open it in a normal day: the system reads it, and the commands that create
+  something (a workspace, a product) add their own lines to it.
+
+### Generated files
+
+A **generated file** is one the system writes for you and rewrites on its own. Its frontmatter says
+`generated: true`, and the header under it says which files it is built from. The `index.md` of a
+product, an account or a channel is one: a table of the initiatives, and the lists of decisions and learnings,
+that are about that product. **Do not edit it**: your edit disappears at the next session start. Edit the
+source — the initiative, the decision or the learning — and the index follows. A generated file is
+not committed to git: every copy of the brain builds its own.
+
+### How a session starts
+
+1. You name the workspace you are working on.
+2. The agent runs the **scan** and the **startup read** before answering: first `account/operator.md`,
+   then the head of the workspace and its own table of tools, its glossary and its map of contexts
+   if it has them, its key decisions, and the tables of tools of the system and of the root. It does
+   not load your voice: it reads it when it writes something in your name.
+3. You pick a focus, and only then is the body of that initiative or product loaded.
+
+The details of each step are in the cycle of one session, further down.
+
+**Your own work is a workspace, `personal`** — the one every brain is born with, alongside any
+company or client you add later. There is one single building block, repeated at every height for
+every workspace: the **node**. Every node answers the same questions, and each question is a file:
+
+| File | What it answers |
+|---|---|
 | `workspaces/<name>/README.md` | What that workspace is and which standing craft it activates |
 | `workspaces/<name>/<type>/<slug>/README.md` | What a memory node is, for whom, and what is known about it — `products/` is the one type this system ships with its own tool |
 | `workspaces/<name>/people/<slug>.md` | Who a person is, their organization and title, their contact and how it is best to deal with them — content of the workspace, never a node: the scan never reads it |
-| `initiatives/<slug>/README.md` | The work: one head per initiative, with its state, its horizon, and `about:` naming the entity it hangs from — mandatory, and checked at the start of every session |
-| `initiatives/<slug>/backlog.md` | That initiative's own tasks, and only that initiative's — a task hangs from an initiative and never from a workspace or the root |
-| `decisions.md` | The index of what was decided — one line per decision, each linking to its own file under `decisions/` with why and what would make it false |
-| `learnings.md` | The index of what was learned — one line per learning, each linking to its own file under `learnings/`, including what was tried and did not close |
-| `inbox.md` | What could not be classified — it is never dropped in silence |
+| `workspaces/<name>/initiatives/<slug>/README.md` | The work: one head per initiative, with its state, its horizon, and optionally `about:` naming the product, course, channel or account it is about — one, or several as `[<path>, <path>]` |
+| `workspaces/<name>/initiatives/<slug>/backlog.md` | That initiative's own tasks, and only that initiative's — every task lives in an initiative; the tasks of a product with no project of its own go to its standing initiative |
+| `workspaces/<name>/decisions/<date>-<slug>.md` | One decision per file, with why and what would make it false, and `about:` when it is about a product, a course, a channel or an account; `decisions/index.md` lists them all, generated |
+| `workspaces/<name>/learnings/<slug>.md` | One learning per file, including what was tried and did not close; `learnings/index.md` lists them all, generated |
 
 **Every node has the same shape: a folder with the name of the thing, and `README.md` inside.** The
 name shows up once —the folder—, the head is always called the same, and anyone who opens the folder
-knows where to start. The root is the exception: its folder is this one, and its head is
-`operator.md`.
+knows where to start.
+
+**A brain that predates this shape can still have work written directly at its root.**
+`migrate-root.sh` moves it into `workspaces/personal`, creating that workspace first if it is not
+there yet — run once, at your request, never on its own.
 
 **A memory node is memory, an initiative is push.** A memory node holds what it is, who it is for
 and what is known about it; an initiative holds its state, its horizon and when it closes. A memory
@@ -67,23 +132,23 @@ same way: `accounts/` for client accounts, `channels/` for the channels you publ
 name you invent.
 
 `new-memory --type <type>` creates a type the first time you use it — the folder plus the five lines
-it needs in `tree.md` — and adds its first node. The same command with the same `--type` and a new
+it needs in `.system/tree.md` — and adds its first node. The same command with the same `--type` and a new
 `--slug` adds another node to a type that already exists — sibling accounts, sibling channels — no
-new tree lines, nothing duplicated. `--root` makes the type live at the root of your own work instead
-of inside a workspace, the way `channels/` can live there for content that is yours, not a client's.
+new tree lines, nothing duplicated. A type that is yours, not a client's, lives inside your own
+workspace (`personal`) — the root itself never holds one, since it is machinery only.
 
 A type this system ships is named in English — today, only `products`. A type you invent is named
 however you like: it is content of your brain, not a component of the system. Three names to start
 from, if you want a catalog instead of inventing one: `products` (what you build, for whom),
 `accounts` (a client or company relationship), `channels` (where you publish). Inventing your own —
 anything that is memory and not push — is exactly as legitimate: the folder plus its lines in
-`tree.md`, and a `context/` you fill by hand until a purpose-built tool like `prd` exists for it, if
+`.system/tree.md`, and a `context/` you fill by hand until a purpose-built tool like `prd` exists for it, if
 one ever does.
 
 ### People, and the relationship that mentions them
 
 A person is never a node. `workspaces/<name>/people/<slug>.md` is content, the same class as a
-workspace's `voice.md` or a product's `research/`: the tree reaches it and counts it, and neither the
+workspace's `resources/voice.md` or a product's `research/`: the tree reaches it and counts it, and neither the
 scan nor a focus opens it unless the session names it by path. Who someone is, who they work for and
 their title, how to reach them, and how it is best to deal with them all live in that one file, written by
 hand from `core/templates/person.md` — no command creates it, and a person's frontmatter is never
@@ -108,18 +173,19 @@ the reason the scan stays fast — and it is written at three heights, each its 
 
 ## The cycle of one session
 
-1. **Start.** You name the scope —a workspace, or your own work— and the agent runs the **scan**
-   before answering anything: what is waiting on your decision, what is in progress, what is blocked
-   and by whom, what is queued, and what the checks found. Then you pick a focus, and only then is
-   the body of that initiative loaded.
-2. **Work.** Every request is routed to its tool through the resolver. Nothing activates on its own,
-   and no irreversible action —sending, publishing, signing, merging— runs without your yes.
-3. **Capture.** Whatever shows up mid-conversation is filed where it belongs without cutting the
-   thread, and the answer says where it went.
-4. **Close.** Two questions —what cannot be lost, and what almost worked— and a verdict in four
-   parts: what was filed, what was not, which row the resolver could gain, and where to resume.
-   Never a plain "done": a close that only says it finished cannot be told apart from one that lost
-   something.
+> [!EXAMPLE] One session from start to end
+> 1. **Start.** You name the workspace — your own work is `personal`, the one every brain is born with
+>    — and the agent runs the **scan** before answering anything: what is waiting on your decision,
+>    what is in progress, what is blocked and by whom, what is queued, and what the checks found. Then
+>    you pick a focus, and only then is the body of that initiative loaded.
+> 2. **Work.** Every request is routed to its tool through the resolver. Nothing activates on its own,
+>    and no irreversible action —sending, publishing, signing, merging— runs without your yes.
+> 3. **Capture.** Whatever shows up mid-conversation is filed where it belongs without cutting the
+>    thread, and the answer says where it went.
+> 4. **Close.** Two questions —what cannot be lost, and what almost worked— and a verdict in four
+>    parts: what was filed, what was not, which row the resolver could gain, and where to resume.
+>    Never a plain "done": a close that only says it finished cannot be told apart from one that lost
+>    something.
 
 ## Living Memory: finding what the focus does not load
 
@@ -140,30 +206,33 @@ or back up.
 
 ## Where the machinery lives
 
-The tools —skills, scripts, agents— live in `.os/` and `.claude/`. Those two folders are hidden in
-Obsidian and visible from the terminal, and they are **links** to the installed product: updating
-the system never touches your data, and your data never travels inside the product.
+The tools —skills, scripts, agents— live in `.os/`, `.claude/` and `.agents/`. Those folders are
+hidden in Obsidian and visible from the terminal, and what the system puts in them is a **link** to
+the installed product: updating the system never touches your data, and your data never travels
+inside the product.
 
 **Where the skills live**, since it is the first thing everyone asks: the
-<!--count-->seventeen<!--/count--> skills of the system are in `.os/core/skills/`, one file each,
+<!--count-->twenty<!--/count--> skills of the system are in `.os/core/skills/`, one file each,
 reached through the resolver — not copied into this folder, linked to the product. The skills of a
-pack are in `.claude/skills/<name>/SKILL.md`, one folder per skill, which is where your harness
-reads skills from and why they answer to their name. Any skill you write yourself goes next to them,
-as a plain folder in `.claude/skills/`.
+pack are in `.agents/skills/<name>/SKILL.md`, one folder per skill, and `.claude/skills/` holds a
+link to each one, which is where Claude Code reads skills from; the system looks in `.agents/skills/`
+first and counts a skill that is in both folders once. Any skill you write yourself goes next to
+them, as a plain folder in `.claude/skills/`.
 
-To update, ask any session: **"update the system"**. That sentence is all you need, and it covers
-both halves of what is installed — the system and the packs. What it does step by step is written
-once, in the `README.md` of the product's folder under **Update**; this manual points at it instead
-of telling it again, because two versions of the same procedure drift apart.
+> [!TIP] To update, ask any session to "update the system"
+> To update, ask any session: **"update the system"**. That sentence is all you need, and it
+> covers both halves of what is installed — the system and the packs. What it does step by step is
+> written once, in the `README.md` of the product's folder under **Update**; this manual points at
+> it instead of telling it again, because two versions of the same procedure drift apart.
 
 ## What you can ask for, and how
 
 **The index is the resolver, not your memory.** You ask in your own words —"what is pending", "close
 the session", "capture this"— and the agent looks up which tool covers that capability. Two files
-answer that: the product's, which travels with the system, and yours (`resolver.md`), where you add
+answer that: the product's, which travels with the system, and yours (`.system/resolver.md`), where you add
 a row when the agent would have chosen wrong without it. Your rows win.
 
-The catalog below is the system itself — the <!--count-->seventeen<!--/count--> tools that come with
+The catalog below is the system itself — the <!--count-->twenty<!--/count--> tools that come with
 it. You can also invoke any of them by name.
 
 <!-- catalog: generated by scripts/manual-catalog.sh — do not edit by hand -->
@@ -176,12 +245,14 @@ it. You can also invoke any of them by name.
 - **`check-resolvable`** — Audit the root's capability-to-tool graph and report the three failures it can have — a tool nothing routes to, a handoff no row provides, and a row pointing at a tool that does not exist.
 - **`close-session`** — Close a session by distributing what it produced —decisions, learnings, pending items, what stayed waiting, where to resume— into the loaded node's canonical files, and end with a four-part verdict that names what was not captured.
 - **`grill`** — Pressure the facts behind a claim before a decision closes — counter-question with a concrete example, capped attempts, escape hatches, evidence hierarchy — and route what comes out to the loaded node's decisions or backlog.
+- **`migrate-layout`** — Move a brain with the old layout to the new one — the account in `account/`, the machinery in `.system/`, the session contract at `AGENTS.md` and `.claude/CLAUDE.md`, roles as skills, the hand-written decision and learning indexes into the frontmatter of the files they link, every backlog into an initiative, hidden resolvers, `resources/` and `context/` — printing the whole plan first and writing nothing until it runs with `--apply`.
+- **`migrate-root`** — Move the operator's own work from a brain still carrying it directly at the root — initiatives, a memory-node type, backlog, decisions, learnings — into the `personal` workspace every brain is born with today, creating that workspace first if it does not exist yet, rewriting the prefix everywhere the system reads it as structure or routing, and listing what it leaves untouched for the operator to review.
 - **`mount-repo`** — Give an initiative a body: write the remote into the head's frontmatter, clone the checkout outside the brain —or, with --new, give birth to the repo from the product's scaffold when it does not exist yet— and record the remote-to-local-path row in the machine's environment table.
-- **`my-wiki`** — Project the brain as one navigable page — a workspace selector, a shelf per entity type the tree declares, the initiatives hanging from the entity each one is about, the people, and a search that runs inside the page.
 - **`new-memory`** — Create a memory-node type the first time it is used —a folder plus its five lines in `tree.md`— and add a node to it.
 - **`new-product`** — Add a product to a workspace that already exists.
 - **`new-spec`** — Turn concrete build work that came out of a conversation into a spec file under the target repo's specs/, with runnable evals per criterion, decisions split by who closes them, and effects that escape the system declared.
 - **`new-workspace`** — Add a workspace to an existing brain.
+- **`orchestrator`** — Turn on, or resume, an orchestrator — one session that hands each topic's work to that topic's session and keeps what it needs to remember in a hidden file.
 - **`recall`** — Search over every file `tree.md` reaches — not only what the startup scan and the focus load — and return the entries that match, with file, line, date and whether each is current or replaced.
 - **`rename-heads`** — Move a brain born before the single node shape to it — every node becomes a folder with its `README.md` inside, every initiative gets its own folder, and each product's dated documents move to `research/` — rewriting the head paths everywhere the system reads them as routing and listing what it leaves untouched.
 - **`rename-workspaces`** — Move a brain still using the previous name of the workspaces folder to the current one, rewriting the prefix everywhere the system reads it as structure or routing, and listing what it leaves untouched for the operator to review.
@@ -192,9 +263,9 @@ it. You can also invoke any of them by name.
 
 ### Packs: the craft on top
 
-Those <!--count-->seventeen<!--/count--> run the system. **The craft —building product, and whatever
+Those <!--count-->twenty<!--/count--> run the system. **The craft —building product, and whatever
 comes next— arrives in packs**, and a pack is installed separately, with its own command, into
-`.claude/skills/` of this folder. **A pack is offered, never required**: the install ended by asking
+`.agents/skills/` of this folder. **A pack is offered, never required**: the install ended by asking
 whether you wanted one now or later, and if you said later the task is in your backlog with the
 command in it. Adding another one, putting one back, or taking the one you postponed is a single
 request to any session: **"install the pack called `<name>`"**.
@@ -203,6 +274,23 @@ request to any session: **"install the pack called `<name>`"**.
 that index arrives with it — so the list you read is always the list you have, never the one the
 manual remembered. Ask for what you want in your own words: the session reads the index of whatever
 is installed and routes you there, or tells you that nothing installed covers it.
+
+## An orchestrator, if you want one
+
+**Optional, and off until you ask.** An orchestrator is one session where you decide what matters
+and from which the work is handed to the other sessions, one per topic. Nothing in this folder
+changes for it to exist: no new file shows up. What it needs to remember (which session carries
+each topic, what is waiting for what) it keeps in a hidden file that you never have to open.
+
+- **To turn it on**, say "I want to work with an orchestrator". It tells you what it will set up
+  and waits for your yes before doing it.
+- **To turn it off**, ask for it. It deletes that hidden file and nothing else changes.
+- **How you want it to work** goes in `account/operator.md`, in your own words: what you write there
+  wins over the orchestrator's default rules.
+- **In the desktop app** it works fully: it opens one session per topic, sends work to each and sees
+  how much context each is using. **In the terminal** it works reduced: it hands work out, but it
+  cannot open new sessions or see how much context each one is using. It tells you which one you are
+  in when it turns on.
 
 ## Working with agents: two gates, one autonomous stretch
 
@@ -214,10 +302,11 @@ helm — it never changes folders and never loses your context.
 - **`complete-spec`** — implements a spec where every criterion has its runnable check.
 - **`ambiguous-spec`** — implements a spec with open decisions, where judgment is needed.
 
-The supervision pattern has **two human gates and one autonomous stretch in the middle**: a person
-approves the spec (**gate 1**) → the agent implements it on a branch, never on the main branch and
-never with a push → a person reads the branch and merges it (**gate 2**). Autonomy in the middle,
-human control at the edges.
+> [!EXAMPLE] One spec from start to end: two approvals and one autonomous stretch
+> The supervision pattern has **two human gates and one autonomous stretch in the middle**: a
+> person approves the spec (**gate 1**) → the agent implements it on a branch, never on the main
+> branch and never with a push → a person reads the branch and merges it (**gate 2**). Autonomy in
+> the middle, human control at the edges.
 
 ## Dormant capabilities: the building layer
 
@@ -248,3 +337,15 @@ the two are already installed.
   then asked for.
 - **Whatever the AI writes is marked**: 📌 literal, with the file and the line it came from · 🔍
   inference · ❓ gap. What is missing is recorded as open, with who closes it. It is never invented.
+
+## How to read the callouts
+
+The system's files use few callouts, each with one meaning only:
+
+- **Blue (note):** what this file is.
+- **Tip:** how to do something with one sentence.
+- **Yellow (warning):** something that gets lost or must not be edited, like a generated file or a
+  document another one replaced.
+- **Question:** a decision that is still open.
+- **Example:** one case from start to end.
+- **Red (danger):** errors only.

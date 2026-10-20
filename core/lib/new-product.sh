@@ -9,8 +9,7 @@
 # A product node is memory — what it is, for whom, what is known — never state: it never gets
 # `role:` (that activates an oficio per organization, spec 009) and never `repo:` (mount-repo writes
 # that once a body exists, and mount-repo mounts onto an initiative, never onto a product). Only the
-# head is born here: `context/`, `resolver.md` and `decisions.md` are born with their first piece of
-# data, same as every other canonical file in this product.
+# head is born here (spec 076, C15): no resolver and no decisions of its own.
 
 set -eu
 
@@ -104,19 +103,18 @@ os_render_lang "$templates/README.md" "$language" \
 
 os_check_identity_cap "$dir/$head"
 
-# Los tres globs del nivel llegan de fábrica en `core/templates/tree.md`; acá se agregan a un brain
-# que ya existía antes de esta spec, sin duplicar (mismo patrón que `capture.sh`/`close-session.sh`
-# con los archivos que nacen con su primer dato).
+# The lines of the level ship in `core/templates/tree.md`; here they are added to a brain that
+# predates them, without duplicating (same pattern as every command that creates a level). A node is
+# born with its head and nothing else (spec 076, C15): `.resolver.md` exists only when the node has a
+# row to route outside its folder (D9), and decisions live flat in the workspace (C17), never inside
+# a node. `index.md` is the one the startup read generates (C18); `context/`, `research/` and
+# `resources/` are born with their first document and are content, never a head.
 os_tree_ensure "$brain" "$wsdir/*/products/*/$head" || true
-os_tree_ensure "$brain" "$wsdir/*/products/*/resolver.md" || true
-os_tree_ensure "$brain" "$wsdir/*/products/*/decisions.md" || true
-# El cuerpo de esa pregunta, uno por decisión: alcanzado, nunca leído como cabeza (spec 043).
-os_tree_ensure "$brain" "$wsdir/*/products/*/decisions/*.md" content || true
-
-# Las dos carpetas de un producto nacen con su primer dato y son contenido, nunca cabeza: `context/`
-# es la capa estratégica y `research/` todo documento fechado (spec 040). Se declaran acá para que el
-# primer archivo que el operador escriba adentro no aparezca como "ningún glob alcanza".
+os_tree_ensure "$brain" "$wsdir/*/products/*/.resolver.md" || true
+os_tree_ensure "$brain" "$wsdir/*/products/*/index.md" content || true
 os_tree_ensure "$brain" "$wsdir/*/products/*/context/*.md" content || true
 os_tree_ensure "$brain" "$wsdir/*/products/*/research/*.md" content || true
+os_tree_ensure "$brain" "$wsdir/*/products/*/resources/*.md" content || true
+os_tree_ensure "$brain" "$wsdir/*/products/*/resources/*/*.md" content || true
 
 printf '%s/%s/products/%s — %s\n' "$wsdir" "$org" "$slug" "$head"

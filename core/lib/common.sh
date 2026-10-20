@@ -7,6 +7,28 @@
 # Tope de identidad, en líneas. Única enunciación del número en el código distribuido.
 OS_IDENTITY_CAP=40
 
+# The machinery of the brain's root lives in one hidden folder (spec 076, C7): the tree, the root
+# resolver and the mounts table. Only statement of the folder name in the distributed code; every
+# reader builds its path from the constants below, never from a path spelled by hand.
+OS_SYSTEM_DIR=".system"
+OS_TREE_FILE="$OS_SYSTEM_DIR/tree.md"
+OS_ROOT_RESOLVER_FILE="$OS_SYSTEM_DIR/resolver.md"
+
+# The account (spec 076, C8): who the operator is and how they write. Visible, edited by the person.
+OS_ACCOUNT_DIR="account"
+OS_OPERATOR_FILE="$OS_ACCOUNT_DIR/operator.md"
+OS_VOICE_FILE="$OS_ACCOUNT_DIR/voice/voice.md"
+
+# Where an installed skill can live (spec 076, C10), in lookup order: the open-standard folder first,
+# then Claude Code's. `npx skills add` leaves the skill in the first and a link in the second, so a
+# skill present in both counts once (see `os_skill_dirs`).
+OS_SKILL_DIRS=".agents/skills .claude/skills"
+
+# Cap, in lines, for each of a workspace's `glossary.md` and `context-map.md` (spec 072): the startup
+# read loads them whole, so past this the scan warns. It never truncates. Only statement of the
+# number in the distributed code.
+OS_GLOSSARY_CAP=100
+
 # Separador de campos de los registros internos: nunca aparece en un archivo del operador.
 OS_SEP=$(printf '\037')
 
@@ -31,21 +53,50 @@ OS_CUANDO_FALTA='❓ sin definir — no se declaró en el cierre'
 # La cabeza no está en la lista porque su nombre es dato del brain (spec 040): la suma
 # `os_org_propios`, leyéndolo del árbol. Esta lista es además el negativo con el que `os_head_file`
 # reconoce la cabeza entre los globs de la altura del espacio de trabajo.
-OS_NODE_CANONICOS="resolver.md backlog.md decisions.md learnings.md"
+# Since spec 076 a workspace's own files are its head and `.resolver.md`: decisions and learnings are
+# folders, and no backlog lives outside an initiative. The names of before stay in the list so a
+# brain not migrated yet still tells its head apart from them.
+OS_NODE_CANONICOS=".resolver.md resolver.md backlog.md decisions.md learnings.md"
 
-# Los archivos propios de la raíz como nodo (spec 018): sus preguntas canónicas, más el backlog. La
-# raíz no tiene cabeza propia —esa identidad es `operator.md`, que ya se lee siempre— así que la
-# lista es la de arriba más los archivos que ya vivían sueltos en la raíz (`operator.md`,
-# `inbox.md`, `mounts.md`). Todo lo demás que un `glob:` alcance fuera de la carpeta de espacios de
-# trabajo es una cabeza de iniciativa de la raíz.
+# Los archivos propios de la raíz como nodo, en un brain nacido antes de la spec 059 y todavía sin
+# migrar: sus preguntas canónicas, más el backlog. La raíz no tiene cabeza propia —esa identidad es
+# `operator.md`, que ya se lee siempre— así que la lista es la de arriba más los archivos que ya
+# vivían sueltos en la raíz (`operator.md`, `inbox.md`, `mounts.md`). Desde la spec 059 la raíz solo
+# nace con maquinaria: esta lista sigue viva porque `sweep.sh` y `recall.sh --root` siguen leyendo
+# trabajo propio de la raíz de un brain viejo — `migrate-root.sh` es lo que lo mueve a
+# `workspaces/personal`.
 OS_ROOT_PROPIOS="operator.md resolver.md inbox.md mounts.md backlog.md decisions.md learnings.md"
 
-# La etiqueta que agrupa el trabajo propio de la raíz en los barridos globales (spec 018). Nunca
-# puede ser un slug real: `os_slugify` solo produce alfanumérico en minúscula y guiones, y esta
-# etiqueta lleva paréntesis y una tilde. Es la misma razón por la que los scripts de ámbito único
-# (`session-start.sh`, `capture.sh`, `close-session.sh`) usan un flag `--root` separado en vez de un
-# valor reservado de `--org`: un valor de texto siempre puede colisionar con lo que alguien nombre.
+# La etiqueta que agrupa el trabajo propio de la raíz en los barridos globales, sobre un brain
+# todavía sin migrar (spec 018, vigente para `sweep.sh` después de la 059). Nunca puede ser un slug
+# real: `os_slugify` solo produce alfanumérico en minúscula y guiones, y esta etiqueta lleva
+# paréntesis y una tilde.
 OS_ROOT_LABEL="(raíz)"
+
+# El slug fijo del espacio de trabajo con el que todo brain nuevo nace (spec 059, decisión 3): nunca
+# lo elige el operador ni lo pregunta la entrevista. `bootstrap.sh` lo crea siempre; `migrate-root.sh`
+# mueve ahí el trabajo de un brain viejo, creándolo si no existe.
+OS_PERSONAL_WORKSPACE_SLUG="personal"
+
+# os_root_gone BRAIN — the answer of a startup tool (`session-start.sh`, `session-read.sh`) asked for
+# `--root`, which no longer exists as a scope (spec 059): names the workspaces there are and the
+# migration, on stderr, and exits 2 — the same exit as a workspace that does not exist. Written
+# once, here, so the two halves of the startup cannot answer differently.
+os_root_gone() {
+  local brain="$1" slugs
+  [ -n "$brain" ] || os_die "falta --brain"
+  [ -d "$brain" ] || os_die "no existe el brain: $brain"
+  brain=$(cd "$brain" && pwd)
+  slugs=$(os_org_slugs "$brain" 2>/dev/null) || slugs=""
+  printf 'error: --root ya no existe (spec 059) — el trabajo del operador pasó a un espacio de trabajo. Los que hay:\n' >&2
+  if [ -n "$slugs" ]; then
+    printf '%s\n' "$slugs" | while IFS= read -r s; do [ -n "$s" ] && printf '  %s\n' "$s" >&2; done
+  else
+    printf '  (ninguno)\n' >&2
+  fi
+  printf 'Si el brain todavía tiene trabajo suelto en la raíz, correr .os/core/lib/migrate-root.sh --brain . primero.\n' >&2
+  exit 2
+}
 
 # os_cerrado ESTADO -> 0 si ese estado saca la cabeza de lo activo.
 os_cerrado() {
@@ -182,12 +233,12 @@ os_language_valido() {
 # without anyone noticing — same criterion `os_lang_load` already uses for a key with no
 # translation.
 os_language() {
-  fm_read "$1/operator.md"
+  fm_read "$1/$OS_OPERATOR_FILE"
   if [ -n "$fm_language" ] && os_language_valido "$fm_language"; then
     printf '%s' "$fm_language"
   else
     if [ -n "$fm_language" ]; then
-      os_warn "operator.md — language: $fm_language is not supported: falling back to en"
+      os_warn "$OS_OPERATOR_FILE — language: $fm_language is not supported: falling back to en"
     fi
     printf 'en'
   fi
@@ -249,10 +300,14 @@ os_lang_load() {
   return 0
 }
 
-# os_manual_file IDIOMA -> el nombre del manual de usuario en ese idioma (spec 022).
-# Única enunciación del par idioma → nombre de archivo: lo leen el bootstrap, el enlazador y los
-# evals. El nombre es legible para quien no programa, en el idioma del manual — el archivo se ve en
-# la raíz del brain, al lado de lo que el operador escribe.
+# The name of the manual's link at the root of the brain (spec 076, C11): always the same, in every
+# language, so the one visible file at the root has one name. The link points at the manual of the
+# brain's language (`os_manual_file`). Only statement of the name in the distributed code.
+OS_MANUAL_LINK="HOW-IT-WORKS.md"
+
+# os_manual_file IDIOMA -> el nombre del archivo del manual de usuario en ese idioma, dentro de
+# `core/manual/` (spec 022). Única enunciación del par idioma → nombre de archivo: lo leen el
+# enlazador y los evals. El enlace de la raíz del brain no lleva este nombre sino `OS_MANUAL_LINK`.
 os_manual_file() {
   case "$1" in
     es) printf 'COMO-FUNCIONA.md' ;;
@@ -307,11 +362,13 @@ CAP_FRONTMATTER=30
 
 fm_status=""; fm_horizon=""; fm_waiting_on=""; fm_blocked=""; fm_role=""; fm_owner=""
 fm_depends_on=""; fm_repo=""; fm_language=""; fm_superseded_by=""; fm_about=""
+fm_date=""; fm_key=""; fm_title=""; fm_index_note=""; fm_generated=""
 fm_roto=""
 
 fm_limpiar() {
   fm_status=""; fm_horizon=""; fm_waiting_on=""; fm_blocked=""; fm_role=""; fm_owner=""
   fm_depends_on=""; fm_repo=""; fm_language=""; fm_superseded_by=""; fm_about=""
+  fm_date=""; fm_key=""; fm_title=""; fm_index_note=""; fm_generated=""
 }
 
 # fm_read ARCHIVO — deja el resultado en las variables fm_*. `fm_roto` no vacío significa que no se
@@ -336,8 +393,15 @@ fm_read() {
       *:*) ;;
       *) continue ;;
     esac
-    key=$(os_trim "${line%%:*}")
-    value=$(os_trim "${line#*:}")
+    # Trimmed in place, with no subshell: this loop runs once per frontmatter line of every head and
+    # every decision the reads walk (spec 076 builds the indexes on each startup read), and a `$(...)`
+    # per line was the whole cost. Same rule as `os_trim`: spaces only, both ends.
+    key="${line%%:*}"
+    while [ "${key# }" != "$key" ]; do key="${key# }"; done
+    while [ "${key% }" != "$key" ]; do key="${key% }"; done
+    value="${line#*:}"
+    while [ "${value# }" != "$value" ]; do value="${value# }"; done
+    while [ "${value% }" != "$value" ]; do value="${value% }"; done
     case "$key" in
       status) fm_status="$value" ;;
       horizon) fm_horizon="$value" ;;
@@ -355,11 +419,22 @@ fm_read() {
       # reaches and a content file that only a `content:` reaches — because the reader at risk is
       # whoever opened the file, not whoever walked the tree.
       superseded_by) fm_superseded_by="$value" ;;
-      # `about:` (spec 049) — la ruta, relativa al brain, de la cabeza de la que trata este nodo:
-      # la iniciativa dice sobre qué producto, cuenta o canal trabaja. Llega a este lector como
-      # cualquier otra clave. Es clave de cabeza: el barrido lee frontmatter de cabezas y nunca abre
-      # un archivo de contenido, así que la misma clave escrita en un `content:` no la lee nadie.
-      about) fm_about="$value" ;;
+      # `about:` (spec 049) — the path, relative to the brain, of the head this node is about, or a
+      # list of them on one line (spec 076, C16: `os_about_values` splits it). Kept raw here. A
+      # decision or a learning carries it too (spec 076, C17): the scan never opens those, the index
+      # generator and the focus's key decisions do.
+      # `about: []` names nothing: the same as no `about:` at all, for every reader (spec 076, C16).
+      about) case "$value" in '['*']') [ -n "$(printf '%s' "${value#\[}" | tr -d ' ]')" ] || value="" ;; esac
+             fm_about="$value" ;;
+      # The keys of the generated indexes (spec 076, C18): `date:` and `key:` of a decision or a
+      # learning, `title:` when the link text differs from the body's `# Title`, `index_note:` the
+      # tail of its index line, and `generated:` on every file a script writes so the AI and the
+      # generator never mistake it for one a person wrote.
+      date) fm_date="$value" ;;
+      key) fm_key="$value" ;;
+      title) fm_title="$value" ;;
+      index_note) fm_index_note="$value" ;;
+      generated) fm_generated="$value" ;;
     esac
   done < "$file"
   if [ "$primera" = "1" ]; then fm_roto="sin frontmatter"; return 0; fi
@@ -381,7 +456,7 @@ fm_read() {
 # en `tree.md`, no tocar un script.
 os_tree_files() {
   local brain="$1" line g
-  [ -f "$brain/tree.md" ] || return 1
+  [ -f "$brain/$OS_TREE_FILE" ] || return 1
   while IFS= read -r line || [ -n "$line" ]; do
     case "$line" in
       glob:*) ;;
@@ -390,29 +465,7 @@ os_tree_files() {
     g=$(os_trim "${line#glob:}")
     [ -n "$g" ] || continue
     ( cd "$brain" && for f in $g; do [ -e "$f" ] && printf '%s\n' "$f"; done )
-  done < "$brain/tree.md"
-  return 0
-}
-
-# os_tree_globs BRAIN -> the `glob:` patterns themselves, one per line, unexpanded. Exit 1 if there
-# is no declaration: the caller decides what to say.
-#
-# Fourth reader of the same file, and the reason it lives here like the other three: a caller that
-# needs to know which levels the tree DECLARES — not which files exist at them today — would
-# otherwise parse `tree.md` on its own. `my-wiki.sh` (spec 060) derives the entity types of a brain
-# from these patterns, so a type declared with no node in it yet is still a type.
-os_tree_globs() {
-  local brain="$1" line g
-  [ -f "$brain/tree.md" ] || return 1
-  while IFS= read -r line || [ -n "$line" ]; do
-    case "$line" in
-      glob:*) ;;
-      *) continue ;;
-    esac
-    g=$(os_trim "${line#glob:}")
-    [ -n "$g" ] || continue
-    printf '%s\n' "$g"
-  done < "$brain/tree.md"
+  done < "$brain/$OS_TREE_FILE"
   return 0
 }
 
@@ -427,7 +480,7 @@ os_tree_globs() {
 # este repo ya prohíbe — por eso el lector queda acá, el único lugar que lee el formato.
 os_tree_content_files() {
   local brain="$1" line g
-  [ -f "$brain/tree.md" ] || return 1
+  [ -f "$brain/$OS_TREE_FILE" ] || return 1
   while IFS= read -r line || [ -n "$line" ]; do
     case "$line" in
       content:*) ;;
@@ -436,7 +489,7 @@ os_tree_content_files() {
     g=$(os_trim "${line#content:}")
     [ -n "$g" ] || continue
     ( cd "$brain" && for f in $g; do [ -e "$f" ] && printf '%s\n' "$f"; done )
-  done < "$brain/tree.md"
+  done < "$brain/$OS_TREE_FILE"
   return 0
 }
 
@@ -451,7 +504,7 @@ os_tree_content_files() {
 # forgetting to filter them out. The only file that parses `tree.md` is still this one.
 os_tree_archive_files() {
   local brain="$1" line g
-  [ -f "$brain/tree.md" ] || return 1
+  [ -f "$brain/$OS_TREE_FILE" ] || return 1
   while IFS= read -r line || [ -n "$line" ]; do
     case "$line" in
       archive:*) ;;
@@ -460,7 +513,7 @@ os_tree_archive_files() {
     g=$(os_trim "${line#archive:}")
     [ -n "$g" ] || continue
     ( cd "$brain" && for f in $g; do [ -e "$f" ] && printf '%s\n' "$f"; done )
-  done < "$brain/tree.md"
+  done < "$brain/$OS_TREE_FILE"
   return 0
 }
 
@@ -539,7 +592,7 @@ os_inside_brain() {
 os_memory_types() {
   local brain="$1" scope="$2" wsdir head prefix line g rest tipo resto2 types nl
   nl=$(printf '\nx'); nl="${nl%x}"
-  [ -f "$brain/tree.md" ] || return 1
+  [ -f "$brain/$OS_TREE_FILE" ] || return 1
   wsdir=$(os_ws_dir "$brain")
   head=$(os_head_file "$brain") || true
   if [ "$scope" = "root" ]; then prefix=""; else prefix="$wsdir/*/"; fi
@@ -562,7 +615,7 @@ os_memory_types() {
     [ "$resto2" = "*/$head" ] || continue
     case "$nl$types" in *"$nl$tipo$nl"*) continue ;; esac
     types="$types$tipo$nl"
-  done < "$brain/tree.md"
+  done < "$brain/$OS_TREE_FILE"
   printf '%s' "$types"
   return 0
 }
@@ -576,13 +629,13 @@ os_memory_own_file() {
   local wsdir="$1" head="$2" types_org="$3" types_root="$4" f="$5" t
   for t in $types_org; do
     case "$f" in
-      "$wsdir"/*/"$t"/*/"$head"|"$wsdir"/*/"$t"/*/resolver.md|"$wsdir"/*/"$t"/*/decisions.md)
+      "$wsdir"/*/"$t"/*/"$head"|"$wsdir"/*/"$t"/*/.resolver.md|"$wsdir"/*/"$t"/*/resolver.md|"$wsdir"/*/"$t"/*/decisions.md)
         return 0 ;;
     esac
   done
   for t in $types_root; do
     case "$f" in
-      "$t"/*/"$head"|"$t"/*/resolver.md|"$t"/*/decisions.md) return 0 ;;
+      "$t"/*/"$head"|"$t"/*/.resolver.md|"$t"/*/resolver.md|"$t"/*/decisions.md) return 0 ;;
     esac
   done
   return 1
@@ -599,7 +652,7 @@ os_memory_own_file() {
 os_head_kind() {
   local wsdir="$1" head="$2" f="$3" ws inner mid tipo
 
-  if [ "$f" = "operator.md" ]; then printf 'root'; return 0; fi
+  if [ "$f" = "$OS_OPERATOR_FILE" ]; then printf 'root'; return 0; fi
 
   case "$f" in
     "$wsdir"/*)
@@ -657,13 +710,25 @@ os_head_kind() {
 # os_tree_ensure BRAIN GLOB [CLASE]
 # Deja declarado el glob en `tree.md` si faltaba. Es la contracara de que los archivos de solo
 # contenido nazcan con su primer dato: el archivo aparece y ningún glob lo alcanza hasta que el
-# comando que lo creó declara su altura. Los globs los mantienen los comandos que crean niveles.
+# comando que lo creó declara su altura. Los globs los mantienen los comandos que crean niveles; la
+# única excepción es la lectura de arranque, para el glosario y el mapa de contextos de un espacio
+# de trabajo escritos a mano (spec 072, `session-read.sh`).
 # CLASE es `glob` (default, una cabeza) o `content` (alcanzado, nunca leído como cabeza — spec 007).
 # El manual de usuario entra por `content` (spec 022): se ve en la raíz y no es trabajo.
 #   0  lo agregó       1  ya estaba       2  no hay tree.md que mantener
+# os_tree_line LINE -> "<class><TAB><pattern>" when LINE is a declaration of tree.md (glob, content or
+# archive); 1 otherwise. The one place outside the readers above that knows the three prefixes — a
+# caller that rewrites tree.md line by line (migrate-root.sh) asks here instead of parsing them.
+os_tree_line() {
+  case "$1" in
+    glob:*|content:*|archive:*) printf '%s\t%s' "${1%%:*}" "$(os_trim "${1#*:}")"; return 0 ;;
+  esac
+  return 1
+}
+
 os_tree_ensure() {
   local brain="$1" glob="$2" clase="${3:-glob}" line g
-  [ -f "$brain/tree.md" ] || return 2
+  [ -f "$brain/$OS_TREE_FILE" ] || return 2
   while IFS= read -r line || [ -n "$line" ]; do
     case "$line" in
       "$clase":*) ;;
@@ -671,8 +736,13 @@ os_tree_ensure() {
     esac
     g=$(os_trim "${line#$clase:}")
     [ "$g" = "$glob" ] && return 1
-  done < "$brain/tree.md"
-  printf '%s: %s\n' "$clase" "$glob" >> "$brain/tree.md"
+  done < "$brain/$OS_TREE_FILE"
+  # A tree.md edited by hand can end without a newline: the new line would glue onto the last one
+  # and corrupt that declaration (Codex review of spec 072, finding 1).
+  if [ -s "$brain/$OS_TREE_FILE" ] && [ -n "$(tail -c 1 "$brain/$OS_TREE_FILE")" ]; then
+    printf '\n' >> "$brain/$OS_TREE_FILE"
+  fi
+  printf '%s: %s\n' "$clase" "$glob" >> "$brain/$OS_TREE_FILE"
   return 0
 }
 
@@ -706,15 +776,40 @@ os_decision_path() {
 # date in the name (spec's own criterion: a learning that gets updated does not change its
 # identity), so the same title always resolves to the same file — exit 0 when that file already
 # existed (the caller's cue to update in place instead of writing a fresh header), 1 when it is new.
+#
+# A file is the same learning only if its own title (`title:`, or else its `# Title`) slugifies to the
+# same slug as TITLE: two different titles that land on one name (`Index`, which never takes `index.md`,
+# and `Index 1`) never share a file. The next free name is `<name>-2`, `<name>-3`, and so on, and a
+# file there is the same learning by the same test.
 os_learning_path() {
-  local brain="$1" prefix="$2" title="$3" slug rel
+  local brain="$1" prefix="$2" title="$3" slug want first cand n rel stored
   slug=$(os_slugify "$title")
   [ -n "$slug" ] || slug="sin-titulo"
   slug=$(os_slug_cap "$slug" 80)
-  rel="learnings/${slug}.md"
-  printf '%s' "$rel"
-  [ -f "$brain/${prefix}${rel}" ] && return 0
-  return 1
+  want="$slug"
+  first="$slug"
+  # `index.md` is the generated index of the folder (spec 076, C18): a learning never takes that name.
+  [ "$first" = "index" ] && first="index-1"
+  cand="$first"
+  n=1
+  while :; do
+    rel="learnings/${cand}.md"
+    if [ ! -f "$brain/${prefix}${rel}" ]; then
+      printf '%s' "$rel"
+      return 1
+    fi
+    fm_read "$brain/${prefix}${rel}"
+    stored="$fm_title"
+    [ -n "$stored" ] || stored=$(os_titulo "$brain/${prefix}${rel}")
+    stored=$(os_slugify "$stored")
+    [ -n "$stored" ] || stored="sin-titulo"
+    if [ "$(os_slug_cap "$stored" 80)" = "$want" ]; then
+      printf '%s' "$rel"
+      return 0
+    fi
+    n=$(( n + 1 ))
+    cand="$first-$n"
+  done
 }
 
 # os_index_line DATE TITLE REL WHEN -> the one line an index (`decisions.md`/`learnings.md`) carries
@@ -805,36 +900,256 @@ os_index_mark_superseded() {
   [ "$found" = "1" ]
 }
 
+# ---------------------------------------------------------------- `about:` names one node or several (spec 076, C16)
+# `about: <path>` names one head; `about: [<path>, <path>]` names several, on a single line, in the
+# order they are read. The key stays optional. These two are the only readers of the list form: the
+# scan validates each value, the focus jumps once per value, the index generator files a document
+# under each node it names and `close-session` copies the focus's value as it is.
+
+# os_about_values VALUE -> each path the value names, one per line, in order, trimmed. `[]` names
+# none. An empty item between two commas is printed as an empty line, so a caller that validates
+# reports it instead of skipping it.
+os_about_values() {
+  local v="$1" item rest
+  case "$v" in
+    '['*']')
+      rest="${v#\[}"
+      rest="${rest%\]}"
+      while [ "${rest# }" != "$rest" ]; do rest="${rest# }"; done
+      while [ "${rest% }" != "$rest" ]; do rest="${rest% }"; done
+      [ -n "$rest" ] || return 0
+      while :; do
+        case "$rest" in
+          *,*) item="${rest%%,*}"; rest="${rest#*,}" ;;
+          *) item="$rest"; rest="" ;;
+        esac
+        while [ "${item# }" != "$item" ]; do item="${item# }"; done
+        while [ "${item% }" != "$item" ]; do item="${item% }"; done
+        printf '%s\n' "$(os_unquote "$item")"
+        [ -n "$rest" ] || break
+      done
+      ;;
+    '') return 0 ;;
+    *) printf '%s\n' "$(os_unquote "$v")" ;;
+  esac
+  return 0
+}
+
+# os_unquote VALUE -> VALUE without one pair of matching surrounding quotes (`"x"` or `'x'`), the
+# way YAML reads a quoted scalar. The layout migration (`migrate_layout.py`, `unquote`) reads `about:`
+# with the same rule, so both recognise the same standing initiative of a node.
+os_unquote() {
+  local v="$1"
+  case "$v" in
+    \"*\") [ "${#v}" -ge 2 ] && v="${v#\"}" && v="${v%\"}" ;;
+    \'*\') [ "${#v}" -ge 2 ] && v="${v#\'}" && v="${v%\'}" ;;
+  esac
+  printf '%s' "$v"
+}
+
+# os_about_names VALUE HEAD -> 0 if one of the paths VALUE names, normalised, is HEAD.
+os_about_names() {
+  local v
+  while IFS= read -r v || [ -n "$v" ]; do
+    [ -n "$v" ] || continue
+    [ "$(os_rel_norm "$v")" = "$2" ] && return 0
+  done <<VALUES
+$(os_about_values "$1")
+VALUES
+  return 1
+}
+
+# os_about_set VALUE -> the paths VALUE names, normalised, as one string with a newline before and
+# after each one: a caller that tests membership many times builds it once and matches it with
+# `case "$set" in *"<newline>$head<newline>"*)`, no subshell per test. Empty for no value.
+os_about_set() {
+  local v out=""
+  while IFS= read -r v || [ -n "$v" ]; do
+    [ -n "$v" ] || continue
+    out="$out
+$(os_rel_norm "$v")"
+  done <<VALUES
+$(os_about_values "$1")
+VALUES
+  [ -n "$out" ] && printf '%s\n' "$out"
+  return 0
+}
+
+# os_about_is_single VALUE HEAD -> 0 if VALUE names HEAD and nothing else: the shape of the standing
+# initiative of a node (spec 076, C30), as opposed to an initiative that is about several nodes.
+os_about_is_single() {
+  local n=0 v hit=0
+  while IFS= read -r v || [ -n "$v" ]; do
+    [ -n "$v" ] || continue
+    n=$(( n + 1 ))
+    [ "$(os_rel_norm "$v")" = "$2" ] && hit=1
+  done <<VALUES
+$(os_about_values "$1")
+VALUES
+  [ "$n" = "1" ] && [ "$hit" = "1" ]
+}
+
+# ---------------------------------------------------------------- relative links (spec 076, C18)
+# os_rel_link FROM_DIR TO -> TO written relative to FROM_DIR. Both are relative to the brain; FROM_DIR
+# has no trailing slash and is empty for the brain itself. This is what makes a generated index open
+# its lines with one click from Obsidian and from GitHub.
+os_rel_link() {
+  local from="$1" to="$2" up=""
+  while [ -n "$from" ]; do
+    case "$to" in
+      "$from"/*) printf '%s%s' "$up" "${to#"$from"/}"; return 0 ;;
+    esac
+    up="../$up"
+    case "$from" in
+      */*) from="${from%/*}" ;;
+      *) from="" ;;
+    esac
+  done
+  printf '%s%s' "$up" "$to"
+}
+
+# ---------------------------------------------------------------- the index line of a decision or a learning (spec 076, C18)
+# Decisions and learnings live flat in the workspace (`decisions/`, `learnings/`), one file each, and
+# every index that lists them is generated from their frontmatter — never from a hand-kept index.
+# The line is the one the hand-kept index carried (spec 043, 069): date, the key label, the title as
+# a link, the tail, and the replacement mark at the end:
+#
+#   - DATE · <key label> · [TITLE](LINK) — <index_note> — **<superseded label>**: [NEW](LINK)
+#
+# `date:` gives the date; `title:`, else the body's first `# Title`, else the file name, gives the
+# title; `key:` with any value but `false` gives the key label; `superseded_by:` gives the mark, with
+# the title of the file it names; `index_note:` gives the tail. The two labels come from the strings
+# catalog, so the caller has the catalog loaded.
+
+# os_doc_is_key VALUE -> 0 if a `key:` value marks the document as key. The decisions of spec 069
+# carry the reason as free text in the key; the migration writes `true`.
+os_doc_is_key() {
+  case "$1" in
+    ''|false|no) return 1 ;;
+  esac
+  return 0
+}
+
+# os_doc_title FILE -> the title an index shows for it: `title:`, the first `# Title`, or the name.
+# Reads the frontmatter itself: the caller's `fm_*` are overwritten.
+os_doc_title() {
+  local t base
+  fm_read "$1"
+  t="$fm_title"
+  [ -n "$t" ] || t=$(os_titulo "$1")
+  if [ -z "$t" ]; then
+    base="${1##*/}"
+    t="${base%.md}"
+  fi
+  printf '%s' "$t"
+}
+
+# os_doc_index_line BRAIN REL FROM_DIR -> the index line of the document at REL (relative to the
+# brain), with its links relative to FROM_DIR. Exit 1 when the file is not there.
+os_doc_index_line() {
+  local brain="$1" rel="$2" from="$3" date key title note sup line sup_title
+  [ -f "$brain/$rel" ] || return 1
+  title=$(os_doc_title "$brain/$rel")
+  fm_read "$brain/$rel"
+  date="$fm_date"; key="$fm_key"; note="$fm_index_note"; sup=$(os_rel_norm "$fm_superseded_by")
+  line="-"
+  [ -n "$date" ] && line="$line $date ·"
+  os_doc_is_key "$key" && line="$line $S_INDEX_KEY_LABEL ·"
+  line="$line [$title]($(os_rel_link "$from" "$rel"))"
+  [ -n "$note" ] && line="$line — $note"
+  if [ -n "$sup" ]; then
+    if [ -f "$brain/$sup" ]; then sup_title=$(os_doc_title "$brain/$sup"); else sup_title="${sup##*/}"; fi
+    line="$line — **$S_INDEX_SUPERSEDED_LABEL**: [$sup_title]($(os_rel_link "$from" "$sup"))"
+  fi
+  printf '%s' "$line"
+  return 0
+}
+
+# os_doc_superseded -> 0 if the document `fm_read` just read is replaced: `superseded_by:` (spec 046)
+# or MADR's `status: superseded by ...` (spec 070), which `os_decision_mark_superseded` writes together.
+os_doc_superseded() {
+  [ -n "$fm_superseded_by" ] && return 0
+  case "$fm_status" in superseded*) return 0 ;; esac
+  return 1
+}
+
+# os_docs_sorted BRAIN DIR_REL -> the `.md` files of that folder (never its generated `index.md`),
+# relative to the brain, newest `date:` first; same date, by path. An undated file goes last.
+os_docs_sorted() {
+  local brain="$1" dir="$2" f rel tab
+  tab=$(printf '\tx'); tab="${tab%x}"
+  [ -d "$brain/$dir" ] || return 0
+  for f in "$brain/$dir"/*.md; do
+    [ -f "$f" ] || continue
+    rel="${f#"$brain"/}"
+    [ "${rel##*/}" = "index.md" ] && continue
+    fm_read "$f"
+    printf '%s\t%s\n' "${fm_date:-0000-00-00}" "$rel"
+  done | LC_ALL=C sort -t "$tab" -k1,1r -k2,2 | while IFS="$tab" read -r _d rel; do
+    printf '%s\n' "$rel"
+  done
+}
+
+# os_key_decisions BRAIN WS_REL [NODE_HEAD] -> the key decisions of a workspace (spec 076, C19), one
+# index line each, links relative to its `decisions/`, newest first. Without NODE_HEAD: the key ones,
+# not replaced, with no `about:` — what the startup read loads. With it: the key ones, not replaced,
+# whose `about:` names that head — what the focus loads for that node. Read from the frontmatter of
+# each decision, never from an index. Nothing for a workspace without any.
+os_key_decisions() {
+  local brain="$1" ws="$2" node="${3:-}" rel
+  while IFS= read -r rel || [ -n "$rel" ]; do
+    [ -n "$rel" ] || continue
+    fm_read "$brain/$rel"
+    [ -z "$fm_roto" ] || continue
+    os_doc_is_key "$fm_key" || continue
+    os_doc_superseded && continue
+    if [ -z "$node" ]; then
+      [ -z "$fm_about" ] || continue
+    else
+      os_about_names "$fm_about" "$node" || continue
+    fi
+    os_doc_index_line "$brain" "$rel" "$ws/decisions"
+    printf '\n'
+  done <<DOCS
+$(os_docs_sorted "$brain" "$ws/decisions")
+DOCS
+  return 0
+}
+
 # os_buscar_oficio BRAIN SLUG -> la ruta del archivo con `command: SLUG`, relativa al brain, por
 # stdout. Exit 0 si lo encontró, 1 si no. Único buscador (spec 009): la mitad negativa del arranque
 # de sesión (el aviso "capacidad no instalada") y la positiva (nombrar la ruta del oficio activo)
 # leen del mismo lugar — dos copias de este recorrido se desincronizan la primera vez que cambie
 # dónde vive un oficio.
 #
-# Busca en `.os/core/skills`, `.os/packs/*/skills` y `.claude/skills`, la marca en primera columna:
-# `command: SLUG` en el frontmatter de un `.md`, `# command: SLUG` en un script — el mismo
-# vocabulario que declara un invocable en toda la arquitectura. Se queda con el primer archivo que
-# matchea.
+# Busca en `.os/core/skills`, `.os/packs/*/skills` y después en las carpetas de skills del brain
+# (`OS_SKILL_DIRS`: `.agents/skills` primero, `.claude/skills` después; spec 076, C10), la marca en
+# primera columna: `command: SLUG` en el frontmatter de un `.md`, `# command: SLUG` en un script — el
+# mismo vocabulario que declara un invocable en toda la arquitectura. Se queda con el primer archivo
+# que matchea, así que una skill presente en las dos carpetas de skills se encuentra una sola vez.
 #
-# `.claude/skills` es donde el CLI de skills.sh deja un pack bajado por `npx skills add` (spec 026),
-# y ahí la marca del formato Agent Skills es `name:`, no `command:` — el generador del release la
-# escribe desde el mismo `command:` del fuente. Sin este origen, un `role:` de un oficio del pack
-# se reporta como capacidad no instalada con el oficio instalado al lado.
+# Las carpetas de skills del brain son donde el CLI de skills.sh deja un pack bajado por
+# `npx skills add` (spec 026), y ahí la marca del formato Agent Skills es `name:`, no `command:` — el
+# generador del release la escribe desde el mismo `command:` del fuente. Sin este origen, un `role:`
+# de un oficio del pack se reporta como capacidad no instalada con el oficio instalado al lado.
 #
 # La coincidencia es sin distinción de mayúsculas (spec personal-os#014, Gate 1): `role: CPO` en el
 # nodo activa `command: cpo` del oficio. El slug canónico del archivo sigue siendo minúscula; acá
 # se normaliza el slug de entrada con `os_lower` y se busca con `grep -i`.
 os_buscar_oficio() {
-  local brain="$1" slug="$2" d f rel slug_lc marca
+  local brain="$1" slug="$2" d f rel slug_lc marca sd
+  local -a dirs
   slug_lc=$(os_lower "$slug")
-  for d in "$brain/.os/core/skills" "$brain"/.os/packs/*/skills "$brain/.claude/skills"; do
+  dirs=("$brain/.os/core/skills" "$brain"/.os/packs/*/skills)
+  for sd in $OS_SKILL_DIRS; do dirs+=("$brain/$sd"); done
+  for d in "${dirs[@]}"; do
     [ -d "$d" ] || continue
     # La marca depende del origen, no del archivo: `name:` solo se acepta donde el formato es el del
     # CLI. Aceptarla en todos lados volvería invocable cualquier frontmatter con esa clave.
-    case "$d" in
-      "$brain/.claude/skills") marca="^(# )?name: $slug_lc\$" ;;
-      *) marca="^(# )?command: $slug_lc\$" ;;
-    esac
+    marca="^(# )?command: $slug_lc\$"
+    for sd in $OS_SKILL_DIRS; do
+      [ "$d" = "$brain/$sd" ] && marca="^(# )?name: $slug_lc\$"
+    done
     while IFS= read -r f; do
       [ -n "$f" ] || continue
       if grep -qiE "$marca" "$f"; then
@@ -843,10 +1158,32 @@ os_buscar_oficio() {
         return 0
       fi
     done <<FILES
-$(find "$d" -type f | sort)
+$(find -L "$d" -type f 2>/dev/null | sort)
 FILES
   done
   return 1
+}
+
+# os_skill_resolver_indexes BRAIN -> the pack indexes the brain has installed, one path per line,
+# relative to the brain: `<skills-dir>/<pack>-resolver/SKILL.md` for each folder of `OS_SKILL_DIRS`
+# that exists, in lookup order (spec 076, C10). A pack present in both folders —the link that
+# `npx skills add` leaves in `.claude/skills`— counts once, under the first folder. The glob of the
+# shell, never `find`: the CLI leaves the pack index as a symlinked folder, and pathname expansion
+# follows it.
+os_skill_resolver_indexes() {
+  local brain="$1" sd f name seen="" nl
+  nl=$(printf '\nx'); nl="${nl%x}"
+  for sd in $OS_SKILL_DIRS; do
+    [ -d "$brain/$sd" ] || continue
+    for f in "$brain/$sd"/*-resolver/SKILL.md; do
+      [ -f "$f" ] || continue
+      name=$(basename "$(dirname "$f")")
+      case "$nl$seen" in *"$nl$name$nl"*) continue ;; esac
+      seen="$seen$name$nl"
+      printf '%s\n' "${f#$brain/}"
+    done
+  done
+  return 0
 }
 
 # os_pack_hint BRAIN -> el ofrecimiento del pack en una línea, o vacío.
@@ -854,16 +1191,18 @@ FILES
 # no hay ningún skill instalado por el CLI, lo que falta puede ser justamente lo que trae el pack, y
 # el aviso lleva el comando al lado en vez de dejar al operador buscándolo.
 #
-# Con algo ya instalado en `.claude/skills` no se ofrece nada: ahí el pack está, y lo que falte es
-# otro problema — ofrecer una instalación hecha es ruido en cada arranque.
+# Con algo ya instalado en las carpetas de skills no se ofrece nada: ahí el pack está, y lo que falte
+# es otro problema — ofrecer una instalación hecha es ruido en cada arranque.
 #
 # El comando exacto lo imprime `pack-install.sh --line`, único lugar donde el generador inyecta el
 # nombre del repo del pack. Sin ese archivo —un brain instalado desde una versión anterior— la
 # función no dice nada: un aviso que no puede nombrar el comando no agrega información.
 os_pack_hint() {
-  local brain="$1" d linea
-  for d in "$brain"/.claude/skills/*/SKILL.md; do
-    [ -f "$d" ] && return 0
+  local brain="$1" d sd linea
+  for sd in $OS_SKILL_DIRS; do
+    for d in "$brain/$sd"/*/SKILL.md; do
+      [ -f "$d" ] && return 0
+    done
   done
   [ -x "$brain/.os/core/lib/pack-install.sh" ] || return 0
   linea=$("$brain/.os/core/lib/pack-install.sh" --brain "$brain" --line 2>/dev/null) || return 0
@@ -1106,6 +1445,80 @@ FILES
   printf 'tsk-%03d' "$(( max + 1 ))"
 }
 
+# The slug of a workspace's initiative for tasks that belong to no other (spec 076, Gate 1 P9). Its
+# title comes from the strings catalog (`TASKS_TO_SORT_TITLE`), in the language of the brain.
+OS_TASKS_TO_SORT_SLUG="tasks-to-sort"
+
+# os_operator_name BRAIN -> the operator's name: the first `# Title` of `account/operator.md`.
+os_operator_name() {
+  os_titulo "$1/$OS_OPERATOR_FILE"
+}
+
+# os_ini_render TITLE STATUS ABOUT OWNER DATE -> the text of the head of a new initiative, on stdout:
+# the same frontmatter a standing initiative already carries in a real brain (`status`, `owner` when
+# given, `horizon: later`, `about` when given, `updated`) and its title. The one place that shape is
+# written: `os_ini_create` writes it to disk, and the layout migration (`migrate_layout.py`) calls it
+# to plan the initiatives it creates, so the two can never differ.
+os_ini_render() {
+  local title="$1" status="$2" about="$3" owner="$4" day="$5"
+  printf -- '---\n'
+  printf 'status: %s\n' "$status"
+  [ -n "$owner" ] && printf 'owner: %s\n' "$owner"
+  printf 'horizon: later\n'
+  [ -n "$about" ] && printf 'about: %s\n' "$about"
+  printf 'updated: %s\n' "$day"
+  printf -- '---\n\n'
+  printf '# %s\n' "$title"
+}
+
+# os_ini_create BRAIN PREFIX SLUG TITLE STATUS [ABOUT] — writes the head of a new initiative
+# (`os_ini_render`, owned by the operator, dated today). Never overwrites: exit 1 if the head is
+# already there. Its callers (spec 076) are `capture --about --create`, after the operator said
+# yes, and the workspace's `tasks-to-sort`, where the system files its own pending steps. Only the
+# new form (a folder per initiative) is written.
+os_ini_create() {
+  local brain="$1" prefix="$2" slug="$3" title="$4" status="$5" about="${6:-}" rel
+  rel=$(os_ini_head_rel "$brain" "$prefix" "$slug")
+  [ -e "$brain/$rel" ] && return 1
+  mkdir -p "$(dirname "$brain/$rel")" || return 1
+  os_ini_render "$title" "$status" "$about" "$(os_operator_name "$brain")" "$(date +%Y-%m-%d)" \
+    > "$brain/$rel" || return 1
+  return 0
+}
+
+# os_personal_backlog_append BRAIN TASK — the one write of a task that the system does for itself, and
+# only after the operator's yes (spec 076, final Gate 2): `pack-install.sh --defer --note` and
+# `remote-backup.sh --note`; without `--note` both ask «¿Te lo anoto para después?» and write nothing. A
+# pending step of the system itself (installing the skill pack, setting up the remote backup),
+# written by a deterministic script with no model in between that could name an initiative (spec
+# 057, delegated decision). Since spec 076 (C29) no tool writes a `backlog.md` outside an initiative:
+# the step lands in the backlog of the `tasks-to-sort` initiative of the `personal` workspace —the
+# initiative Gate 1 (P9) set for the tasks of a workspace that fit no other—, born here with its
+# first task when it is not there. An existing `tasks-to-sort` is reused only if it has no `about:`.
+# Same line format and same brain-wide counter as `capture`.
+#   0  written      1  the same task was already there      2  the `personal` workspace does not
+#   exist (a brain born before spec 059 and not migrated yet) — nothing written      3  the
+#   `tasks-to-sort` slug is taken by an initiative that is about a node — nothing written
+os_personal_backlog_append() {
+  local brain="$1" task="$2" wsdir prefix slug="$OS_TASKS_TO_SORT_SLUG" file id
+  wsdir=$(os_ws_dir "$brain")
+  prefix="$wsdir/$OS_PERSONAL_WORKSPACE_SLUG/"
+  [ -d "$brain/$prefix" ] || return 2
+  if os_ini_existe "$brain" "$prefix" "$slug"; then
+    fm_read "$brain/$(os_ini_head_rel "$brain" "$prefix" "$slug")"
+    [ -z "$fm_about" ] || return 3
+  else
+    os_lang_load "$(os_language "$brain")" > /dev/null 2>&1
+    os_ini_create "$brain" "$prefix" "$slug" "$S_TASKS_TO_SORT_TITLE" active || return 3
+  fi
+  file="$brain/$(os_ini_backlog_rel "$prefix" "$slug")"
+  if [ -f "$file" ] && grep -qF -- "$task" "$file"; then return 1; fi
+  os_ini_backlog_asegurar "$brain" "$prefix" "$slug" || true
+  id=$(os_backlog_next_id "$brain")
+  printf '%s\n' "$(os_backlog_linea "$id" "$task" "" "" "" "0" "$(date +%Y-%m-%d)")" >> "$file"
+  return 0
+}
+
 # ---------------------------------------------------------------- el nombre de la carpeta (spec 039)
 # El código sigue diciendo "org" —la variable, la opción `--org`, `os_org_slugs`, `os_org_existe`,
 # `OS_ORG_PROPIOS`— porque nada de eso lo ve el operador (P3): renombrarlo agrandaría el diff sin
@@ -1118,7 +1531,7 @@ FILES
 # `workspaces` — el nombre de nacimiento. Nunca aborta: solo imprime. Un layout inválido lo detecta
 # `os_ws_check`, aparte.
 os_ws_dir() {
-  local tree="$1/tree.md" line
+  local tree="$1/$OS_TREE_FILE" line
   [ -f "$tree" ] || { printf 'workspaces'; return 0; }
   while IFS= read -r line || [ -n "$line" ]; do
     case "$line" in
@@ -1182,7 +1595,7 @@ os_ws_check() {
 # quien solo quiera el nombre tiene que absorberlo (`|| true`), o `set -e` mata al script en la
 # asignación.
 os_head_file() {
-  local brain="$1" tree="$1/tree.md" line g base wsdir ws_head="" ini_forma=""
+  local brain="$1" tree="$1/$OS_TREE_FILE" line g base wsdir ws_head="" ini_forma=""
   [ -f "$tree" ] || { printf 'README.md'; return 2; }
   wsdir=$(os_ws_dir "$brain")
   while IFS= read -r line || [ -n "$line" ]; do
@@ -1380,7 +1793,7 @@ os_replace_file() {
 # archivo ya existe es la peor de las dos.
 os_tree_class_matches() {
   local brain="$1" clase="$2" ruta="$3" line g
-  [ -f "$brain/tree.md" ] || return 1
+  [ -f "$brain/$OS_TREE_FILE" ] || return 1
   while IFS= read -r line || [ -n "$line" ]; do
     case "$line" in
       "$clase":*) ;;
@@ -1389,7 +1802,7 @@ os_tree_class_matches() {
     g=$(os_trim "${line#$clase:}")
     [ -n "$g" ] || continue
     os_glob_path_match "$g" "$ruta" && return 0
-  done < "$brain/tree.md"
+  done < "$brain/$OS_TREE_FILE"
   return 1
 }
 
@@ -1647,7 +2060,7 @@ os_backticks() {
 # por forma, no por posición**: separador es toda línea de `|`, `-`, `:` y blancos, y cabecera es la
 # línea que precede a un separador. Con la primera tabla ubicada por posición, una segunda tabla
 # reportaba su cabecera como fila ilegible — un formato canónico que se declaraba roto a sí mismo.
-OS_MOUNTS_ARCHIVO="mounts.md"
+OS_MOUNTS_ARCHIVO="$OS_SYSTEM_DIR/mounts.md"
 
 # os_mounts_filas ARCHIVO -> una línea por fila de datos: `N<OS_SEP>remote<OS_SEP>ruta`.
 # Con remote o ruta vacíos, la fila es ilegible: quien llama la declara con su número de línea, nunca

@@ -4,12 +4,12 @@
 #
 # Usage: new-memory.sh --brain DIR --org SLUG --type TYPE --name NAME --owner PERSON
 #                      [--slug SLUG] [--identity-file FILE]
-#        new-memory.sh --brain DIR --root --type TYPE --name NAME --owner PERSON
-#                      [--slug SLUG] [--identity-file FILE]
 # `--workspace` is an exact synonym of `--org` (spec 039), same as every other command that takes a
-# workspace. `--root` and `--org`/`--workspace` are mutually exclusive, same rule `session-start.sh`
-# already uses (spec 018/041): a flag, never a reserved value, so an operator can still name a
-# workspace "root" without colliding.
+# workspace.
+#
+# `--root` no longer creates anything (spec 059): the root of the brain is machinery only, and a
+# memory node is content. The flag is still accepted, only to refuse with an error that names the
+# operator's own workspace (`personal`) as the destination — never silently "unknown argument".
 #
 # The carrier of "what kind of thing this is" is the folder, never a field (spec 041 decision): the
 # TYPE argument is the name of the sibling folder — `products`, `accounts`, `channels`, or one the
@@ -19,8 +19,7 @@
 # A memory node is memory — what it is, what is known — never state: it never gets `role:` (that
 # activates an oficio per organization, spec 009) and never `repo:` (mount-repo writes that once a
 # body exists, and mount-repo mounts onto an initiative, never onto a memory node). Only the head is
-# born here: `context/`, `resolver.md` and `decisions.md` are born with their first piece of data,
-# same as every other canonical file in this product.
+# born here (spec 076, C15): no resolver and no decisions of its own.
 
 set -eu
 
@@ -60,10 +59,9 @@ fi
 
 [ -n "$brain" ] || os_die "falta --brain"
 if [ "$root" = "1" ]; then
-  [ -z "$org" ] || os_die "--root y --org/--workspace son excluyentes"
-else
-  [ -n "$org" ] || os_die "falta --org, --workspace o --root"
+  os_die "--root ya no crea nada (spec 059): la raíz solo tiene maquinaria — usá --org $OS_PERSONAL_WORKSPACE_SLUG o --workspace $OS_PERSONAL_WORKSPACE_SLUG, el espacio de trabajo propio del operador"
 fi
+[ -n "$org" ] || os_die "falta --org o --workspace"
 [ -n "$type" ] || os_die "falta --type"
 case "$type" in
   */*|.|..) os_die "--type inválido: $type" ;;
@@ -81,38 +79,30 @@ wsdir=$(os_ws_dir "$brain")
 language=$(os_language "$brain")
 os_lang_load "$language"
 
-if [ "$root" = "0" ]; then
-  # El ámbito se valida contra el listado real de la carpeta de espacios de trabajo, byte a byte —
-  # mismo criterio que `session-start.sh` (spec 002/003): sin el espacio de trabajo, el comando no
-  # escribe nada y lista los que hay, con el mismo par de claves del catálogo que ya usa el arranque
-  # de sesión.
-  if ! os_org_existe "$brain" "$org"; then
-    printf "$S_SESSION_ORG_NOT_FOUND\n" "$org" >&2
-    found=0
-    while IFS= read -r s || [ -n "$s" ]; do
-      [ -n "$s" ] || continue
-      found=1
-      printf '  %s\n' "$s" >&2
-    done <<SLUGS
+# El ámbito se valida contra el listado real de la carpeta de espacios de trabajo, byte a byte —
+# mismo criterio que `session-start.sh` (spec 002/003): sin el espacio de trabajo, el comando no
+# escribe nada y lista los que hay, con el mismo par de claves del catálogo que ya usa el arranque
+# de sesión.
+if ! os_org_existe "$brain" "$org"; then
+  printf "$S_SESSION_ORG_NOT_FOUND\n" "$org" >&2
+  found=0
+  while IFS= read -r s || [ -n "$s" ]; do
+    [ -n "$s" ] || continue
+    found=1
+    printf '  %s\n' "$s" >&2
+  done <<SLUGS
 $(os_org_slugs "$brain")
 SLUGS
-    [ "$found" = "1" ] || printf '  %s\n' "$S_SESSION_NO_ORGS" >&2
-    exit 2
-  fi
+  [ "$found" = "1" ] || printf '  %s\n' "$S_SESSION_NO_ORGS" >&2
+  exit 2
 fi
 
 [ -n "$slug" ] || slug=$(os_slugify "$name")
 [ -n "$slug" ] || os_die "el nombre no produce un slug utilizable: $name"
 
-if [ "$root" = "1" ]; then
-  dir="$brain/$type/$slug"
-  rel="$type/$slug"
-  tree_prefix=""
-else
-  dir="$brain/$wsdir/$org/$type/$slug"
-  rel="$wsdir/$org/$type/$slug"
-  tree_prefix="$wsdir/*/"
-fi
+dir="$brain/$wsdir/$org/$type/$slug"
+rel="$wsdir/$org/$type/$slug"
+tree_prefix="$wsdir/*/"
 if [ -e "$dir" ]; then
   os_die "ya existe: $rel"
 fi
@@ -144,17 +134,16 @@ os_render_lang "$templates/README.md" "$language" \
 
 os_check_identity_cap "$dir/$head"
 
-# Un tipo declara 5 líneas del árbol (spec 041 decisión cerrada): mismo reparto que `products/` ya
-# usaba — 3 `glob:` (cabeza, resolver.md, decisions.md) y 2 `content:` (context/*.md, research/*.md)
-# — a la altura del espacio de trabajo o de la raíz. La 043 suma una sexta: el cuerpo de las
-# decisiones, alcanzado y nunca leído como cabeza, mismo criterio que las otras dos `content:`.
-# Idempotente vía `os_tree_ensure`, así que sumar un segundo nodo al mismo tipo (mismo `--type`,
-# otro `--slug`) no duplica ninguna línea.
+# The lines of a type (spec 041, revised by spec 076): the head and the hidden `.resolver.md` as
+# `glob:`, and as `content:` the generated `index.md` plus `context/`, `research/` and `resources/`.
+# No `decisions.md` or `decisions/` of its own: decisions live flat in the workspace with `about:`
+# (C17). Idempotent through `os_tree_ensure`, so a second node of the same type duplicates nothing.
 os_tree_ensure "$brain" "${tree_prefix}${type}/*/$head" || true
-os_tree_ensure "$brain" "${tree_prefix}${type}/*/resolver.md" || true
-os_tree_ensure "$brain" "${tree_prefix}${type}/*/decisions.md" || true
-os_tree_ensure "$brain" "${tree_prefix}${type}/*/decisions/*.md" content || true
+os_tree_ensure "$brain" "${tree_prefix}${type}/*/.resolver.md" || true
+os_tree_ensure "$brain" "${tree_prefix}${type}/*/index.md" content || true
 os_tree_ensure "$brain" "${tree_prefix}${type}/*/context/*.md" content || true
 os_tree_ensure "$brain" "${tree_prefix}${type}/*/research/*.md" content || true
+os_tree_ensure "$brain" "${tree_prefix}${type}/*/resources/*.md" content || true
+os_tree_ensure "$brain" "${tree_prefix}${type}/*/resources/*/*.md" content || true
 
 printf '%s — %s\n' "$rel" "$head"

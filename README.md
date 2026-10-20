@@ -94,7 +94,7 @@ places, so updating them has two halves and both run:
 1. **The system.** The agent goes to the local folder where the repository ended up, brings down the
    newest version and runs `core/install.sh` from that folder.
 2. **The pack**, if you installed it. The agent runs
-   `npx skills add pedroromeroluna/ai-first-product-skills` again, which replaces the skills in `.claude/skills/` with the
+   `npx skills add pedroromeroluna/ai-first-product-skills` again, which replaces the skills in `.agents/skills/` with the
    published version. With no pack installed there is nothing to refresh, and this half is skipped.
 
 Your brain —your workspaces, your decisions, your content— is not touched: the update only
@@ -110,43 +110,42 @@ brought down, so an update refreshes every brain that points at it.
 
 ```
 my-brain/
-├── CLAUDE.md                    # Symlink to the session contract: what the agent does at every start
-├── HOW-IT-WORKS.md              # The user manual, symlinked in your language (COMO-FUNCIONA.md in Spanish)
-├── operator.md                  # Who you are and how you want to be answered — written by the interview
-├── voice.md                     # How you write, so what the agent drafts in your name sounds like you
-├── resolver.md                  # Your root resolver: capability → tool; its rows win over the product's
-├── tree.md                      # Which paths a scan walks — a level of the system is a line here
-├── backlog.md                   # Your own tasks, one line each, in priority order (born on first capture)
-├── inbox.md                     # Transit for what could not be filed yet — never a destination
-├── mounts.md                    # Which repos are mounted onto which initiatives (born on first mount-repo)
-├── decisions.md                 # Index of your decisions: one line each, linking to its own file
-├── decisions/<date>-<slug>.md   # One decision per file: what, why, and what would invalidate it
-├── learnings.md                 # Index of your learnings: one line each, linking to its own file
-├── learnings/<slug>.md          # One learning per file, no date in the name — it updates in place
-├── initiatives/<slug>/README.md # Your own initiatives, one folder each, with status/horizon/owner up top
-├── workspaces/                  # One folder per workspace — the isolation boundary
+├── AGENTS.md                    # Symlink to the session contract: what the agent does at every start. Read-only on an installed copy
+├── HOW-IT-WORKS.md              # The user manual, symlinked in your language (it is the Spanish manual in a Spanish brain)
+├── account/
+│   ├── operator.md              # Who you are and how you want to be answered — written by the interview. Your own rules go here
+│   └── voice/voice.md           # How you write, so what the agent drafts in your name sounds like you
+├── .system/
+│   ├── resolver.md              # Your root resolver: capability → tool; its rows win over the product's
+│   ├── tree.md                  # Which paths a scan walks — a level of the system is a line here
+│   └── mounts.md                # Which repos are mounted onto which initiatives (born on first mount-repo)
+├── workspaces/                  # One folder per workspace — the isolation boundary. `personal` is your
+│   │                            # own work, born with the brain; a company or a client is another one
 │   └── <workspace>/
 │       ├── README.md            # Its identity, and the `role:` it activates (cpo, cto)
 │       ├── resolver.md          # Where whatever gets written in this workspace goes
-│       ├── backlog.md           # Its tasks
-│       ├── decisions.md         # Its decisions, indexed the same way
-│       ├── decisions/           # Its decisions' own files
-│       ├── learnings.md         # Its learnings, indexed the same way
-│       ├── learnings/           # Its learnings' own files
-│       ├── initiatives/         # Its initiatives, one folder each with its `README.md` inside
+│       ├── decisions.md         # Index of its decisions: one line each, linking to its own file
+│       ├── decisions/<date>-<slug>.md  # One decision per file: what, why, and what would invalidate it
+│       ├── learnings.md         # Index of its learnings: one line each, linking to its own file
+│       ├── learnings/<slug>.md  # One learning per file, no date in the name — it updates in place
+│       ├── initiatives/<slug>/README.md  # Its initiatives, one folder each, status/horizon/owner up top
+│       ├── initiatives/<slug>/backlog.md # That initiative's tasks, one line each (born on its first capture)
 │       └── <type>/<slug>/       # A memory node of any declared type — products/ is the one this system ships with its own tool
 │           └── README.md        # Born with `new-memory --type <type>` (`new-product` is its `products` shortcut); `context/` and `research/` are filled by whatever tool the type has, or by hand
 ├── .os/
 │   ├── core -> …/ai-first-os/core        # The chassis by symlink: the eleven system skills in core/skills/, the shell in core/lib/
 │   └── packs/<pack> -> …                 # Each installed pack, by symlink
+├── .agents/skills/              # The pack's skills, left here by `npx skills add` (born with the first skill)
 └── .claude/
+    ├── CLAUDE.md                # The same symlink as AGENTS.md: Claude Code reads the contract from here
     ├── agents/                  # complete-spec, ambiguous-spec, scout — one symlink each
-    └── skills/                  # The pack's skills, left here by `npx skills add`
+    └── skills/                  # A link to each skill of .agents/skills/, which is where Claude Code looks
 ```
 
-The interview writes `operator.md`, `voice.md`, `resolver.md`, `tree.md` and one `workspaces/<slug>/`
-per workspace you named. The rest is born the first time it is needed: `backlog.md` on the first
-capture, `mounts.md` on the first mounted repo, `decisions.md`/`decisions/` and
+The interview writes `account/operator.md`, `account/voice/voice.md`, `.system/resolver.md`, `.system/tree.md` and `workspaces/personal/` —
+your own work, the one every brain is born with — plus one more `workspaces/<slug>/` per workspace
+you named. The rest is born the first time it is needed: an initiative's `backlog.md` on
+its first capture, `.system/mounts.md` on the first mounted repo, `decisions.md`/`decisions/` and
 `learnings.md`/`learnings/` when there is something to record — one file per decision and per
 learning, with the `.md` index left as the table of contents so a session opens only the one it
 needs instead of the whole register.
@@ -154,9 +153,10 @@ needs instead of the whole register.
 **Where the skills live.** The eleven skills of the system are not copied into your brain: they live
 in `.os/core/skills/`, a symlink to the `core/` of the repository you brought down, and the agent
 reaches them through the resolver. The skills of the pack are what `npx skills add` installs: one
-folder per skill under `.claude/skills/<name>/SKILL.md` — the place your harness reads skills from,
-which is why they show up as `/cpo`, `/prd` and so on — plus `product-builder-resolver`, the pack's
-index. Your own skills, if you write any, go next to them as plain folders in `.claude/skills/`.
+folder per skill under `.agents/skills/<name>/SKILL.md`, with a link to each one in `.claude/skills/`
+—the place Claude Code reads skills from, which is why they show up as `/cpo`, `/prd` and so on— plus
+`product-builder-resolver`, the pack's index. Your own skills, if you write any, go next to them as
+plain folders in `.claude/skills/`.
 
 ## The catalog
 
@@ -172,7 +172,7 @@ context.
 | `bootstrap` | Creates the brain from scratch: identity, voice, root resolver, the tree of paths a scan walks, one folder per workspace |
 | `new-workspace` | Adds a workspace — the isolation boundary — with its identity, its resolver and its initiatives |
 | `new-product` | Adds a product to a workspace — memory: what it is, for whom, what is known — with its identity |
-| `new-memory` | Creates a memory-node type the first time it is used —a folder plus its five lines in `tree.md`— and adds a node to it; `--root` for a type of the operator's own work |
+| `new-memory` | Creates a memory-node type the first time it is used —a folder plus its five lines in `tree.md`— and adds a node to it, inside the workspace it belongs to |
 | `sweep` | The three global scans: what is pending, what is blocked and why, how the roadmap is going |
 | `check-resolvable` | Audits the capability-to-tool graph and reports dark tools, broken links and rows pointing nowhere |
 | `capture` | Files what you throw in mid-conversation into the right backlog, without opening a discussion |
@@ -183,9 +183,11 @@ context.
 | `supersede` | Marks a file as replaced by another —`superseded_by:` in the frontmatter of the old one— so a session that opens it knows what to read instead, and audits the marks of the whole brain |
 | `rename-workspaces` | Adopts the current name of the workspaces folder on a brain born before it, run only when the operator asks |
 | `rename-heads` | Adopts the single node shape —a folder with its `README.md` inside— on a brain born before it, run only when the operator asks |
+| `migrate-root` | Moves a brain's own root work —initiatives, a memory-node type, backlog, decisions, learnings— into `workspaces/personal`, run only when the operator asks |
+| `migrate-layout` | Brings a brain with the old layout to the new one, printing the whole plan first and writing nothing until `--apply`; run only when the operator asks |
 | `archive` | Moves a document into the node's `archive/` so the focus lists it by name instead of loading it, rewriting every reference that pointed at it, and lists what the brain already declared replaced and still loads |
 | `recall` | Searches every file the tree reaches for a lateral question, ranked with file, line and date, current work ahead of whatever replaced it, and one jump to a result's neighbours with `--expand` |
-| `my-wiki` | Projects the brain as one navigable page — a workspace selector, a shelf per entity type the tree declares, the initiatives under the entity each one is about, the people, what changed and a search that runs in the page — generated by script, published as an artifact by the session |
+| `orchestrator` | Optional, off until you ask: one session that hands each topic's work to that topic's session and keeps what it needs to remember in a hidden file, with a full mode in the desktop app and a reduced one in the terminal |
 
 ### Knowledge skills
 

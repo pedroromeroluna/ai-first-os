@@ -29,13 +29,15 @@ Two questions. Nothing else.
   [--identity-file <file>]
 ```
 
-Leaves `workspaces/<slug>/` with its head `README.md`, a `resolver.md` with no rows and an empty
-`initiatives/` — on a brain that still carries the previous name of that folder, or the previous
+Leaves `workspaces/<slug>/` with its head `README.md`, a hidden `.resolver.md` with no rows and
+three empty folders: `initiatives/`, `decisions/` and `learnings/` — on a brain that still carries the previous name of that folder, or the previous
 shape of the head, it lands there instead (see `rename-workspaces` and `rename-heads` to adopt the
-current ones). Nothing else: whatever only stores content
-is born with its first piece of data.
+current ones). Nothing else: `context/` is born with its first `glossary.md` or `context-map.md`,
+`resources/` (the voice and the visual style of a brand) with its first file, and `products/`,
+`courses/`, `channels/` and `accounts/` with their first node. The workspace has no `index.md` and no
+`backlog.md`: its folders already show its work, and every task lives in an initiative.
 
-`--owner` comes from the title of `operator.md`: the workspace is created by the operator, so
+`--owner` comes from the title of `account/operator.md`: the workspace is created by the operator, so
 they are the owner. If the brain does not have it yet —or the workspace is run by someone else—
 ask who it is and do not deduce it. `--role` and `--owner` are mandatory because the command writes
 them: the operator neither sees those fields nor has to remember they exist. `--role` is passed

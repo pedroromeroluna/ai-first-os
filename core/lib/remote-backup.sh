@@ -3,16 +3,20 @@
 # La conduce core/skills/bootstrap.md al cerrar el bootstrap, y la puede volver a correr cualquier
 # sesión posterior — que es lo que la tarea pendiente del backlog le pide al operador.
 #
-# Uso: remote-backup.sh --brain DIR
+# Uso: remote-backup.sh --brain DIR [--note]
 #
 # El script NUNCA crea el repo ni pushea: eso escapa del sistema —queda algo en la cuenta de una
 # persona— y se hace con la confirmación del operador en la sesión. Acá se decide cuál de las dos
 # mitades corresponde y se deja dicho:
 #   - con `gh` autenticado: imprime el ofrecimiento y el comando exacto, para que lo corra la sesión
 #     después del sí del operador;
-#   - sin `gh`, o sin sesión iniciada: deja la tarea guiada en el backlog de la raíz y lo dice.
+#   - sin `gh`, o sin sesión iniciada: no escribe nada; imprime el paso pendiente y la pregunta del
+#     catálogo («¿Te lo anoto para después?») y sale con 7. Nada se anota solo (Gate 2 final de la
+#     spec 076): con el sí del operador en ese turno, la sesión lo vuelve a correr con `--note`, que
+#     deja la tarea guiada en el backlog de la iniciativa tasks-to-sort del workspace personal.
 #
-# Exit: 0 siempre que haya podido decidir · 1 si el brain no está versionado.
+# Exit: 0 decidió (o anotó con --note) · 1 si el brain no está versionado · 7 sin gh y sin --note: la
+#       pregunta quedó impresa y no se escribió nada.
 
 set -eu
 
@@ -20,10 +24,12 @@ here=$(cd "$(dirname "$0")" && pwd)
 . "$here/common.sh"
 
 brain=""
+note=0
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --brain) brain="$2"; shift 2 ;;
+    --note) note=1; shift ;;
     *) os_die "argumento desconocido: $1" ;;
   esac
 done
@@ -60,25 +66,29 @@ if [ "$autenticado" = "1" ]; then
   exit 0
 fi
 
-# Sin gh no se puede armar el remoto hoy: la tarea queda en el backlog de la raíz, con la guía
-# adentro, y el que la termina es cualquier sesión posterior. Un pendiente que nadie escribe es un
-# pendiente que nadie completa. Ese `backlog.md` de la raíz, fuera de toda iniciativa, es el
-# hallazgo que la spec 057 declara aparte (S057-C5) hasta que el operador arma el remoto.
+# Sin gh no se puede armar el remoto hoy: la tarea queda en el backlog del espacio de trabajo
+# `personal` (spec 059: la raíz ya no tiene backlog propio), con la guía adentro, y el que la termina
+# es cualquier sesión posterior. Un pendiente que nadie escribe es un pendiente que nadie completa.
+# No pasa por `capture` (spec 057, decisión 2): este paso corre determinístico, sin ningún modelo
+# que pueda nombrar una iniciativa — armar el remoto de respaldo no es trabajo de ninguna. Va al
+# backlog de la iniciativa `tasks-to-sort` del workspace `personal` (spec 076, C29). La escritura vive
+# en `os_personal_backlog_append`.
 language=$(os_language "$brain")
 os_lang_load "$language"
 tarea="$S_BACKUP_TASK"
-
-if [ -f "$brain/backlog.md" ] && grep -qF "$tarea" "$brain/backlog.md"; then
-  printf 'respaldo remoto: la tarea pendiente ya estaba en el backlog de la raíz\n'
-  exit 0
+if [ "$note" = "0" ]; then
+  printf "$S_NOTE_FOR_LATER_STEP\n" "$tarea"
+  printf '%s\n' "$S_NOTE_FOR_LATER_QUESTION"
+  exit 7
 fi
 
-# No pasa por `capture` (spec 057, decisión 2): este paso corre determinístico, sin ningún modelo
-# en el medio que pueda nombrar una iniciativa y esperar la confirmación del operador — armar el
-# remoto de respaldo no es trabajo de ninguna iniciativa. Mismo criterio y mismo formato que
-# `pack-install.sh --defer`.
-hoy=$(date +%Y-%m-%d)
-[ -f "$brain/backlog.md" ] || os_backlog_cabecera "$brain" "$(os_titulo "$brain/operator.md")" > "$brain/backlog.md"
-id=$(os_backlog_next_id "$brain")
-printf '%s\n' "$(os_backlog_linea "$id" "$tarea" "" "" "" "0" "$hoy")" >> "$brain/backlog.md"
-printf 'respaldo remoto: pendiente — sin gh autenticado, la tarea guiada quedó en el backlog de la raíz\n'
+os_ws_check "$brain"
+rc=0
+os_personal_backlog_append "$brain" "$tarea" || rc=$?
+case "$rc" in
+  0) printf 'respaldo remoto: pendiente — sin gh autenticado, la tarea guiada quedó en el backlog de la iniciativa tasks-to-sort del workspace personal\n' ;;
+  1) printf 'respaldo remoto: la tarea pendiente ya estaba en el backlog de la iniciativa tasks-to-sort del workspace personal\n' ;;
+  3) printf 'respaldo remoto: pendiente y sin escribir — el slug tasks-to-sort del workspace personal lo usa una iniciativa que trata sobre un nodo\n' ;;
+  *) printf 'respaldo remoto: pendiente y sin escribir — el workspace personal no existe todavía; correr migrate-root.sh y repetir\n' ;;
+esac
+exit 0

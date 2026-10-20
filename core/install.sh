@@ -5,16 +5,27 @@
 # Uso: install.sh RUTA-BRAIN [--adopt]
 #
 # Qué deja en el brain:
-#   CLAUDE.md            -> symlink al contrato de sesión del producto
+#   AGENTS.md            -> symlink al contrato de sesión del producto (lo leen Codex, Cursor, OpenCode)
+#   .claude/CLAUDE.md    -> symlink al mismo contrato (lo lee Claude Code)
 #   .os/core             -> symlink a core/
 #   .os/packs/<pack>     -> symlink a cada pack
 #   .claude/agents/<n>   -> symlink a cada agente de core/agents/, uno por archivo (el harness del
 #                            operador los lee de ahí; symlinkear el directorio entero se
 #                            llevaría por delante configuración propia del operador en .claude/)
+# No crea CLAUDE.md en la raíz (spec 076): un CLAUDE.md que ya sea un enlace al producto, de una
+# instalación anterior, se deja como está.
 #
-# --adopt: si el brain ya tiene un CLAUDE.md que no es el de este producto —propio, o symlink a
-# otro— lo guarda como CLAUDE.md.adopted, un nombre que ningún harness carga, y engancha el
-# symlink. Sin --adopt el instalador para y no toca nada.
+# Los dos enlaces se crean siempre; el instalador no pregunta con qué agente se va a trabajar.
+#
+# Si el producto instalado es una copia (su raíz no tiene `.git`), el contrato queda en solo lectura:
+# editarlo cambia el sistema de todos los que lo usan. En un checkout de desarrollo no se tocan los
+# permisos y una línea lo dice.
+#
+# --adopt: si el brain ya tiene un reglamento que no es el de este producto —un archivo propio o un
+# symlink a otro— en `CLAUDE.md`, `AGENTS.md` o `.claude/CLAUDE.md`, su contenido se agrega al final de
+# `account/operator.md` (en ese orden), el archivo ajeno se borra y queda el enlace al producto. Sin
+# --adopt el instalador para y no toca nada. `--adopt` necesita que `account/operator.md` exista (el
+# bootstrap lo escribe): sin él, frena y no toca nada.
 
 set -eu
 
@@ -43,11 +54,35 @@ fi
 mkdir -p "$brain"
 brain=$(cd "$brain" && pwd)
 
-# El idioma del brain, leído una sola vez acá: lo usan tanto el aviso del nombre anterior de la
-# carpeta de espacios de trabajo como la línea de versión, más abajo. Mismo criterio liviano que el
-# resto de este script — sin `lib/`, porque el instalador es lo primero que corre.
+# ---------------------------------------------------------------- lectura liviana del catálogo
+# Sin `lib/`: el instalador es lo primero que se corre y no puede depender del layout de lo que
+# instala. La usan el aviso del nombre anterior de la carpeta y la línea de versión, más abajo.
+catalogo_linea() {
+  local key="$1" lang="$2" file="$core/templates/strings.md" line dentro=0 valor=""
+  [ -f "$file" ] || return 0
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      "key: $key") dentro=1; continue ;;
+      'key: '*) [ "$dentro" = "1" ] && break; continue ;;
+    esac
+    [ "$dentro" = "1" ] || continue
+    case "$line" in
+      "$lang: "*) valor="${line#$lang: }"; break ;;
+      'en: '*) [ -n "$valor" ] || valor="${line#en: }" ;;
+    esac
+  done < "$file"
+  printf '%s' "$valor"
+}
+
+# El idioma del brain, leído una sola vez acá: lo usan los avisos del catálogo y la línea de versión,
+# más abajo. Mismo criterio liviano que el resto de este script — sin `lib/`, porque el instalador es
+# lo primero que corre.
 lang="en"
-if [ -f "$brain/operator.md" ]; then
+# A brain not migrated yet still has its `operator.md` at the root: its language is read from there so
+# the messages come out in the language the operator chose (the file is only read, never moved).
+lang_file="$brain/account/operator.md"
+[ -f "$lang_file" ] || lang_file="$brain/operator.md"
+if [ -f "$lang_file" ]; then
   while IFS= read -r line || [ -n "$line" ]; do
     case "$line" in
       'language: '*)
@@ -55,12 +90,14 @@ if [ -f "$brain/operator.md" ]; then
         break
         ;;
     esac
-  done < "$brain/operator.md"
+  done < "$lang_file"
 fi
 
 claude="$brain/CLAUDE.md"
+agents="$brain/AGENTS.md"
+claude_dir="$brain/.claude/CLAUDE.md"
 claude_target="$core/CLAUDE.md"
-adopted="$brain/CLAUDE.md.adopted"
+operator_file="$brain/account/operator.md"
 # Ruta física de este producto, para comparar destinos y no cadenas. El instalador resuelve esto
 # solo, sin lib/: es lo primero que se corre y no puede depender del layout de lo que instala.
 core_real=$(cd "$core" && pwd -P)
@@ -79,32 +116,96 @@ resolve_link() {
   printf '%s/%s' "$d" "$(basename "$t")"
 }
 
-# Chequeo antes de tocar nada. Adoptar es para un CLAUDE.md **ajeno**: un archivo propio del
+# Destino real de un symlink, siguiendo la cadena de enlaces (hasta 10 saltos).
+resolve_chain() {
+  local cur="$1" hops=0 next
+  while [ -L "$cur" ] && [ "$hops" -lt 10 ]; do
+    next=$(resolve_link "$cur")
+    [ -n "$next" ] || return 0
+    cur="$next"
+    hops=$(( hops + 1 ))
+  done
+  printf '%s' "$cur"
+}
+
+# Chequeo antes de tocar nada. Adoptar es para un reglamento **ajeno**: un archivo propio del
 # operador, o un symlink vivo hacia otro producto. Lo que no es adopción es re-instalación, y se
 # relinkea callado: un symlink colgado —el producto se movió— y uno que ya apunta acá escrito de
 # otra forma. Comparar por cadena de ruta trataba a los dos como ajenos: al colgado lo "adoptaba"
-# dejando un CLAUDE.md.adopted roto, y al otro le pedía --adopt sin motivo.
-needs_adopt=0
-if [ -L "$claude" ]; then
-  if [ -e "$claude" ] && [ "$(resolve_link "$claude")" != "$core_real/CLAUDE.md" ]; then
-    needs_adopt=1
+# y al otro le pedía --adopt sin motivo. Se chequean los tres lugares donde un harness carga un
+# reglamento: `CLAUDE.md`, `AGENTS.md` y `.claude/CLAUDE.md` (spec 076), en ese orden.
+foreign=()
+for loc in "$claude" "$agents" "$claude_dir"; do
+  if [ -L "$loc" ]; then
+    if [ -e "$loc" ] && [ "$(resolve_chain "$loc")" != "$core_real/CLAUDE.md" ]; then
+      foreign+=("$loc")
+    fi
+  elif [ -e "$loc" ]; then
+    foreign+=("$loc")
   fi
-elif [ -e "$claude" ]; then
-  needs_adopt=1
-fi
+done
 
-if [ "$needs_adopt" = "1" ]; then
+if [ "${#foreign[@]}" -gt 0 ]; then
   if [ "$adopt" = "0" ]; then
-    printf 'error: %s ya existe y no es el contrato de este producto.\n' "$claude" >&2
-    printf '       Correlo con --adopt: lo guarda como CLAUDE.md.adopted y engancha el symlink.\n' >&2
-    printf '       Ese nombre no lo carga ningún harness. Lo que valga de ahí se mueve a mano a\n' >&2
-    printf '       operator.md.\n' >&2
+    formato=$(catalogo_linea INSTALL_FOREIGN_CONTRACT "$lang")
+    printf "$formato\n" "${foreign[*]}" >&2
     exit 1
   fi
-  if [ -e "$adopted" ] || [ -L "$adopted" ]; then
-    printf 'error: %s ya existe. Resolvelo a mano antes de volver a correr --adopt.\n' "$adopted" >&2
+  if [ ! -f "$operator_file" ]; then
+    formato=$(catalogo_linea INSTALL_ADOPT_NEEDS_OPERATOR "$lang")
+    printf "$formato\n" "$operator_file" >&2
     exit 1
   fi
+  # Snapshot of every foreign source, taken before ANY link is touched (`.os/core` included: a foreign
+  # `AGENTS.md` that points at the `.os/core/CLAUDE.md` of another product reads that product's text
+  # only until this installer relinks `.os/core`). Each source must resolve to a readable regular
+  # file; a link to a folder, or an unreadable file, stops the run before anything is written.
+  # Aliases are deduped by their resolved target (`AGENTS.md` -> `CLAUDE.md` is one text, not two).
+  stage_dir=$(mktemp -d)
+  trap 'rm -rf "$stage_dir"' EXIT
+  n_snap=0
+  seen_real=""
+  snap_labels=()
+  for loc in "${foreign[@]}"; do
+    if [ -L "$loc" ]; then
+      real=$(resolve_chain "$loc")
+    else
+      real="$(cd -P "$(dirname "$loc")" 2>/dev/null && pwd -P)/$(basename "$loc")"
+    fi
+    if [ -z "$real" ] || [ ! -f "$real" ] || [ ! -r "$real" ]; then
+      formato=$(catalogo_linea INSTALL_ADOPT_NOT_A_FILE "$lang")
+      printf "$formato\n" "$loc" >&2
+      exit 1
+    fi
+    case "
+$seen_real
+" in
+      *"
+$real
+"*) continue ;;
+    esac
+    seen_real="$seen_real
+$real"
+    n_snap=$(( n_snap + 1 ))
+    cp "$real" "$stage_dir/src-$n_snap"
+    snap_labels+=("${loc#$brain/}")
+  done
+  # The complete new `account/operator.md`, staged: written in one step further down, so a stop
+  # anywhere before it leaves the file as it was and a retry never doubles the heading or a text.
+  cat "$operator_file" > "$stage_dir/operator.new"
+  if [ -s "$operator_file" ] && [ -n "$(tail -c 1 "$operator_file")" ]; then
+    printf '\n' >> "$stage_dir/operator.new"
+  fi
+  printf '\n## %s\n' "$(catalogo_linea INSTALL_ADOPTED_HEADING "$lang")" >> "$stage_dir/operator.new"
+  i_snap=0
+  for label in "${snap_labels[@]}"; do
+    i_snap=$(( i_snap + 1 ))
+    printf '\n### %s\n\n' "$label" >> "$stage_dir/operator.new"
+    cat "$stage_dir/src-$i_snap" >> "$stage_dir/operator.new"
+    if [ -s "$stage_dir/src-$i_snap" ] && [ -n "$(tail -c 1 "$stage_dir/src-$i_snap")" ]; then
+      printf '\n' >> "$stage_dir/operator.new"
+    fi
+  done
 fi
 
 # La guarda del self-link (spec 016): si el destino de un enlace por escribir resuelve —tras
@@ -137,7 +238,8 @@ for agent in "$core"/agents/*.md; do
   [ -f "$agent" ] || continue
   guard_selflink "$brain/.claude/agents/$(basename "$agent")" "$agent"
 done
-guard_selflink "$claude" "$claude_target"
+guard_selflink "$agents" "$claude_target"
+guard_selflink "$claude_dir" "$claude_target"
 
 mkdir -p "$brain/.os/packs"
 ln -sfn "$core" "$brain/.os/core"
@@ -176,15 +278,33 @@ for agent in "$core"/agents/*.md; do
   ln -sfn "$agent" "$brain/.claude/agents/$(basename "$agent")"
 done
 
-if [ "$needs_adopt" = "1" ]; then
-  mv "$claude" "$adopted"
-  printf 'aviso: el CLAUDE.md que estaba en el brain quedó como CLAUDE.md.adopted.\n' >&2
-  printf '       Ningún harness lo carga. Lo que valga de ahí va a operator.md.\n' >&2
+# Adoptar (spec 076, C4): el contenido de cada reglamento ajeno va al final de `account/operator.md`,
+# bajo un encabezado fijo del catálogo y en el orden CLAUDE.md, AGENTS.md, .claude/CLAUDE.md; el
+# archivo ajeno se borra y queda el enlace. Nada de esto corre antes de que todos los chequeos de
+# arriba hayan pasado.
+if [ "${#foreign[@]}" -gt 0 ]; then
+  cat "$stage_dir/operator.new" > "$operator_file"
+  # `AGENTS.md` and `.claude/CLAUDE.md` are replaced by their links below; only a foreign root
+  # `CLAUDE.md` (file or link) has no link to take its place and is removed.
+  for loc in "${foreign[@]}"; do
+    [ "$loc" = "$claude" ] && rm -f "$claude"
+  done
+  formato=$(catalogo_linea INSTALL_ADOPTED_NOTICE "$lang")
+  printf "$formato\n" "account/operator.md" >&2
 fi
-ln -sfn "$claude_target" "$claude"
+
+mkdir -p "$brain/.claude"
+ln -sfn "$claude_target" "$agents"
+ln -sfn "$claude_target" "$claude_dir"
+# Un CLAUDE.md de la raíz que es un enlace roto, o ya apunta al producto, de una instalación anterior,
+# se refresca para que no quede colgado; nunca se crea uno.
+if [ -L "$claude" ]; then
+  ln -sfn "$claude_target" "$claude"
+fi
 
 printf 'brain: %s\n' "$brain"
-printf 'CLAUDE.md -> %s\n' "$claude_target"
+printf 'AGENTS.md -> %s\n' "$claude_target"
+printf '.claude/CLAUDE.md -> %s\n' "$claude_target"
 printf '.os/core -> %s\n' "$core"
 for pack in "$product"/packs/*; do
   [ -d "$pack" ] || continue
@@ -195,25 +315,26 @@ for agent in "$core"/agents/*.md; do
   printf '.claude/agents/%s -> %s\n' "$(basename "$agent")" "$agent"
 done
 
-# ---------------------------------------------------------------- lectura liviana del catálogo
-# Sin `lib/`: el instalador es lo primero que se corre y no puede depender del layout de lo que
-# instala. La usan el aviso del nombre anterior de la carpeta y la línea de versión, más abajo.
-catalogo_linea() {
-  local key="$1" lang="$2" file="$core/templates/strings.md" line dentro=0 valor=""
-  [ -f "$file" ] || return 0
-  while IFS= read -r line || [ -n "$line" ]; do
-    case "$line" in
-      "key: $key") dentro=1; continue ;;
-      'key: '*) [ "$dentro" = "1" ] && break; continue ;;
-    esac
-    [ "$dentro" = "1" ] || continue
-    case "$line" in
-      "$lang: "*) valor="${line#$lang: }"; break ;;
-      'en: '*) [ -n "$valor" ] || valor="${line#en: }" ;;
-    esac
-  done < "$file"
-  printf '%s' "$valor"
-}
+# ---------------------------------------------------------------- el contrato, en solo lectura (spec 076, C6)
+# Una copia instalada del producto (su raíz no tiene `.git`) deja el contrato sin permiso de escritura:
+# editarlo cambia el sistema de todos los que lo usan, y las reglas propias van en
+# `account/operator.md`. Un checkout de desarrollo (con `.git`, carpeta o archivo de worktree) es
+# donde el contrato se edita: no se toca ningún permiso y una línea lo dice. Solo se bloquea el
+# contrato; nada más del brain ni del producto.
+if [ -e "$product/.git" ]; then
+  formato=$(catalogo_linea INSTALL_CONTRACT_DEV "$lang")
+  [ -z "$formato" ] || printf '%s\n' "$formato"
+else
+  chmod a-w "$core/CLAUDE.md" 2>/dev/null || true
+  # Say what actually happened: the permission is checked after the `chmod`, never assumed from it.
+  if [ -w "$core/CLAUDE.md" ]; then
+    formato=$(catalogo_linea INSTALL_CONTRACT_NOT_LOCKED "$lang")
+    [ -z "$formato" ] || printf '%s\n' "$formato" >&2
+  else
+    formato=$(catalogo_linea INSTALL_CONTRACT_LOCKED "$lang")
+    [ -z "$formato" ] || printf '%s\n' "$formato"
+  fi
+fi
 
 # ---------------------------------------------------------------- aviso del nombre anterior (P6, spec 039)
 # Un brain con la carpeta de espacios de trabajo todavía en su nombre anterior sigue funcionando

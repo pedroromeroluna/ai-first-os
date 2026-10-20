@@ -42,10 +42,11 @@ brain=$(cd "$brain" && pwd)
 #
 # Dos globs de pack, porque hay dos formas de tener un pack instalado:
 #   `.os/packs/*/resolver.md`                 el pack enganchado por symlink desde el producto (017)
-#   `.claude/skills/*-resolver/SKILL.md`      el pack bajado por el CLI de skills.sh (026)
+#   `.agents/skills/*-resolver/SKILL.md`      el pack bajado por el CLI de skills.sh (026), donde lo
+#   `.claude/skills/*-resolver/SKILL.md`      deja primero; el enlace de la segunda cuenta una vez (076)
 # Un glob que no matchea no aporta filas: un brain sin ningún pack audita exactamente igual que
 # antes. El orden de lectura completo se enuncia en `core/CLAUDE.md`, no acá.
-RESOLVERS=".os/core/resolver.md .os/packs/*/resolver.md .claude/skills/*-resolver/SKILL.md resolver.md"
+RESOLVERS=".os/core/resolver.md .os/packs/*/resolver.md .agents/skills/*-resolver/SKILL.md .claude/skills/*-resolver/SKILL.md $OS_ROOT_RESOLVER_FILE"
 
 hallazgos=""
 n_hallazgos=0
@@ -61,10 +62,20 @@ filas=""          # capacidad-en-minúsculas por línea
 herramientas=""   # nombre de herramienta por línea
 n_filas=0
 
+skills_vistas=""
 for pat in $RESOLVERS; do
  for file in "$brain"/$pat; do
   [ -f "$file" ] || continue
   rel="${file#$brain/}"
+  # A pack present in both skills folders (the link `npx skills add` leaves) counts once, under the
+  # first folder of the lookup order (spec 076, C10).
+  case "$pat" in
+    */skills/*-resolver/SKILL.md)
+      nombre_skill=$(basename "$(dirname "$file")")
+      case "$nl$skills_vistas" in *"$nl$nombre_skill$nl"*) continue ;; esac
+      skills_vistas="$skills_vistas$nombre_skill$nl"
+      ;;
+  esac
   n=0
   while IFS= read -r line || [ -n "$line" ]; do
     n=$(( n + 1 ))

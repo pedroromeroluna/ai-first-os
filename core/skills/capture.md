@@ -24,29 +24,36 @@ without asking, it is not asked in the middle of something else and it is not fi
 propose the initiative you would use —or the entity under which it is missing and would need to be
 opened first— and run `capture` with `--initiative` once the operator confirms it, never before. No
 command creates an initiative: if the one that fits does not exist yet, its head is written first at
-`initiatives/<slug>/README.md` (or `<workspace>/initiatives/<slug>/README.md`).
+`<workspace>/initiatives/<slug>/README.md` — the root holds no initiatives (spec 059).
 
 ## How it is run
 
 ```
 .os/core/lib/capture.sh --brain . --session-org <session-slug> --text "<text>" --initiative <slug> \
   [--org <target-slug>] [--blocked-by <ref>] [--hold "<reason>"] [--hold-until <YYYY-MM-DD>]
-.os/core/lib/capture.sh --brain . --root --text "<text>" --initiative <slug> \
-  [--blocked-by <ref>] [--hold "<reason>"] [--hold-until <YYYY-MM-DD>]
 ```
 
 `--initiative` names the initiative by its slug, relative to the scope — the same shape every other
-flag already uses (`--workspace <slug>`), never a full path. Without it the script writes nothing,
+flag already uses (`--workspace <slug>`), never a full path.
+
+**A task of a product, a course, a channel or an account with no project of its own** goes to that
+node's standing initiative: run `capture` with `--about <path of the node's head>` instead of
+`--initiative`. If the node has one, the task is filed there. If it has none, nothing is written and
+the script prints, in the operator's language, the question to ask — ask it exactly as printed, and
+run the same command again with `--create` only after the operator says yes in that turn. If it has
+two, the script names them: ask which one and use `--initiative`. Without it the script writes nothing,
 anywhere, and says the initiative is missing: that is not an error to work around, it is the
 contract (decision 2, spec 057).
 
-To write into an organization that is not the session's: load its `README.md` and its
-`resolver.md`, and repeat with `--load-context`. The root never asks for it: its identity
-(`operator.md`) is already loaded in any session, at any scope.
+The operator's own work is the `personal` workspace every brain is born with — `--org personal` —
+never the root: `--root` no longer exists (spec 059).
+
+To write into a workspace that is not the session's: load its `README.md` and its `.resolver.md`,
+and repeat with `--load-context`.
 
 ## How the destination is decided
 
-1. **Which organization is it from, or is it the operator's own work?** If that cannot be answered
+1. **Which workspace is it from?** The operator's own work is `personal`. If that cannot be answered
    without asking, it is not asked in the middle of something else — say the same thing you would say
    for a missing initiative: it is not filed, and it waits for the operator.
 2. **Which initiative does it belong to?** Its slug is `--initiative`. If more than one initiative

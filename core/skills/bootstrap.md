@@ -2,8 +2,8 @@
 command: bootstrap
 capability: Create the brain from scratch
 handoff: Add a workspace
-description: Create the brain from scratch — the gateway skill. If AI First OS is not present it installs the complete system first, then runs a five-question interview —language first, then name, role, voice and workspace— writes the minimum node structure, and leaves the brain versioned with its first commit and its remote backup resolved or pending. Manually triggered, once per brain, before any other tool.
-description_es: Crea el brain desde cero — la skill de entrada. Si AI First OS no está, instala el sistema completo primero, después conduce una entrevista de cinco preguntas —idioma primero, y después nombre, rol, voz y espacio de trabajo—, escribe la estructura mínima de nodos y deja el brain versionado con su primer commit y su respaldo remoto resuelto o pendiente. Se dispara a mano, una vez por brain, antes que cualquier otra herramienta.
+description: Create the brain from scratch — the gateway skill. If AI First OS is not present it installs the complete system first, then runs a four-question interview —language first, then name, role and voice— writes the minimum node structure (the root's own machinery plus the `personal` workspace every brain is born with), and leaves the brain versioned with its first commit and its remote backup resolved or pending. Manually triggered, once per brain, before any other tool.
+description_es: Crea el brain desde cero — la skill de entrada. Si AI First OS no está, instala el sistema completo primero, después conduce una entrevista de cuatro preguntas —idioma primero, y después nombre, rol y voz—, escribe la estructura mínima de nodos (la maquinaria de la raíz más el espacio de trabajo `personal` con el que todo brain nace) y deja el brain versionado con su primer commit y su respaldo remoto resuelto o pendiente. Se dispara a mano, una vez por brain, antes que cualquier otra herramienta.
 ---
 
 # bootstrap — create the brain
@@ -58,10 +58,18 @@ it is there, `npx ai-first-os` already brought the product down and there is not
    resolvers, the subagents and the nine skills of the system by symlink. The packs are not in that
    repository: each one is published as its own set of skills, and the step at the close of this
    bootstrap offers one.
-3. Continue with the interview.
+3. **If `install.sh` stops because the brain already has a rules file that is not this product's**
+   (`CLAUDE.md`, `AGENTS.md` or `.claude/CLAUDE.md`), nothing was changed and the installer says so.
+   Do not force it: the rules are adopted into `account/operator.md`, and that file does not exist
+   until the interview is written. So the order for this brain is: the interview, then
+   `<product>/core/lib/bootstrap.sh --brain <brain-path> --answers <file>` run from the product folder
+   (it does not need the install), and only then `<product>/core/install.sh <brain-path> --adopt`,
+   which appends the foreign rules to the end of `account/operator.md`, removes the foreign files and
+   links the product's contract in their place. Tell the operator that their rules were kept and where.
+4. Otherwise, continue with the interview.
 
-**Never reimplement either step by hand.** Writing `operator.md`, `voice.md`, `resolver.md` and
-`tree.md` yourself instead of running `install.sh` and this skill's own script leaves a brain with
+**Never reimplement either step by hand.** Writing `account/operator.md`, `account/voice/voice.md`,
+`.system/resolver.md` and `.system/tree.md` yourself instead of running `install.sh` and this skill's own script leaves a brain with
 no symlinks and no `.os/core` — a install that looks done and is not. The script is the deliverable;
 running it is always cheaper and safer than replicating what it does.
 
@@ -71,30 +79,26 @@ skip this step entirely.
 
 ## The interview
 
-**Five questions, in this order. One at a time.** They are configuration, not a profile: each one
+**Four questions, in this order. One at a time.** They are configuration, not a profile: each one
 is answered in a line. Whatever the system can learn with use is not asked.
+
+**The workspace is not asked here**: every brain is born with one, `personal` ("My workspace"),
+created without a question — the day a company or a client appears, `new-workspace` adds a second
+one, deliberately.
 
 1. **Language.** The only question asked in two languages, because it is the one that decides the
    rest:
    > What language do you want to work in — English or Spanish? / ¿En qué idioma querés trabajar
    > — inglés o español?
 
-   **Everything after this comes out in the language chosen**: the four questions that follow, the
+   **Everything after this comes out in the language chosen**: the three questions that follow, the
    files that get written, and the session from here on. Today the system writes `en` and `es`.
 2. **Your name.**
 3. **Your role**, in one line (example: "Senior PM at a fintech").
 4. **Your voice**: tone, and words you would never use. **Optional** — say so when asking: if the
    operator does not know, "later" is an answer and the file says it is pending.
-5. **Your workspace.** A workspace is each company or client you work for; a course case is one
-   too. For the typical case —one person, one employer— that is one. **Optional** — say so when
-   asking: someone who works alone, or who is between jobs, has none, and "none" is an answer. Say
-   what it means before they answer: their own work lives at the root of the brain, which is a node
-   like any other, and the day a company or a client appears, `new-workspace` adds it. Ask **what it
-   does** and **what you do there**. What you do there is a title — identity, written to the body of
-   the head, never to `role:`. `role:` activates an oficio from the pack (today: `cpo`) and is
-   born empty; filling it in is a separate, deliberate step, not part of this interview.
 
-**"How do you want to be answered" is not asked.** `operator.md` is born with a default —the answer
+**"How do you want to be answered" is not asked.** `account/operator.md` is born with a default —the answer
 first, short, no process narration— marked as a section that is learned with use. It gets corrected
 the first time an answer misses.
 
@@ -116,28 +120,34 @@ name: <name>
 profile: <the role, one line>
 voice: <one item>
 workspace: <Name> | <title> | <owner> | <identity file>
-skipped: voice | workspace
+skipped: voice
 ```
 
 `voice`, `workspace` and `skipped` repeat. `language` first: with no `language` the brain is written
-in English and the script declares the gap. In `workspace`, the owner and the identity file are
-optional: with no owner the operator is used, and with no identity a placeholder text is left. The
-title is never `role:` — see the interview above.
+in English and the script declares the gap. A workspace is declared with `workspace:` (spec 052) —
+the older key that used the same shape is gone.
+
+**`workspace:` is not part of the interview anymore (spec 059), but the script still reads it** —
+it is how the answers file adds one or more named workspaces in the same run that creates `personal`
+automatically, below. The owner and the identity file are optional: with no owner the operator is
+used, and with no identity a placeholder text is left. The title is identity —"what you do there"—
+written to the body of the head, never to `role:` (spec 020): that field activates an oficio from
+the pack and is born empty; filling it in is a separate, deliberate step. The same separation applies
+to `personal`: its title is always empty, since the interview that used to ask it is gone.
 
 **`skipped:` is what the operator answered, not what they left out.** One line per optional question
-the operator deliberately left empty —`skipped: voice`, `skipped: workspace`—, and never together
-with a line of the same key. Without it the script cannot tell "did not answer" from "answered they
-have none", and it asks again for something already answered.
+the operator deliberately left empty — today, only `skipped: voice` — and never together with a line
+of the same key. Without it the script cannot tell "did not answer" from "answered they have none",
+and it asks again for something already answered.
 
-The result is `operator.md`, `voice.md`, `resolver.md`, `tree.md`, the system manual at the root of
-the brain —`HOW-IT-WORKS.md` or `COMO-FUNCIONA.md`, in the chosen language— and one folder per
-workspace.
-`voice.md` is the operator's voice — one identity, two questions, never the same sentence in both.
-Nothing else: the inbox, the root's own work (initiatives, backlog, decisions, learnings) and the
-environment table are born with their first piece of data, like any node.
+The result is `account/operator.md`, `account/voice/voice.md`, `.system/resolver.md`, `.system/tree.md`, the system manual at the root of
+the brain —`HOW-IT-WORKS.md`, linked to the manual of the chosen language—, the `personal` workspace
+("My workspace"), created by the script without a question, and one folder per named `workspace:`.
+`account/voice/voice.md` is the operator's voice — one identity, two questions, never the same sentence in both.
+Nothing else: the environment table is born with its first piece of data, like any node.
 
 **It runs once per brain.** If the root pieces already exist, the script stops instead of rewriting
-them. Adding a workspace to a brain that already exists is `new-workspace`'s job.
+them. Adding a second workspace to a brain that already exists is `new-workspace`'s job.
 
 ## The backup, in two halves
 
@@ -154,9 +164,14 @@ guaranteed present by the preflight in Step 0 — there is no unversioned brain 
 - With `gh` authenticated it prints the offer and the exact `gh repo create` command. **Ask the
   operator and run it only with their yes**: it leaves a repository in their account, which escapes
   the system.
-- Without `gh`, it leaves the guided task in the root backlog: create the account at github.com
-  —**the operator creates it, never the agent**—, run `gh auth login`, and any later session
-  finishes the rest by running the same script.
+- Without `gh`, it writes nothing: it prints the pending step (create the account at github.com
+  —**the operator creates it, never the agent**—, run `gh auth login`, and any later session finishes
+  the rest by running the same script) and the question to ask, and exits 7. Ask the operator the
+  question it printed, in the brain's language ("Should I note it down for later?", from
+  `NOTE_FOR_LATER_QUESTION` in the strings catalog).
+  **Only with their yes in that turn** run `.os/core/lib/remote-backup.sh --brain . --note`: the guided
+  task lands in the `personal` workspace, in its "Tasks to sort" initiative, created the first
+  time. No yes: nothing is written, and say so plainly ("I did not note anything down").
 
 Synced folders (iCloud, Drive) are not offered as backup: the system runs on symlinks and those
 folders break them.
@@ -191,8 +206,12 @@ the git-clone prompt may or may not.
   capability of the pack that is not installed.
 - **Node missing: the only exit is later.** Point at the LTS installer on nodejs.org — you guide, the
   operator installs, and a no is an answer, not an error. Whether they install it right now or not,
-  run `.os/core/lib/pack-install.sh --brain . --defer`: the task lands in the root backlog with the
-  exact command inside it, and any later session can run it. This is the same offer any session makes
+  run `.os/core/lib/pack-install.sh --brain . --defer`: it writes nothing, prints the pending step and
+  the question, and exits 7. Ask the operator the question it printed, in the brain's language
+  ("Should I note it down for later?"). **Only with their yes in that turn** run
+  `.os/core/lib/pack-install.sh --brain . --defer --note`: the task lands in the `personal` workspace,
+  in its "Tasks to sort" initiative, with the exact command inside it, and any later session can
+  run it. No yes: nothing is written, and say so plainly. This is the same offer any session makes
   when something asks for a capability of the pack that is not installed.
 
 **The command brings down only what is missing, and nobody has to name what that is.** What the
@@ -200,7 +219,7 @@ system already provides travels marked internal in the pack, and the CLI skips i
 is no list to keep here, and nothing is ever installed and then deleted.
 
 **If it fails —no network, registry down, the operator says no— the flow does not stop.** Retry once;
-if it fails again, take the later exit above so the pending is written down, and say it out loud. A
+if it fails again, take the later exit above —the same question, and the note only with a yes— and say it out loud. A
 bootstrap aborted halfway because a download failed is the worse outcome of the two.
 
 ## When it finishes
@@ -214,13 +233,13 @@ bootstrap aborted halfway because a download failed is the worse outcome of the 
 - If the script reports `sin dato:` or `sin crear:`, pass it through whole and ask again for what is
   missing. A gap nobody names is a gap nobody fills.
 - If it reports `declarado vacío:`, that gap was answered: pass it through and **do not ask again**.
-  When it names `workspace`, say the work lives at the root of the brain and that `new-workspace`
-  adds one the day a company or a client appears.
 - Say whether the brain is versioned and whether the remote is resolved or pending.
 - **Say whether the pack landed.** If it was installed, name what it added and that the harness
-  offers it directly. If it was left for later, say the pending line is in the root backlog with the
-  command inside it, and that everything else works without it.
+  offers it directly. If it was left for later, say the pending line is in the `personal` workspace
+  backlog with the command inside it, and that everything else works without it.
 - **How the operator updates all of this is written once**, in the repository's `README.md` under
   **Update**, and is not restated here. Point at it; do not retell it.
-- Handoff: if the operator wants to add another workspace, the **add a workspace** capability
-  is needed. If it is not available, say so and continue.
+- Say the brain is ready with its `personal` workspace ("My workspace") — the operator's own work
+  lives there from now on, not at the root of the brain.
+- Handoff: if the operator wants to add a second workspace — a company, a client — the **add a
+  workspace** capability is needed. If it is not available, say so and continue.

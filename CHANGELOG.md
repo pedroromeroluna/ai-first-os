@@ -5,6 +5,52 @@ Every published version of AI First OS, newest first. The format follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html): *major* when an already installed brain
 needs a manual step to keep working, *minor* for a new capability, *patch* for a fix.
 
+## [2.0.0] — 2026-10-20
+
+My Wiki stops being distributed from this version: 1.11.0, which removed it, was never published on its own.
+
+An installed brain keeps working after updating to this version, but it runs degraded until it is
+moved to the new layout: the startup names what is still in the old place. Moving it is one step the
+person asks for: "move my brain to the new layout" runs the `migrate-layout` skill, which prints the
+whole plan first and writes nothing until the person says yes.
+
+### Changed
+
+- The brain has a new layout. Its root keeps four visible things: `account/` (the person's own
+  rules, voice and identity), `workspaces/`, `AGENTS.md` and `HOW-IT-WORKS.md`. What only the system
+  reads moves into folders and files that start with a dot, such as `.system/`.
+- The session contract is `AGENTS.md` at the root plus `.claude/CLAUDE.md`, both linked to the
+  product, so the same rules load in Codex, Cursor, Copilot and OpenCode as well as in Claude Code.
+- The person's own rules move from `operator.md` at the root to `account/operator.md`.
+- Every task lives in the backlog of an initiative. A product, course, channel or account with no
+  project of its own gets a standing initiative for its tasks.
+- Every product, course, channel and account has a generated index of its initiatives, decisions and
+  learnings. Initiatives are listed in a table with their status and horizon.
+- Open questions in the spec and research templates sit in a `[!QUESTION]` callout, and the manuals
+  use Obsidian callouts for notes, tips and examples.
+- A file that another one replaced now opens with a `[!WARNING]` callout naming its replacement, on
+  top of the `superseded_by:` key. Removing the mark removes the callout, and a callout the person
+  wrote is never touched.
+
+### Added
+
+- `migrate-layout`: moves a brain with the old layout to the new one, plan first.
+- An orchestrator on request: a person who wants one session that sees every topic and hands the
+  work to one session per topic asks for it, and the AI explains what it will set up and waits for a
+  yes. Nothing new appears in the brain's visible folders: the rules live in the product's
+  `orchestrator` skill and its state in `.system/orchestrator.md`. It runs fully in the desktop app
+  and in a reduced form in the terminal, and says which when it starts. Asking for it to stop turns
+  it off.
+
+## [1.11.0] — 2026-10-14
+
+### Removed
+
+- My Wiki (the `my-wiki` skill: the brain as one navigable page) stops being distributed from this
+  version. It is not finished, so the repository and the npm package no longer carry its skill, its
+  scripts, its template or its mentions. A brain that updates to this version no longer has the
+  `my-wiki` skill; nothing else changes, and nothing in the brain's own files is touched.
+
 ## [1.10.1] — 2026-10-11
 
 ### Added

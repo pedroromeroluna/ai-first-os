@@ -71,7 +71,12 @@ fi
 templates="$here/../templates/node-folder"
 today=$(date +%Y-%m-%d)
 
-mkdir -p "$dir/initiatives"
+# The workspace is born with its head, its hidden resolver and the three folders where its work
+# lives (spec 076, C13): `initiatives/`, `decisions/` (one file per decision) and `learnings/` (one
+# file per learning). Nothing else: `context/` is born with its first `glossary.md` or
+# `context-map.md`, `resources/` with its first file, and `products/`, `courses/`, `channels/` and
+# `accounts/` with their first node (D14).
+mkdir -p "$dir/initiatives" "$dir/decisions" "$dir/learnings"
 
 # El nombre de la cabeza es dato del brain (spec 040): la forma nueva es `README.md` y un brain que
 # todavía no la adoptó recibe su nodo nuevo en la forma que ya tiene — mezclar las dos en el mismo
@@ -80,7 +85,8 @@ head=$(os_head_file "$brain") || true
 os_render_lang "$templates/README.md" "$language" \
   "NAME=$name" "ROLE=$role" "TITLE=$title" "OWNER=$owner" "DATE=$today" "IDENTITY=$identity" \
   > "$dir/$head"
-os_render_lang "$templates/resolver.md" "$language" "NAME=$name" > "$dir/resolver.md"
+# Hidden (D9): only the system reads it, and Obsidian does not show a file that starts with a dot.
+os_render_lang "$templates/resolver.md" "$language" "NAME=$name" > "$dir/.resolver.md"
 
 os_check_identity_cap "$dir/$head"
 
@@ -89,17 +95,20 @@ os_check_identity_cap "$dir/$head"
 # la raíz— se quedaba con el nodo nuevo sin que ningún glob lo alcanzara: escrito y ciego para todo
 # barrido. Los brains que ya la declaran no cambian: `os_tree_ensure` no duplica.
 os_tree_ensure "$brain" "$wsdir/*/$head" || true
-os_tree_ensure "$brain" "$wsdir/*/resolver.md" || true
-os_tree_ensure "$brain" "$wsdir/*/backlog.md" || true
-os_tree_ensure "$brain" "$wsdir/*/decisions.md" || true
-os_tree_ensure "$brain" "$wsdir/*/learnings.md" || true
-# Los cuerpos de esas dos preguntas, uno por decisión y por aprendizaje: alcanzados, nunca leídos
-# como cabeza (spec 043 — misma clase `content:` que ya usa `context/`/`research/`).
+os_tree_ensure "$brain" "$wsdir/*/.resolver.md" || true
+# One file per decision and per learning, flat in the workspace (spec 076, C17): reached, never read
+# as a head. Their indexes are generated (`decisions/index.md`, `learnings/index.md`) and these same
+# lines reach them.
 os_tree_ensure "$brain" "$wsdir/*/decisions/*.md" content || true
 os_tree_ensure "$brain" "$wsdir/*/learnings/*.md" content || true
 # La altura de las iniciativas de ese nodo, en la forma que el brain tenga para esa altura: el
 # glob sale del mismo helper que arma la ruta de una cabeza, con `*` en lugar del slug.
 os_tree_ensure "$brain" "$wsdir/*/$(os_head_path "$brain" initiative '*')" || true
 os_tree_ensure "$brain" "$wsdir/*/initiatives/*/*.md" content || true
+# The workspace's glossary and map of contexts (spec 072) live in `context/` (spec 076, C14), and its
+# brand —the voice, the visual style— in `resources/`: reached so `recall` indexes them.
+os_tree_ensure "$brain" "$wsdir/*/context/*.md" content || true
+os_tree_ensure "$brain" "$wsdir/*/resources/*.md" content || true
+os_tree_ensure "$brain" "$wsdir/*/resources/*/*.md" content || true
 
-printf '%s/%s — %s · resolver.md · initiatives/\n' "$wsdir" "$slug" "$head"
+printf '%s/%s — %s · .resolver.md · initiatives/ · decisions/ · learnings/\n' "$wsdir" "$slug" "$head"

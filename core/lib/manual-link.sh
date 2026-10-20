@@ -10,7 +10,8 @@
 # que este producto ya declaró en sus learnings —una entrega que hay que reinstalar es una capacidad
 # oscura—. Es el mismo criterio con el que viajan `CLAUDE.md`, `.os/core` y los agentes.
 #
-# El nombre del archivo depende del idioma (`os_manual_file`) y queda declarado en `tree.md` como
+# El enlace se llama siempre `OS_MANUAL_LINK` (`HOW-IT-WORKS.md`, spec 076); lo que cambia con el idioma
+# es el manual al que apunta (`os_manual_file`). El enlace queda declarado en `tree.md` como
 # `content:`: se ve en la raíz del brain, y ningún barrido lo lee como trabajo ni lo reporta como no
 # alcanzado.
 #
@@ -51,7 +52,7 @@ if [ ! -f "$origen" ]; then
   exit 2
 fi
 origen=$(cd "$(dirname "$origen")" && pwd -P)/$archivo
-destino="$brain/$archivo"
+destino="$brain/$OS_MANUAL_LINK"
 
 # Destino real de un symlink, para comparar destinos y no cadenas de ruta — el mismo criterio que
 # usa `install.sh` con `CLAUDE.md`.
@@ -96,16 +97,17 @@ fi
 
 # La declaración en el árbol va siempre, también cuando el manual ya estaba: un brain bootstrapeado
 # antes de esta spec no tiene la línea, y sin ella el barrido reporta el manual como no alcanzado.
-os_tree_ensure "$brain" "$archivo" content || true
+os_tree_ensure "$brain" "$OS_MANUAL_LINK" content || true
 
-printf 'manual: %s — %s\n' "$archivo" "$estado"
+printf 'manual: %s — %s\n' "$OS_MANUAL_LINK" "$estado"
 
-# El manual del otro idioma quedó de una configuración anterior: se declara, no se borra.
+# Un manual con el nombre de antes de la spec 076 (`COMO-FUNCIONA.md` en la raíz) queda de una
+# instalación anterior, sea del idioma del brain o de otro: se declara, no se borra. Sacarlo es de la
+# migración. Solo avisa.
 for otro in $OS_LANGUAGES; do
-  [ "$otro" = "$language" ] && continue
   viejo=$(os_manual_file "$otro")
-  [ "$viejo" = "$archivo" ] && continue
+  [ "$viejo" = "$OS_MANUAL_LINK" ] && continue
   if [ -e "$brain/$viejo" ] || [ -L "$brain/$viejo" ]; then
-    printf 'aviso: %s quedó de un idioma anterior — sacarlo lo elige el operador\n' "$viejo" >&2
+    printf 'aviso: %s quedó de una instalación anterior — el manual ahora se llama %s; sacarlo lo hace la migración, no este script\n' "$viejo" "$OS_MANUAL_LINK" >&2
   fi
 done

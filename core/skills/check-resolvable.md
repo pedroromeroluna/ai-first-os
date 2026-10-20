@@ -30,7 +30,7 @@ reading the output.
 ## What to do with the output
 
 Every finding carries `file:line`. It is fixed by editing markdown, never code: the rows live in
-`.os/core/resolver.md` —product origin, changed by PR in the repo— and in `resolver.md` —personal
+`.os/core/resolver.md` —product origin, changed by PR in the repo— and in `.system/resolver.md` —personal
 origin, edited by the operator—.
 
 **A dark capability of the product is not fixed in the brain.** If the missing row belongs to the

@@ -16,6 +16,7 @@ answer is one line in the older file, naming the newer one.
 ```
 .os/core/lib/supersede.sh --brain . --file <old path> --by <new path>
 .os/core/lib/supersede.sh --brain . --check
+.os/core/lib/supersede.sh --brain . --file <path> --unmark
 ```
 
 Both paths are relative to the brain. The mark goes on the file that **was** replaced and points
@@ -28,6 +29,12 @@ One key in the frontmatter of the old file:
 ```
 superseded_by: workspaces/acme/products/kit/research/2026-07-11-kit.md
 ```
+
+Right after the frontmatter, the first line of the body becomes a warning callout the person sees when
+they open the file —`> [!WARNING] This file was replaced by <path>`, in the language of the brain—
+followed by a blank line. Running the mark again changes nothing; marking with another `--by` rewrites
+that one line; a warning someone wrote by hand is never touched. The callouts are explained once, in
+the manual's section "How to read the callouts".
 
 A file that has no frontmatter at all gets a three-line block created above its body, untouched. A
 file whose frontmatter cannot be read —no closing `---`, or past the bound— is refused with the
@@ -72,6 +79,13 @@ In those three the decision is the operator's: close it by hand, or re-point wha
 It exits non-zero when it found something and writes nothing, which is what it takes to hang it off
 a cron. Over a brain whose `tree.md` it could not read it exits non-zero too, instead of reporting
 that everything resolves.
+
+## Taking the mark off
+
+`--unmark` removes the key and the callout and leaves the rest of the file byte for byte as it was
+before the mark; a frontmatter the mark created and that is left empty goes with it. It does not
+reopen a head the mark closed: that is the operator's decision. On a file with no mark it says so
+and changes nothing.
 
 ## What it does not do
 

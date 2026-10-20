@@ -60,6 +60,12 @@ skill does not repeat it.
 free of system jargon, before any detail. A spec that cannot be understood at a glance does not get
 reviewed: it gets approved blind.
 
+**The open questions of a spec go in one callout**, not in a loose list of ❓ marks: a section titled
+for them whose body is `> [!QUESTION] <what is open>` followed by one `> - ` line per question, each
+with who closes it. A spec with nothing open writes the section with the callout saying "None". The
+per-statement marks (📌, 🔍, ❓) stay as they are. The meaning of the callouts is stated once, in the
+manual's section "How to read the callouts".
+
 **Type and flow**: `feature` | `verification` (code already written whose eval never ran) |
 `residuals` (a bag of small fixes that alone do not justify a spec). `requirements-first` by
 default; `design-first` if there is a hard technical constraint or dubious feasibility — there the

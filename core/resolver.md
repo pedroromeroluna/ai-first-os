@@ -1,7 +1,7 @@
 # Root resolver — origin: product
 
 Capability → tool. One row per capability. This file travels with the product and is not edited
-from the brain: the operator's rows go in `resolver.md`, at the root of the brain.
+from the brain: the operator's rows go in `.system/resolver.md`, at the root of the brain.
 
 | Capability | Tool | Path |
 |---|---|---|
@@ -15,6 +15,8 @@ from the brain: the operator's rows go in `resolver.md`, at the root of the brai
 | Add a memory node of any type (accounts, channels, or one you invent) | `new-memory` | `.os/core/skills/new-memory.md` |
 | Rename the workspaces folder of an existing brain | `rename-workspaces` | `.os/core/skills/rename-workspaces.md` |
 | Adopt the single node shape in an existing brain | `rename-heads` | `.os/core/skills/rename-heads.md` |
+| Move a brain's own root work into its personal workspace | `migrate-root` | `.os/core/skills/migrate-root.md` |
+| Bring an existing brain to the new layout, plan first | `migrate-layout` | `.os/core/skills/migrate-layout.md` |
 | See what is pending | `sweep` | `.os/core/skills/sweep.md` |
 | See what is blocked and why | `sweep` | `.os/core/skills/sweep.md` |
 | See how the roadmap is going | `sweep` | `.os/core/skills/sweep.md` |
@@ -27,4 +29,4 @@ from the brain: the operator's rows go in `resolver.md`, at the root of the brai
 | Write a new spec | `new-spec` | `.os/core/skills/new-spec.md` |
 | Move a document out of what a focus loads, without losing it | `archive` | `.os/core/skills/archive.md` |
 | Search everything the tree reaches for a lateral question | `recall` | `.os/core/skills/recall.md` |
-| See the brain as a navigable page, and publish it | `my-wiki` | `.os/core/skills/my-wiki.md` |
+| Work from one session that hands work to the others | `orchestrator` | `.os/core/skills/orchestrator.md` |

@@ -3,18 +3,19 @@
 # Las dos preguntas las hace core/skills/close-session.md. Interno: no es invocable.
 #
 # Uso: close-session.sh --brain DIR --org SLUG --material ARCHIVO
-#                       [--session-org SLUG] [--load-context]
+#                       [--session-org SLUG] [--load-context] [--focus RUTA]
 #      close-session.sh --brain DIR --workspace SLUG --material ARCHIVO
-#                       [--session-org SLUG] [--load-context]
-#      close-session.sh --brain DIR --root --material ARCHIVO
+#                       [--session-org SLUG] [--load-context] [--focus RUTA]
 #
-# `--workspace` es sinónimo exacto de `--org` (spec 039). Con `--root` distribuye a los canónicos
-# de la raíz (spec 018) en vez de a los de una organización: `decisions.md`, `learnings.md` y la
-# cabeza de la iniciativa, todos en la raíz del brain. Un `pending-from:`/`resume:` con iniciativa va
-# al `backlog.md` de esa iniciativa —de la raíz o de la organización, según el ámbito—, nunca a un
-# backlog del ámbito mismo (spec 057: una tarea cuelga de una iniciativa y solo de ahí).
-# `--org`/`--workspace` y `--root` son excluyentes, y la raíz no exige `--session-org` ni
-# `--load-context` — su identidad (`operator.md`) ya está cargada en cualquier sesión.
+# `--focus` (spec 076, C17) is the head the session focused on, relative to the brain. It decides the
+# `about:` every decision and learning of this close carries: the focus itself when it is an area node
+# (a product, a course, a channel, an account); the focus's own `about:`, as written, when it is an
+# initiative; nothing without a focus, or with any other head.
+#
+# `--workspace` es sinónimo exacto de `--org` (spec 039).
+#
+# `--root` ya no existe (spec 059): el trabajo propio del operador es el espacio de trabajo
+# `personal`, con el que todo brain nace — usar `--workspace personal`.
 #
 # Formato del material — una clave por línea, `clave: valor`.
 #
@@ -53,29 +54,33 @@
 # no-capturado/tocado/retomar) during this version, and the verdict notes "old key: <es> → <en>"
 # once per old key used.
 #
-# Una decisión y un aprendizaje son un archivo propio (spec 043) — `decisions/<fecha>-<slug>.md` y
-# `learnings/<slug>.md`, sin fecha en el nombre porque un aprendizaje que se actualiza no cambia de
-# identidad. `decisions.md`/`learnings.md` no cambian de nombre ni de lugar: pasan a ser el índice,
-# una línea por cuerpo. La de un aprendizaje lleva fecha, título, link y la línea "Cuándo se lee" de
-# su cuerpo (`when:`; sin él el cuerpo sale con un marcador de hueco en vez de inventarse uno).
+# Una decisión y un aprendizaje son un archivo propio (spec 043), plano en el espacio de trabajo
+# (spec 076, C17): `<ws>/decisions/<fecha>-<slug>.md` y `<ws>/learnings/<slug>.md`, nunca adentro de
+# un nodo, sin fecha en el nombre de un aprendizaje porque uno que se actualiza no cambia de
+# identidad. Este cierre ya no escribe `decisions.md` ni `learnings.md`: sus índices los genera la
+# lectura de arranque (`build-indexes.sh`) desde el frontmatter de cada archivo. Un aprendizaje lleva
+# frontmatter con `date:`, `about:` cuando la sesión tiene foco, e `index_note:` —la línea "Cuándo se
+# lee" de su cuerpo (`when:`; sin él, el marcador de hueco), que es la cola de su línea del índice—; el
+# cuerpo no cambia.
 #
 # DECISIONS ARE WRITTEN IN MADR 4.0.0 (spec 070, https://adr.github.io/madr). Front matter with
 # `status: accepted`, `date:`, `decision-makers:` (only with `deciders:`) and `key:` (only with
 # `key:`, an extension of this system); then the sections whose data the material gave: why, the
 # options, what, replaces/invalidates. A section with no data is not written. The names of the
 # sections and the labels of the last one come from `core/templates/strings.md`, never from this
-# file. `when:` no longer exists for decisions: the verdict reports it and writes nothing. Its line
-# in the index is `- DATE · [clave · ][TITLE](path)`, with no tail.
+# file. `when:` no longer exists for decisions: the verdict reports it and writes nothing. With a
+# focus, the front matter also carries `about:` (spec 076, C17).
 #
-# `replaces:` marks the old decision twice and touches nothing else of it: its index line gets
-# "reemplazada por" (spec 043) and its front matter gets the replacement mark that `supersede`
-# writes (its single writer, spec 046) plus MADR's `status: superseded by <new>`. A body with no
-# front matter gets one; the content of the old decision is never rewritten.
+# `replaces:` names the old decision by its title —`title:`, else its `# Title`— among the files of
+# `decisions/`, and marks it and touches nothing else of it: its front matter gets the replacement mark
+# that `supersede` writes (its single writer, spec 046) plus MADR's `status: superseded by <new>`. The
+# generated index reads that mark (spec 076). A body with no front matter gets one; the content of the
+# old decision is never rewritten.
 #
 # `key:` marca la decisión como clave (spec 069) y su valor es texto libre que nombra las tres
 # condiciones (cuánto cuesta revertirla, qué sorprendería sin contexto, qué alternativa se descartó;
 # la definición vive en core/skills/grill.md#key-decisions). Va en la cabecera del cuerpo y su línea
-# del índice suma `clave · ` entre la fecha y el título. Sin `key:` nada de eso aparece. Debajo de
+# del índice generado suma `clave · ` entre la fecha y el título. Sin `key:` nada de eso aparece. Debajo de
 # `learning:`/`provisional:` se declara como clave fuera de lugar.
 #
 # Un registro se cierra cuando empieza el siguiente o cuando termina el archivo. Una clave que no
@@ -110,20 +115,21 @@ nl="${nl%x}"
 brain=""
 org=""
 workspace=""
-root=0
 material=""
 session_org=""
 load_context=0
+focus=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --brain) brain="${2:-}"; shift 2 ;;
-    --org) org="${2:-}"; shift 2 ;;
-    --workspace) workspace="${2:-}"; shift 2 ;;
-    --root) root=1; shift ;;
-    --material) material="${2:-}"; shift 2 ;;
-    --session-org) session_org="${2:-}"; shift 2 ;;
+    --brain) brain="${2:-}"; shift 2 || os_die "$1 needs a value" ;;
+    --org) org="${2:-}"; shift 2 || os_die "$1 needs a value" ;;
+    --workspace) workspace="${2:-}"; shift 2 || os_die "$1 needs a value" ;;
+    --root) os_die "--root ya no existe (spec 059): el trabajo propio del operador es el espacio de trabajo \"$OS_PERSONAL_WORKSPACE_SLUG\" — usá --workspace $OS_PERSONAL_WORKSPACE_SLUG. Si el brain todavía tiene trabajo suelto en la raíz, correr migrate-root.sh primero" ;;
+    --material) material="${2:-}"; shift 2 || os_die "$1 needs a value" ;;
+    --session-org) session_org="${2:-}"; shift 2 || os_die "$1 needs a value" ;;
     --load-context) load_context=1; shift ;;
+    --focus) focus="${2:-}"; shift 2 || os_die "$1 needs a value" ;;
     *) os_die "argumento desconocido: $1" ;;
   esac
 done
@@ -135,11 +141,7 @@ fi
 [ -n "$org" ] || org="$workspace"
 
 [ -n "$brain" ] || os_die "falta --brain"
-if [ "$root" = "1" ]; then
-  [ -z "$org" ] || os_die "--root y --org/--workspace son excluyentes"
-else
-  [ -n "$org" ] || os_die "falta --org, --workspace o --root"
-fi
+[ -n "$org" ] || os_die "falta --org o --workspace"
 [ -n "$material" ] || os_die "falta --material"
 [ -d "$brain" ] || os_die "no existe el brain: $brain"
 [ -f "$material" ] || os_die "no existe el material de la sesión: $material"
@@ -156,7 +158,7 @@ head=$(os_head_file "$brain") || true
 # stays in Spanish: that is not what this spec asked to translate.
 os_lang_load "$(os_language "$brain")" > /dev/null 2>&1
 
-if [ "$root" = "0" ] && ! os_org_existe "$brain" "$org"; then
+if ! os_org_existe "$brain" "$org"; then
   printf 'la organización "%s" no existe. Las que hay:\n' "$org" >&2
   slugs=$(os_org_slugs "$brain")
   if [ -n "$slugs" ]; then
@@ -170,39 +172,30 @@ fi
 # Escribir en un nodo cuyo `context` no está cargado exige cargarlo primero o negarse. El cierre
 # escribe en los canónicos del nodo: es la escritura más cara de mandar al lugar equivocado.
 #
-# La raíz no tiene este candado: su identidad (`operator.md`) está cargada en cualquier sesión, a
-# cualquier ámbito — no hay `context` cross-nodo que custodiar.
-#
-# `orgprefix` es la única diferencia de ruta entre los dos ámbitos: "<wsdir>/<slug>/" para una
-# organización, vacío para la raíz. Todo lo que sigue arma sus rutas con este prefijo en vez de
-# repetir el condicional en cada canónico.
-if [ "$root" = "1" ]; then
-  orgprefix=""
-  ambito_nombre="raíz"
-else
-  orgprefix="$wsdir/$org/"
-  ambito_nombre="$org"
-  ctx="${orgprefix}$head"
-  res="${orgprefix}resolver.md"
-  if [ "$session_org" != "$org" ]; then
-    if [ "$load_context" = "0" ]; then
-      printf 'escritura cross-nodo: la sesión está parada en "%s" y el cierre escribe en "%s".\n' \
-        "${session_org:-(ningún ámbito declarado)}" "$org" >&2
-      printf 'no se escribió nada. Cargá primero %s y %s, y repetí con --load-context.\n' \
-        "$ctx" "$res" >&2
-      exit 3
-    fi
-    printf 'context cargado antes de escribir en "%s":\n' "$org"
-    for f in "$ctx" "$res"; do
-      if [ -f "$brain/$f" ]; then
-        printf -- '--- %s\n' "$f"
-        cat "$brain/$f"
-      else
-        printf -- '--- %s: no está — se cierra degradado y se dice\n' "$f"
-      fi
-    done
-    printf -- '---\n\n'
+# `orgprefix` es la ruta hasta el espacio de trabajo: "<wsdir>/<slug>/". Todo lo que sigue arma sus
+# rutas con este prefijo.
+orgprefix="$wsdir/$org/"
+ambito_nombre="$org"
+ctx="${orgprefix}$head"
+res="${orgprefix}.resolver.md"
+if [ "$session_org" != "$org" ]; then
+  if [ "$load_context" = "0" ]; then
+    printf 'escritura cross-nodo: la sesión está parada en "%s" y el cierre escribe en "%s".\n' \
+      "${session_org:-(ningún ámbito declarado)}" "$org" >&2
+    printf 'no se escribió nada. Cargá primero %s y %s, y repetí con --load-context.\n' \
+      "$ctx" "$res" >&2
+    exit 3
   fi
+  printf 'context cargado antes de escribir en "%s":\n' "$org"
+  for f in "$ctx" "$res"; do
+    if [ -f "$brain/$f" ]; then
+      printf -- '--- %s\n' "$f"
+      cat "$brain/$f"
+    else
+      printf -- '--- %s: no está — se cierra degradado y se dice\n' "$f"
+    fi
+  done
+  printf -- '---\n\n'
 fi
 
 hoy=$(date +%Y-%m-%d)
@@ -246,7 +239,7 @@ marcar_escrito() {
 declarar_glob() {
   os_tree_ensure "$brain" "$1"
   case "$?" in
-    0) push_capturado "tree.md — glob declarado: $1"; marcar_escrito "tree.md" ;;
+    0) push_capturado "tree.md — glob declarado: $1"; marcar_escrito "$OS_TREE_FILE" ;;
     2) push_no_capturado "falta tree.md — el glob \"$1\" quedó sin declarar" ;;
   esac
 }
@@ -254,27 +247,82 @@ declarar_glob() {
 declarar_content() {
   os_tree_ensure "$brain" "$1" content
   case "$?" in
-    0) push_capturado "tree.md — content declarado: $1"; marcar_escrito "tree.md" ;;
+    0) push_capturado "tree.md — content declarado: $1"; marcar_escrito "$OS_TREE_FILE" ;;
     2) push_no_capturado "falta tree.md — el content \"$1\" quedó sin declarar" ;;
   esac
 }
 
-# ---------------------------------------------------------------- los canónicos del nodo
-# Un archivo que solo guarda contenido nace con su primer dato. `decisions` y `learnings` son dos de
-# las cinco preguntas del nodo: en un nodo carpeta, cada una es su archivo. Con `--root` son dos de
-# las cuatro preguntas propias de la raíz (spec 018) — mismo formato, sin `<wsdir>/<slug>/` adelante.
-nace_canonico() {
-  # nace_canonico ARCHIVO TITULO SUBTITULO
-  local file="$brain/${orgprefix}$1" glob
-  [ -f "$file" ] && return 0
-  {
-    printf '# %s\n\n' "$2"
-    printf '%s\n\n' "$3"
-  } > "$file"
-  push_capturado "${orgprefix}$1 nació con su primer dato"
-  if [ "$root" = "1" ]; then glob="$1"; else glob="$wsdir/*/$1"; fi
-  declarar_glob "$glob"
-  return 0
+# ---------------------------------------------------------------- what the session was about (spec 076, C17)
+# The `about:` this close writes, decided once from `--focus`: the focus when it is an area node, the
+# focus's own `about:` as written when it is an initiative, nothing otherwise.
+# The focus and every node it names belong to the destination workspace: a decision of this
+# workspace about a node of another one would be filed under a node its index never reads.
+about=""
+if [ -n "$focus" ]; then
+  focus=$(os_rel_norm "$focus")
+  if [ ! -f "$brain/$focus" ]; then
+    push_no_capturado "foco sin cabeza: $focus — lo de esta sesión quedó sin about"
+  else
+    case "$(os_head_kind "$wsdir" "$head" "$focus")" in
+      "entity $org") about="$focus" ;;
+      "initiative $org")
+        fm_read "$brain/$focus"
+        about_ok=""; about_n=0
+        while IFS= read -r v || [ -n "$v" ]; do
+          [ -n "$v" ] || continue
+          v=$(os_rel_norm "$v")
+          case "$(os_head_kind "$wsdir" "$head" "$v")" in
+            "entity $org") ;;
+            *) push_no_capturado "about del foco fuera de \"$org\" o que no es un nodo, no se copió: $v"; continue ;;
+          esac
+          about_n=$(( about_n + 1 ))
+          if [ -z "$about_ok" ]; then about_ok="$v"; else about_ok="$about_ok, $v"; fi
+        done <<VALS
+$(os_about_values "$fm_about")
+VALS
+        if [ "$about_n" -gt 1 ]; then about="[$about_ok]"; else about="$about_ok"; fi
+        ;;
+      entity\ *|initiative\ *) push_no_capturado "foco de otro espacio de trabajo: $focus — lo de esta sesión quedó sin about" ;;
+    esac
+  fi
+fi
+
+# about_union OLD NEW -> one `about:` value with every node of OLD and then the new ones of NEW.
+about_union() {
+  local v out="" n=0 seen
+  seen=$(printf '\n')
+  while IFS= read -r v || [ -n "$v" ]; do
+    [ -n "$v" ] || continue
+    v=$(os_rel_norm "$v")
+    case "$seen" in *"
+$v
+"*) continue ;; esac
+    seen="$seen
+$v
+"
+    n=$(( n + 1 ))
+    if [ -z "$out" ]; then out="$v"; else out="$out, $v"; fi
+  done <<VALS
+$(os_about_values "$1")
+$(os_about_values "$2")
+VALS
+  if [ "$n" -gt 1 ]; then printf '[%s]' "$out"; else printf '%s' "$out"; fi
+}
+
+# doc_por_titulo DIR TITLE -> the first file of that folder (never its `index.md`) whose title is
+# TITLE, relative to the brain. Exit 1 when there is none.
+doc_por_titulo() {
+  local dir="$1" titulo="$2" f rel
+  for f in "$brain/$dir"/*.md; do
+    [ -f "$f" ] || continue
+    rel="${f#"$brain"/}"
+    [ "${rel##*/}" = "index.md" ] && continue
+    if [ "$(os_doc_title "$f")" = "$titulo" ]; then
+      printf '%s' "$rel"
+      return 0
+    fi
+  done
+  return 1
 }
 
 escribir_decision() {
@@ -282,12 +330,15 @@ escribir_decision() {
   # OPCIONES: one option per line, in the order of the material.
   local titulo="$1" que="$2" porque="$3" reemplaza="$4" invalidaria="$5" opciones="$6" decisores="$7"
   local clave="${8:-}"
-  local idx="$brain/${orgprefix}decisions.md" contentglob rel full viejo_rel opcion
-  nace_canonico "decisions.md" "Decisiones" \
-    "Registro append-only. Nunca se corrige: si una decisión cambia, se agrega otra que la reemplaza y la nombra."
-  if [ "$root" = "1" ]; then contentglob="decisions/*.md"; else contentglob="$wsdir/*/decisions/*.md"; fi
+  local contentglob rel full viejo_rel="" opcion
+  contentglob="$wsdir/*/decisions/*.md"
   declarar_content "$contentglob"
   mkdir -p "$brain/${orgprefix}decisions"
+  # The replaced decision is found before the new file exists, so a new one with the same title is
+  # never mistaken for it.
+  if [ -n "$reemplaza" ]; then
+    viejo_rel=$(doc_por_titulo "${orgprefix}decisions" "$reemplaza") || viejo_rel=""
+  fi
   rel=$(os_decision_path "$brain" "$orgprefix" "$hoy" "$titulo")
   full="$brain/${orgprefix}$rel"
   # MADR 4.0.0 (spec 070). The keys of the header stay in English in every language; the names of
@@ -299,6 +350,7 @@ escribir_decision() {
     printf 'date: %s\n' "$hoy"
     [ -n "$decisores" ] && printf 'decision-makers: %s\n' "$decisores"
     [ -n "$clave" ] && printf 'key: %s\n' "$clave"
+    [ -n "$about" ] && printf 'about: %s\n' "$about"
     printf -- '---\n\n'
     printf '# %s\n\n' "$titulo"
     [ -n "$porque" ] && printf '## %s\n%s\n\n' "$S_DECISION_CONTEXT_HEADING" "$porque"
@@ -320,36 +372,27 @@ OPCIONES
       printf '\n'
     fi
   } > "$full"
-  # The index line of a decision carries no "when it is read" tail (spec 070).
-  if [ -n "$clave" ]; then
-    os_index_line "$hoy" "$titulo" "$rel" "" key >> "$idx"
-  else
-    os_index_line "$hoy" "$titulo" "$rel" "" >> "$idx"
-  fi
   if [ -n "$reemplaza" ]; then
-    # The replaced body is found through the index line, before that line is marked. Its header gets
-    # the status; its content does not change.
-    if viejo_rel=$(os_index_link_of "$idx" "$reemplaza") && [ -f "$brain/${orgprefix}$viejo_rel" ]; then
-      if os_decision_mark_superseded "$brain" "${orgprefix}$viejo_rel" "${orgprefix}$rel"; then
-        marcar_escrito "${orgprefix}$viejo_rel"
+    # The replaced body gets the mark in its header; its content does not change.
+    if [ -n "$viejo_rel" ]; then
+      if os_decision_mark_superseded "$brain" "$viejo_rel" "${orgprefix}$rel"; then
+        marcar_escrito "$viejo_rel"
       else
-        push_no_capturado "decisión reemplazada sin cabecera legible, no se marcó: ${orgprefix}$viejo_rel"
+        push_no_capturado "decisión reemplazada sin cabecera legible, no se marcó: $viejo_rel"
       fi
+    else
+      push_no_capturado "la decisión que esta reemplaza no está en ${orgprefix}decisions/: $reemplaza"
     fi
-    os_index_mark_superseded "$idx" "$reemplaza" "$titulo" "$rel" || true
   fi
   push_capturado "decisión → ${orgprefix}$rel: $titulo"
   marcar_escrito "${orgprefix}$rel"
-  marcar_escrito "${orgprefix}decisions.md"
 }
 
 escribir_learning() {
   # escribir_learning TITULO CUERPO STATUS CUANDO
   local titulo="$1" cuerpo="$2" status="$3" cuando="$4"
-  local idx="$brain/${orgprefix}learnings.md" contentglob rel full existia=0
-  nace_canonico "learnings.md" "Aprendizajes" \
-    "Vivo: se actualiza o se borra. Lo que se intentó y no cerró queda con status: provisional, para que nadie lo reintente sin saberlo."
-  if [ "$root" = "1" ]; then contentglob="learnings/*.md"; else contentglob="$wsdir/*/learnings/*.md"; fi
+  local contentglob rel full existia=0
+  contentglob="$wsdir/*/learnings/*.md"
   declarar_content "$contentglob"
   mkdir -p "$brain/${orgprefix}learnings"
   [ -n "$cuando" ] || cuando="$OS_CUANDO_FALTA"
@@ -357,20 +400,36 @@ escribir_learning() {
   full="$brain/${orgprefix}$rel"
   if [ "$existia" = "1" ]; then
     # El mismo título ya tiene archivo: es el mismo aprendizaje actualizándose, nunca un segundo
-    # archivo (spec 043, C2) — el índice ya tiene su línea, no se agrega otra.
+    # archivo (spec 043, C2). Its frontmatter stays, except `about:`: the nodes of this close join the
+    # ones it had, so the index of the node now in focus lists it too. A body with no frontmatter
+    # (written before spec 076) is left as it was.
+    if [ -n "$about" ]; then
+      fm_read "$full"
+      if [ -z "$fm_roto" ]; then
+        nuevo_about=$(about_union "$fm_about" "$about")
+        [ "$nuevo_about" = "$fm_about" ] || os_fm_set "$full" about "$nuevo_about" || \
+          push_no_capturado "no se pudo sumar el about al aprendizaje: ${orgprefix}$rel"
+      fi
+    fi
     {
       printf '\n---\n\n## %s\n\n' "$hoy"
       [ "$status" = "provisional" ] && printf 'status: provisional\n\n'
       printf '%s\n' "$cuerpo"
     } >> "$full"
   else
+    # The same keys a decision carries where they apply (spec 076, delegated decision): `date:` and
+    # `about:`; `index_note:` is the tail of its index line. The body is what it always was.
     {
+      printf -- '---\n'
+      printf 'date: %s\n' "$hoy"
+      [ -n "$about" ] && printf 'about: %s\n' "$about"
+      printf 'index_note: %s\n' "$cuando"
+      printf -- '---\n\n'
       printf '# %s\n\n' "$titulo"
       printf '> **Cuándo se lee**: %s\n\n' "$cuando"
       [ "$status" = "provisional" ] && printf 'status: provisional\n\n'
       printf '%s\n' "$cuerpo"
     } > "$full"
-    os_index_line "$hoy" "$titulo" "$rel" "$cuando" >> "$idx"
   fi
   if [ "$status" = "provisional" ]; then
     push_capturado "intento sin conclusión → ${orgprefix}$rel (status: provisional): $titulo"
@@ -378,7 +437,6 @@ escribir_learning() {
     push_capturado "aprendizaje → ${orgprefix}$rel: $titulo"
   fi
   marcar_escrito "${orgprefix}$rel"
-  marcar_escrito "${orgprefix}learnings.md"
 }
 
 # ---------------------------------------------------------------- el material
@@ -494,19 +552,14 @@ CAMPOS
       fi
       if [ -z "$texto" ]; then push_no_capturado "pendiente sin texto"; continue; fi
       # Archivar una tarea suelta ya es `capture`: el cierre la llama en vez de repetir su escritura.
-      # La raíz no manda `--session-org`: capture.sh nunca la pide para su propio ámbito. Sin
-      # iniciativa (`pending:` a secas, o `pending-from:` sin el nombre antes del `|`) capture no
+      # Sin iniciativa (`pending:` a secas, o `pending-from:` sin el nombre antes del `|`) capture no
       # escribe nada (spec 057, decisión 2): se declara no capturado, nombrando qué falta.
       if [ -z "$ini" ]; then
         push_no_capturado "pendiente sin iniciativa, no se archivó: $texto"
         continue
       fi
-      if [ "$root" = "1" ]; then
-        salida=$("$here/capture.sh" --brain "$brain" --root --initiative "$ini" --text "$texto" 2>&1)
-      else
-        salida=$("$here/capture.sh" --brain "$brain" --org "$org" --session-org "$org" \
-                 --initiative "$ini" --text "$texto" 2>&1)
-      fi
+      salida=$("$here/capture.sh" --brain "$brain" --org "$org" --session-org "$org" \
+               --initiative "$ini" --text "$texto" 2>&1)
       rc=$?
       if [ "$rc" = "0" ]; then
         detalle=$(os_trim "$(printf '%s\n' "$salida" | grep 'backlog.md — ' | head -1)")
@@ -777,7 +830,7 @@ if [ -z "$candidatas" ]; then
   printf '  ninguna escritura necesitó decidir fuera del resolver\n'
 else
   printf '%s' "$candidatas"
-  printf '  la escribe el operador en %sresolver.md con un sí — no se escribe sola\n' "$orgprefix"
+  printf '  la escribe el operador en %s.resolver.md con un sí — no se escribe sola\n' "$orgprefix"
 fi
 
 printf '\nSin commitear (no es de esta sesión)\n'

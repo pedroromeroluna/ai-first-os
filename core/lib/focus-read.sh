@@ -15,28 +15,35 @@
 #
 #   1. the head named by `--focus`
 #   2. its body: the files a `content:` line reaches **directly inside** that node's folder,
-#      `LC_ALL=C sort` by path
-#   3. only if that head declares `about:` — the head it names
-#   4. and the `resolver.md` next to that head, when a `glob:` line reaches it
+#      `LC_ALL=C sort` by path — for an area node (a product, a course, a channel, an account) that is
+#      its generated `index.md` (spec 076, C20)
+#   3. when the focus is an area node: its own `.resolver.md`, when a `glob:` line reaches it (spec
+#      076, C15), and its key decisions (see 6)
+#   4. only if that head declares `about:` — for each path it names, in the order of the list (spec
+#      076, C16): the head it names, the `.resolver.md` next to that head when a `glob:` line reaches
+#      it, and that node's key decisions (see 6)
 #   5. the **names** of what an `archive:` line reaches directly inside that node's folder — never
 #      their bodies (spec 048)
-#   6. the key decisions (spec 069): the lines of the `decisions.md` that sits beside the focus head,
-#      and of the one beside the head named by `about:`, marked `clave · ` and not superseded —
-#      printed right after the head they belong to (steps 1 and 3), under the fixed marker
-#      `key-decisions: <path of the index>`. Lines only, never the bodies they link to.
-#      An index that step 2 already printed whole is not cut a second time.
+#   6. key decisions (spec 069, revised by spec 076 C19): the decisions of the node's workspace
+#      (`<workspaces-dir>/<ws>/decisions/`) whose frontmatter carries `key:`, that are not replaced and
+#      whose `about:` names that node — read from each file's frontmatter, never from an index —
+#      printed right after that node's head and resolver, under the fixed marker
+#      `key-decisions: <workspaces-dir>/<ws>/decisions/`. Lines only, never the bodies they link to.
+#      The key decisions that name no node are the startup read's (`session-read.sh`) and are not
+#      repeated here.
 #
-# ONE JUMP IS ONE JUMP. Step 3 reads the `about:` of the focus and of nothing else: the head loaded
+# ONE JUMP IS ONE JUMP. Step 4 reads the `about:` of the focus and of nothing else: the head loaded
 # there may declare its own `about:`, and it is not followed. The value of this system is that the
 # startup never opens a body; a load that chains would read half the brain to answer one question,
 # and it would do it silently, growing with every link an operator adds. The bound is not a number
 # to tune — it is one level, always.
 #
 # WHAT IS NOT LOADED, AND WHY.
-#   · The `decisions.md` of the node named by `about:`, except its key decisions (step 6): it is
-#     append-only and unbounded, and what it holds is why past decisions were taken, not what this
-#     node is. Only the lines marked as key and not superseded are loaded; every other line, and
-#     every body, stays out.
+#   · The decisions about the node named by `about:`, except its key decisions (step 6): they are
+#     unbounded, and what they hold is why past decisions were taken, not what this node is. Only the
+#     key ones not replaced are loaded, as lines; every other one, and every body, stays out. The
+#     `index.md` of that node is not loaded either: it is the node's own view, and the focus on an
+#     initiative is about the initiative (spec 076, C20).
 #   · Whatever a `content:` line reaches **under** that node —its `context/`, its `research/`—: those
 #     are the documents the node accumulates, and loading them turns one jump into the whole folder.
 #   · The body of any node other than the focus.
@@ -45,8 +52,8 @@
 #     archiving a document is the operator saying it is no longer what you read to work, and a
 #     listing that opened them would put back exactly the cost the archive exists to remove. The
 #     folder is the index — there is no file to keep in sync — and `recall` is what searches inside.
-# The pair loaded in steps 3 and 4 —a head and the `resolver.md` beside it— is the same pair the
-# startup read already loads for a workspace (`session-read.sh`, steps 3 and 4): what "loading a
+# The pair loaded in step 4 —a head and the `.resolver.md` beside it— is the same pair the startup
+# read already loads for a workspace (`session-read.sh`, steps 2 and 3): what "loading a
 # node" means is stated once, and this command repeats the shape instead of inventing a second one.
 #
 # A file this command prints may carry the mark that says another file replaced it. Honouring that
@@ -65,9 +72,11 @@
 #   - An `about:` that does not resolve prints `about-unresolved: <value> · <reason>` in place of
 #     the jump and the read goes on: the startup scan is where a broken link is a finding, and a
 #     read that dies over one leaves the operator with nothing.
-#   - The key decisions open with the fixed marker `key-decisions: <path of the index>` —English in
-#     both languages— and one index line per row, as the index has it. A node whose index has none
-#     prints no marker and no lines.
+#   - The key decisions open with the fixed marker `key-decisions: <workspaces-dir>/<ws>/decisions/`
+#     —English in both languages— and one index line per decision, its link relative to that folder.
+#     A node with none prints no marker and no lines.
+#   - With a list, each path is its own jump in the order written: an unresolved one prints its
+#     `about-unresolved:` line and the next one still loads.
 #   - The archived listing opens with the fixed marker `archived: <n>` —English in both languages,
 #     like `about-jump:`— and one `· <file name>` line per file, `LC_ALL=C sort`. A node with
 #     nothing archived prints no marker and no lines.
@@ -164,20 +173,31 @@ emitir() {
   return 0
 }
 
-# claves HEAD — step 6: the key decisions of the index beside a head, as a cut of the file. Only a
-# node that keeps a folder of its own (head named `$head_file`) has an index beside it. An index that
-# step 2 already printed whole is not cut a second time.
+wsdir=$(os_ws_dir "$brain")
+
+# claves HEAD — step 6: the key decisions about one area node, read from the frontmatter of each
+# decision of its workspace. Nothing for a head that is not an area node.
 claves() {
-  local lineas rel d="${1%/*}"
-  [ "$d" != "$1" ] && [ "${1##*/}" = "$head_file" ] || return 0
-  rel="$d/decisions.md"
-  # An index already printed whole (a `content:` line reached it in step 2) carries its key lines.
-  case "$impresos" in *"$nl$rel$nl"*) return 0 ;; esac
-  lineas=$(os_key_decision_lines "$brain/$rel")
+  local lineas ws
+  case "$(os_head_kind "$wsdir" "$head_file" "$1")" in
+    entity\ *) ws="${1#"$wsdir"/}"; ws="${ws%%/*}" ;;
+    *) return 0 ;;
+  esac
+  lineas=$(os_key_decisions "$brain" "$wsdir/$ws" "$1")
   [ -n "$lineas" ] || return 0
   separar
-  printf 'key-decisions: %s\n' "$rel"
+  printf 'key-decisions: %s/decisions/\n' "$wsdir/$ws"
   printf '%s\n' "$lineas"
+  return 0
+}
+
+# resolver_de HEAD — the `.resolver.md` beside a head, when a `glob:` line reaches it (spec 076, C15).
+resolver_de() {
+  local d="${1%/*}"
+  [ "$d" != "$1" ] || return 0
+  es_cabeza "$d/.resolver.md" || return 0
+  case "$impresos" in *"$nl$d/.resolver.md$nl"*) return 0 ;; esac
+  emitir "$d/.resolver.md"
   return 0
 }
 
@@ -209,15 +229,20 @@ if [ "$base" = "$head_file" ] && [ "$dir" != "$focus" ]; then
   done <<CONTENIDOS
 $contents
 CONTENIDOS
+  # `sort -u`: two `content:` lines that reach the same file —two sessions declaring it at once
+  # (spec 072)— must not print its body twice.
   while IFS= read -r f || [ -n "$f" ]; do
     [ -n "$f" ] || continue
     emitir "$f"
   done <<ORDENADOS
-$(printf '%s' "$cuerpos" | LC_ALL=C sort)
+$(printf '%s' "$cuerpos" | LC_ALL=C sort -u)
 ORDENADOS
 fi
 
-claves "$focus"
+# ---------------------------------------------------------------- 3 · an area node's own resolver and key decisions
+case "$(os_head_kind "$wsdir" "$head_file" "$focus")" in
+  entity\ *) resolver_de "$focus"; claves "$focus" ;;
+esac
 
 # ---------------------------------------------------------------- 5 · what is archived, by name
 # Runs on every exit path of this script, because the operator's answer to "what does this node have
@@ -276,40 +301,51 @@ if [ -z "$fm_about" ]; then
   exit 0
 fi
 
-destino=$(os_rel_norm "$fm_about")
-motivo=""
-case "$fm_about" in
-  *,*|*' '*) motivo="$S_ABOUT_IS_A_LIST" ;;
+# A value that is not written as a list but names more than one path is one unresolved value, as
+# before spec 076; the list form `[<path>, <path>]` is split by `os_about_values`.
+about_raw="$fm_about"
+case "$about_raw" in
+  '['*']') valores=$(os_about_values "$about_raw") ;;
+  *) valores="$about_raw" ;;
 esac
-if [ -z "$motivo" ] && ! os_rel_ok "$destino"; then motivo="$S_ABOUT_NOT_RELATIVE"; fi
-if [ -z "$motivo" ] && ! es_cabeza "$destino"; then motivo="$S_ABOUT_NOT_A_HEAD"; fi
-if [ -z "$motivo" ] && [ "$destino" = "$focus" ]; then motivo="$S_ABOUT_SELF"; fi
-if [ -z "$motivo" ] && [ -L "$brain/$destino" ]; then motivo="$S_ABOUT_IS_A_LINK"; fi
-if [ -z "$motivo" ] && ! os_inside_brain "$brain" "$destino"; then motivo="$S_ABOUT_OUT_OF_BRAIN"; fi
 
-if [ -n "$motivo" ]; then
-  printf '\n'
-  printf "$S_FOCUS_ABOUT_UNRESOLVED\n" "$fm_about" "$motivo"
-  listar_archivado
-  exit 0
-fi
+saltar() {
+  # saltar VALUE — one jump: the checks, then the head, its resolver and its key decisions.
+  local valor="$1" destino motivo=""
+  destino=$(os_rel_norm "$valor")
+  case "$valor" in
+    *,*|*' '*|'') motivo="$S_ABOUT_IS_A_LIST" ;;
+  esac
+  if [ -z "$motivo" ] && ! os_rel_ok "$destino"; then motivo="$S_ABOUT_NOT_RELATIVE"; fi
+  if [ -z "$motivo" ] && ! es_cabeza "$destino"; then motivo="$S_ABOUT_NOT_A_HEAD"; fi
+  if [ -z "$motivo" ] && [ "$destino" = "$focus" ]; then motivo="$S_ABOUT_SELF"; fi
+  if [ -z "$motivo" ] && [ -L "$brain/$destino" ]; then motivo="$S_ABOUT_IS_A_LINK"; fi
+  if [ -z "$motivo" ] && ! os_inside_brain "$brain" "$destino"; then motivo="$S_ABOUT_OUT_OF_BRAIN"; fi
 
-printf '\n'
-# Fixed marker, in English, the same in both languages: `core/CLAUDE.md` matches it as a structural
-# identifier, not as translatable prose — the same criterion as `active-role:` (spec 009).
-printf 'about-jump: %s\n' "$destino"
-printf '── %s\n' "$destino"
-cuerpo "$brain/$destino"
+  if [ -n "$motivo" ]; then
+    separar
+    printf "$S_FOCUS_ABOUT_UNRESOLVED\n" "$valor" "$motivo"
+    return 0
+  fi
 
-destino_dir="${destino%/*}"
-if [ "$destino_dir" != "$destino" ] && es_cabeza "$destino_dir/resolver.md"; then
-  primera=0
-  emitir "$destino_dir/resolver.md"
-fi
+  separar
+  # Fixed marker, in English, the same in both languages: `core/CLAUDE.md` matches it as a structural
+  # identifier, not as translatable prose — the same criterion as `active-role:` (spec 009).
+  printf 'about-jump: %s\n' "$destino"
+  printf '── %s\n' "$destino"
+  impresos="$impresos$destino$nl"
+  cuerpo "$brain/$destino"
+  resolver_de "$destino"
+  claves "$destino"
+  return 0
+}
 
-claves "$destino"
+while IFS= read -r v || [ -n "$v" ]; do
+  saltar "$v"
+done <<VALORES
+$valores
+VALORES
 
-primera=0
 listar_archivado
 
 exit 0

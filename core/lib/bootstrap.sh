@@ -9,24 +9,31 @@
 #   name:     nombre del operador
 #   profile:  el rol en una línea ("Senior PM en una fintech")
 #   voice:    una línea por ítem de la voz (se repite; la entrevista la declara opcional)
-#   workspace: Nombre | título | dueño | archivo-de-identidad  (se repite; los dos últimos, opcionales)
-#             El título es identidad —"qué hacés ahí"— y va al cuerpo de la cabeza, nunca a
-#             `role:` (spec 020): ese campo activa un oficio del pack y nace vacío.
-#   skipped:  el nombre de una pregunta opcional que el operador dejó vacía a propósito: `voice` o
-#             `workspace` (se repite). Es la diferencia entre "no contestó" y "contestó que no
-#             tiene" (spec 052): lo declarado vacío no se vuelve a preguntar.
+#   workspace: Nombre | título | dueño | archivo-de-identidad  (se repite; los dos últimos,
+#             opcionales). El cerebro nace siempre con `workspaces/personal` — "My workspace" / "Mi
+#             workspace" — sin que la entrevista lo pregunte (spec 059, decisión 3): esta clave ya
+#             no es una pregunta de la entrevista, pero sigue siendo la forma de sumar, en el mismo
+#             acto, uno o más espacios de trabajo con nombre — lo que antes hacía nacer un brain con
+#             "una persona, un empleador"; después de este bootstrap eso mismo es `new-workspace`,
+#             corrido aparte. El título es identidad —"qué hacés ahí"— y va al cuerpo de la cabeza,
+#             nunca a `role:` (spec 020): ese campo activa un oficio del pack y nace vacío.
+#   skipped:  el nombre de una pregunta opcional que el operador dejó vacía a propósito: hoy, solo
+#             `voice` (se repite). Es la diferencia entre "no contestó" y "contestó que no tiene"
+#             (spec 052): lo declarado vacío no se vuelve a preguntar. `skipped: workspace` ya no
+#             existe (spec 059): la pregunta que declaraba desapareció de la entrevista entera, así
+#             que no hay una respuesta vacía que declarar — frena con el motivo, igual que `org:`.
 # `org:` no existe más (spec 052): el espacio de trabajo se declara con `workspace:`, que es el
-# nombre que el usuario ve desde la spec 039. Sin retrocompatibilidad: el archivo de respuestas lo
-# escribe la sesión que conduce la entrevista, en el momento, y una clave vieja frena con el motivo.
+# nombre que el usuario ve desde la spec 039. Sin retrocompatibilidad: un archivo de respuestas
+# viejo con `org:` frena con el motivo.
 # `reply:` no existe más (spec 021): "cómo querés que te conteste" no se pregunta, y el default vive
 # en el template de `operator.md` marcado como sección que se aprende con el uso. Sin
 # retrocompatibilidad: un archivo viejo con `reply:` frena con el motivo.
 # Las líneas vacías y las que empiezan con `#` se ignoran.
 #
 # El respaldo tiene dos mitades (spec 021). Acá va la local, que corre siempre y sin preguntar: `git
-# init` + primer commit. La remota —crear el repo y pushear, o dejar la tarea guiada en el backlog de
-# la raíz— es `remote-backup.sh`, que la sesión corre después y que cualquier sesión posterior puede
-# volver a correr.
+# init` + primer commit. La remota —crear el repo y pushear, o preguntar si se anota la tarea guiada en
+# el espacio de trabajo `personal` y anotarla solo con el sí— es `remote-backup.sh`, que la sesión corre
+# después y que cualquier sesión posterior puede volver a correr.
 
 set -eu
 
@@ -155,15 +162,13 @@ os_skipped() {
 }
 for k in $skipped; do
   case "$k" in
-    voice|workspace) ;;
-    *) os_die "skipped: solo nombra una pregunta opcional de la entrevista (voice, workspace): $k" ;;
+    voice) ;;
+    workspace) os_die "skipped: workspace no existe desde la spec 059: la pregunta desapareció de la entrevista entera, así que no hay una respuesta vacía que declarar" ;;
+    *) os_die "skipped: solo nombra una pregunta opcional de la entrevista (voice): $k" ;;
   esac
 done
 if os_skipped voice && [ -n "$voice" ]; then
   os_die "skipped: voice junto con líneas voice: en el mismo archivo — o la voz se declaró vacía, o se contestó"
-fi
-if os_skipped workspace && [ -n "$workspaces" ]; then
-  os_die "skipped: workspace junto con líneas workspace: en el mismo archivo — o el espacio de trabajo se declaró vacío, o se contestó"
 fi
 
 # El idioma es la primera pregunta de la entrevista y gobierna todo lo que se escribe. Sin dato, se
@@ -176,6 +181,7 @@ if [ -z "$language" ]; then
 elif ! os_language_valido "$language"; then
   os_die "idioma no soportado: $language — hoy: $OS_LANGUAGES"
 fi
+os_lang_load "$language"
 
 templates="$here/../templates"
 mkdir -p "$brain"
@@ -187,7 +193,7 @@ brain=$(cd "$brain" && pwd -P)
 # que el operador haya escrito encima, y eso es pérdida silenciosa. Agregar espacios de trabajo a un
 # brain que ya existe es trabajo de new-workspace.
 existing=""
-for f in operator.md voice.md resolver.md tree.md; do
+for f in "$OS_OPERATOR_FILE" "$OS_VOICE_FILE" "$OS_ROOT_RESOLVER_FILE" "$OS_TREE_FILE" operator.md voice.md resolver.md tree.md; do
   if [ -e "$brain/$f" ]; then
     existing="$existing $f"
   fi
@@ -201,23 +207,23 @@ fi
 # frase termina viviendo en dos lugares.
 # La prosa fija sale del catálogo `templates/strings.md` en el idioma elegido: un solo template por
 # archivo, una traducción por string (spec 021). Nunca un árbol de templates por idioma.
+mkdir -p "$brain/$OS_SYSTEM_DIR" "$brain/$OS_ACCOUNT_DIR/voice"
 os_render_lang "$templates/operator.md" "$language" \
-  "NAME=$name" "LANGUAGE=$language" "PROFILE=$profile" > "$brain/operator.md"
+  "NAME=$name" "LANGUAGE=$language" "PROFILE=$profile" > "$brain/$OS_OPERATOR_FILE"
 # La voz es opcional: sin dato, el archivo lo dice en vez de nacer con una sección en blanco.
 voice_body="$voice"
 [ -n "$voice_body" ] || voice_body="$S_VOICE_PENDING"
 os_render_lang "$templates/voice.md" "$language" \
-  "NAME=$name" "VOICE=$voice_body" > "$brain/voice.md"
-os_render_lang "$templates/root-resolver.md" "$language" > "$brain/resolver.md"
+  "NAME=$name" "VOICE=$voice_body" > "$brain/$OS_VOICE_FILE"
+os_render_lang "$templates/root-resolver.md" "$language" > "$brain/$OS_ROOT_RESOLVER_FILE"
 # El manual de usuario es del idioma del brain, y su nombre lo enuncia `os_manual_file` una sola vez
 # (spec 022). El árbol lo declara como contenido: se ve en la raíz y ningún barrido lo lee como
 # trabajo.
-manual=$(os_manual_file "$language")
-os_render "$templates/tree.md" "MANUAL=$manual" > "$brain/tree.md"
+os_render "$templates/tree.md" "MANUAL=$OS_MANUAL_LINK" > "$brain/$OS_TREE_FILE"
 
-os_check_identity_cap "$brain/operator.md"
+os_check_identity_cap "$brain/$OS_OPERATOR_FILE"
 
-printf 'operator.md · voice.md · resolver.md · tree.md\n'
+printf '%s · %s · %s · %s\n' "$OS_OPERATOR_FILE" "$OS_VOICE_FILE" "$OS_ROOT_RESOLVER_FILE" "$OS_TREE_FILE"
 
 # El manual se engancha por symlink al del producto: nace con el brain y se actualiza con el
 # producto, sin volver a correr nada.
@@ -228,7 +234,6 @@ vacias=""
 [ "$sin_language" = "0" ] || vacias="$vacias language"
 [ -n "$profile" ] || vacias="$vacias profile"
 if [ -z "$voice" ] && ! os_skipped voice; then vacias="$vacias voice"; fi
-if [ -z "$workspaces" ] && ! os_skipped workspace; then vacias="$vacias workspace"; fi
 if [ -n "$vacias" ]; then
   printf 'sin dato:%s — las secciones quedaron vacías y hay que volver a preguntarlas\n' "$vacias"
 fi
@@ -238,8 +243,18 @@ if [ -n "$skipped" ]; then
   printf 'declarado vacío:%s — se preguntó y la respuesta fue "no tengo" o "después"; no se vuelve a preguntar\n' "$skipped"
 fi
 
-# Un espacio de trabajo que falla no aborta los demás, y los que no se crearon se nombran.
+# El cerebro nace siempre con un espacio de trabajo (spec 059, decisión 3): la entrevista ya no lo
+# pregunta, así que este script lo crea solo primero, con el slug fijo y el nombre visible del
+# catálogo — nunca inventado acá. `new-workspace.sh` es el mismo comando que crea cualquier otro
+# espacio de trabajo, así que un `workspace:` en las respuestas —para quien lo suma por su cuenta,
+# sin pasar por la entrevista— sigue funcionando igual, después de este.
 fallidas=""
+if ! "$here/new-workspace.sh" --brain "$brain" --name "$S_PERSONAL_WORKSPACE_NAME" --role "" \
+     --title "" --owner "$name" --slug "$OS_PERSONAL_WORKSPACE_SLUG"; then
+  fallidas="$fallidas $S_PERSONAL_WORKSPACE_NAME"
+fi
+
+# Un espacio de trabajo que falla no aborta los demás, y los que no se crearon se nombran.
 while IFS= read -r ws; do
   [ -n "$ws" ] || continue
   IFS='|' read -r ws_name ws_title ws_owner ws_identity <<EOF

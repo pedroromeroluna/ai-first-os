@@ -27,7 +27,7 @@ the head's `repo:` is what activates the building mechanics, and this command wr
 2. **The remote is the remote, never a local path.** What gets written into `repo:` travels with the
    brain to any machine; the local path is data of this one.
 3. **The clone root is asked once.** It is the folder where this machine's checkouts live, outside
-   the brain. It ends up written in `mounts.md` and is never asked again. **With no answer no
+   the brain. It ends up written in `.system/mounts.md` and is never asked again. **With no answer no
    default is invented**: ask and wait.
 
 ## What it does
@@ -36,7 +36,7 @@ the head's `repo:` is what activates the building mechanics, and this command wr
 |---|---|
 | `repo: <remote>` | The head's frontmatter |
 | The clone, flat and outside the brain | `<clone root>/<repo name>` |
-| The `remote → local path` row | `mounts.md` at the root of the brain |
+| The `remote → local path` row | `.system/mounts.md` |
 | The checkout authorized for the harness | `permissions.additionalDirectories` in `.claude/settings.local.json` |
 | With `--new`: the repo born from the product's scaffold, its first commit on `main` and `origin` declared | `<clone root>/<repo name>`, in the clone's place |
 
@@ -67,11 +67,11 @@ Mounting and authorizing are the same act: the checkout stops needing a permissi
 file for whoever works on it next, **from the next session of the harness on** — a settings file
 already loaded when the session started does not pick up a mid-session edit.
 
-`mounts.md` **does not travel**: the command creates it with its first piece of data, declares it in
-the brain's `.gitignore` and appends its glob to `tree.md`. On a new machine the table is not there
+`.system/mounts.md` **does not travel**: the command creates it with its first piece of data, declares it in
+the brain's `.gitignore` and appends its glob to `.system/tree.md`. On a new machine the table is not there
 — the scans report the mount as unreachable and running `mount-repo` on the same remote rebuilds it.
 That is the designed degradation, not an error. `.claude/settings.local.json` follows the same rule
-for what does not travel: the command declares it in `.gitignore` too, next to `mounts.md`.
+for what does not travel: the command declares it in `.gitignore` too, next to `.system/mounts.md`.
 
 Running it twice on the same remote neither duplicates the row nor clones again.
 
@@ -94,4 +94,4 @@ In all eight cases nothing was written. A half-mounted node is worse than an unm
 Report what was written and where, in one line. If the script says the table was born or that it
 declared a glob, pass it through as is.
 
-Unmounting does not exist yet: removing a mount is editing `mounts.md` and the head by hand.
+Unmounting does not exist yet: removing a mount is editing `.system/mounts.md` and the head by hand.

@@ -1,18 +1,17 @@
 #!/usr/bin/env bash
-# Barrido de arranque de sesión sobre un ámbito: una organización, o la raíz (el trabajo propio del
-# operador, spec 018). Interno: no es invocable — lo dispara el contrato de sesión (core/CLAUDE.md)
-# antes de que el modelo conteste el primer mensaje.
+# Barrido de arranque de sesión sobre un espacio de trabajo. Interno: no es invocable — lo dispara el
+# contrato de sesión (core/CLAUDE.md) antes de que el modelo conteste el primer mensaje.
 #
 # Uso: session-start.sh --brain DIR --org SLUG [--mounts ARCHIVO]
 #      session-start.sh --brain DIR --workspace SLUG [--mounts ARCHIVO]
-#      session-start.sh --brain DIR --root      [--mounts ARCHIVO]
 #
 # `--workspace` es sinónimo exacto de `--org` (spec 039): los dos con el mismo valor, o uno solo,
 # siguen igual; los dos con valores distintos frenan con error.
 #
-# `--org`/`--workspace` y `--root` son excluyentes. `--root` es un flag aparte y no un valor
-# reservado del otro: un valor de texto siempre puede colisionar con lo que un operador nombre a un
-# espacio de trabajo; un flag distinto, nunca.
+# `--root` ya no existe (spec 059): la raíz del brain quedó con solo maquinaria del operador
+# —`operator.md`, la voz, `mounts.md`, `resolver.md`, `tree.md`— y su trabajo pasó a ser el espacio
+# de trabajo `personal`, con el que todo brain nace. Un brain viejo que todavía tiene trabajo suelto
+# en la raíz lo ve declarado en Chequeos, más abajo, nombrando `migrate-root.sh`.
 #
 # Lee el frontmatter de cada cabeza y los archivos que se cargan siempre. Nunca abre el cuerpo de
 # una iniciativa: al `---` de cierre deja de leer. El `about:` de una cabeza (spec 049) se verifica
@@ -22,9 +21,8 @@
 # la tabla del entorno se lee sola desde la raíz del brain y `--mounts` es override.
 #
 # La salida son las mismas cuatro secciones fijas, siempre las cuatro, con vacío explícito, y una
-# última línea con el conteo de nodos y el tiempo — con `--org` o con `--root` es el mismo formato.
-# Cada sección tiene tope propio y declara lo que no entró: con 12 o con 40 iniciativas la salida
-# mide lo mismo.
+# última línea con el conteo de nodos y el tiempo. Cada sección tiene tope propio y declara lo que
+# no entró: con 12 o con 40 iniciativas la salida mide lo mismo.
 #
 # Chequeos suma, cuando el brain es un repo git y el árbol no está limpio, una línea `sin commitear:
 # N archivos · ruta, ruta` (spec 031) — lo que `close-session.sh` no pudo commitear en el cierre
@@ -61,17 +59,23 @@ brain=""
 org=""
 workspace=""
 mounts=""
-root=0
+root_pedido=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --brain) brain="${2:-}"; shift 2 ;;
     --org) org="${2:-}"; shift 2 ;;
     --workspace) workspace="${2:-}"; shift 2 ;;
-    --root) root=1; shift ;;
+    --root) root_pedido=1; shift ;;
     --mounts) mounts="${2:-}"; shift 2 ;;
     *) os_die "argumento desconocido: $1" ;;
   esac
 done
+
+# `--root` ya no existe como ámbito (spec 059): se acepta el flag solo para frenar acá con el error
+# que dice a dónde se movió el trabajo, en vez de "argumento desconocido" — un mensaje sin destino
+# manda al operador a adivinar. Se resuelve antes que cualquier otro chequeo de ámbito, y sin haber
+# escrito nada todavía.
+[ "$root_pedido" = "0" ] || os_root_gone "$brain"
 
 # `--workspace` es sinónimo exacto de `--org` (P3, spec 039): nadie hacia afuera ve la palabra
 # "org", así que la opción también dice "workspace". Los dos con valores distintos son un error;
@@ -82,11 +86,7 @@ fi
 [ -n "$org" ] || org="$workspace"
 
 [ -n "$brain" ] || os_die "falta --brain"
-if [ "$root" = "1" ]; then
-  [ -z "$org" ] || os_die "--root y --org/--workspace son excluyentes"
-else
-  [ -n "$org" ] || os_die "falta --org, --workspace o --root"
-fi
+[ -n "$org" ] || os_die "falta --org o --workspace"
 [ -d "$brain" ] || os_die "no existe el brain: $brain"
 brain=$(cd "$brain" && pwd)
 
@@ -103,7 +103,6 @@ org_propios=$(os_org_propios "$brain")
 # vive escrito a mano acá — cualquier carpeta hermana declarada con sus 3 líneas glob entra igual.
 # Calculado una sola vez, antes de cualquier loop que lo necesite.
 memory_types_org=$(os_memory_types "$brain" org) || memory_types_org=""
-memory_types_root=$(os_memory_types "$brain" root) || memory_types_root=""
 
 # All the fixed or template text this script prints for the operator comes out of the bilingual
 # catalog (spec 021/033): with `language: en` in `operator.md` it comes out in English, and with
@@ -142,27 +141,23 @@ translate_bl_broken() {
 # pasa y después no matchea contra el slug `acme`, y `--org ../..` sale del árbol. Las dos formas
 # devolvían las cuatro secciones vacías con exit 0 — un barrido vacío que se lee como un brain vacío.
 # El script no adivina el ámbito: lista lo que hay y devuelve el control. La skill pregunta con eso.
-#
-# La raíz no tiene este chequeo: siempre existe, así que `--root` nunca puede fallar por ámbito.
-if [ "$root" = "0" ]; then
-  org_existe=0
-  org_slugs=""
-  while IFS= read -r slug || [ -n "$slug" ]; do
-    [ -n "$slug" ] || continue
-    org_slugs="$org_slugs  $slug$nl"
-    if [ "$slug" = "$org" ]; then org_existe=1; fi
-  done <<SLUGS
+org_existe=0
+org_slugs=""
+while IFS= read -r slug || [ -n "$slug" ]; do
+  [ -n "$slug" ] || continue
+  org_slugs="$org_slugs  $slug$nl"
+  if [ "$slug" = "$org" ]; then org_existe=1; fi
+done <<SLUGS
 $(os_org_slugs "$brain")
 SLUGS
-  if [ "$org_existe" = "0" ]; then
-    printf "$S_SESSION_ORG_NOT_FOUND\n" "$org" >&2
-    if [ -n "$org_slugs" ]; then
-      printf '%s' "$org_slugs" >&2
-    else
-      printf '  %s\n' "$S_SESSION_NO_ORGS" >&2
-    fi
-    exit 2
+if [ "$org_existe" = "0" ]; then
+  printf "$S_SESSION_ORG_NOT_FOUND\n" "$org" >&2
+  if [ -n "$org_slugs" ]; then
+    printf '%s' "$org_slugs" >&2
+  else
+    printf '  %s\n' "$S_SESSION_NO_ORGS" >&2
   fi
+  exit 2
 fi
 
 # ---------------------------------------------------------------- acumuladores
@@ -205,6 +200,21 @@ SUCIOS
   if [ "$git_n" -gt 0 ]; then
     push_chequeo "$(printf "$S_SESSION_CHECK_UNCOMMITTED" "$git_n" "$git_lista")"
   fi
+fi
+
+# ---------------------------------------------------------------- a brain on the old layout (spec 076, C27)
+# A brain born before spec 076 keeps its operator file, its backlog outside an initiative or its session
+# contract at the root. The scan reads only the new places, so it runs degraded: it says so, naming the
+# file and the command that fixes it (`migrate-layout`), and keeps going. One finding per condition, before the rest of the Checks so that the cap of the section
+# never hides them.
+if [ -f "$brain/operator.md" ] && [ ! -f "$brain/$OS_OPERATOR_FILE" ]; then
+  push_chequeo "$(printf "$S_SESSION_OLD_BRAIN_OPERATOR" "operator.md")"
+fi
+if [ -f "$brain/$wsdir/$org/backlog.md" ]; then
+  push_chequeo "$(printf "$S_SESSION_OLD_BRAIN_BACKLOG" "$wsdir/$org/backlog.md")"
+fi
+if [ -e "$brain/CLAUDE.md" ] || [ -L "$brain/CLAUDE.md" ]; then
+  push_chequeo "$(printf "$S_SESSION_OLD_BRAIN_CONTRACT" "CLAUDE.md")"
 fi
 
 # ---------------------------------------------------------------- el árbol se lee, no se infiere
@@ -289,13 +299,13 @@ fi
 
 # ---------------------------------------------------------------- el operador
 operador=""
-if [ -f "$brain/operator.md" ]; then
+if [ -f "$brain/$OS_OPERATOR_FILE" ]; then
   marcar_leido
   while IFS= read -r line || [ -n "$line" ]; do
     case "$line" in
       '# '*) operador=$(os_trim "${line#\# }"); break ;;
     esac
-  done < "$brain/operator.md"
+  done < "$brain/$OS_OPERATOR_FILE"
 fi
 
 # ---------------------------------------------------------------- tope de identidad
@@ -306,6 +316,16 @@ contar_lineas() {
   [ -f "$1" ] || { printf '0'; return 0; }
   n=$(wc -l < "$1")
   printf '%s' "$(printf '%s' "$n" | tr -d ' ')"
+}
+
+# contar_lineas_todas FILE — like contar_lineas, plus a last line without a newline. Only the cap of
+# the glossary and the context map uses it (spec 072, C5): the identity caps keep `contar_lineas`,
+# so a brain without those two files gets the same warnings it got before the spec.
+contar_lineas_todas() {
+  local n
+  n=$(contar_lineas "$1")
+  if [ -s "$1" ] && [ -n "$(tail -c 1 "$1")" ]; then n=$((n + 1)); fi
+  printf '%s' "$n"
 }
 
 contar_filas_resolver() {
@@ -335,47 +355,44 @@ identidad_tipo() {
   done
 }
 
-# La raíz no tiene cabeza de nodo propia: su identidad es `operator.md`, que ya se cuenta abajo, y su
-# resolver es el de la raíz (`resolver.md`), sin el `<wsdir>/<slug>/resolver.md` de un espacio de
-# trabajo. Sí puede tener tipos de nodo de memoria propios (`channels/` en la raíz, spec 041): su
-# identidad entra al mismo chequeo que la de un espacio de trabajo.
-if [ "$root" = "1" ]; then
-  if [ -f "$brain/resolver.md" ]; then marcar_leido; fi
-  filas=$(contar_filas_resolver "$brain/resolver.md")
-  for tipo in $memory_types_root; do
-    identidad_tipo "$tipo" ""
-  done
-else
-  ctx="$brain/$wsdir/$org/$head"
-  res_org="$brain/$wsdir/$org/resolver.md"
+ctx="$brain/$wsdir/$org/$head"
+res_org="$brain/$wsdir/$org/.resolver.md"
 
-  if [ -f "$ctx" ]; then marcar_leido; else push_chequeo "$(printf "$S_SESSION_CHECK_MISSING_FILE" "$wsdir/$org/$head")"; fi
-  if [ -f "$res_org" ]; then marcar_leido; else push_chequeo "$(printf "$S_SESSION_CHECK_MISSING_FILE" "$wsdir/$org/resolver.md")"; fi
-  if [ -f "$brain/resolver.md" ]; then marcar_leido; fi
+if [ -f "$ctx" ]; then marcar_leido; else push_chequeo "$(printf "$S_SESSION_CHECK_MISSING_FILE" "$wsdir/$org/$head")"; fi
+if [ -f "$res_org" ]; then marcar_leido; else push_chequeo "$(printf "$S_SESSION_CHECK_MISSING_FILE" "$wsdir/$org/.resolver.md")"; fi
+if [ -f "$brain/$OS_ROOT_RESOLVER_FILE" ]; then marcar_leido; fi
 
-  ident=$(contar_lineas "$ctx")
-  filas=$(contar_filas_resolver "$res_org")
-  diagnostico=$(printf "$S_SESSION_IDENTITY_DIAG" "$ident" "$OS_IDENTITY_CAP" "$filas")
+ident=$(contar_lineas "$ctx")
+filas=$(contar_filas_resolver "$res_org")
+diagnostico=$(printf "$S_SESSION_IDENTITY_DIAG" "$ident" "$OS_IDENTITY_CAP" "$filas")
 
-  if [ "$ident" -gt "$OS_IDENTITY_CAP" ]; then
-    push_espera "$(printf "$S_SESSION_WAITING_IDENTITY_OVER" "$wsdir/$org/$head" "$diagnostico")"
+if [ "$ident" -gt "$OS_IDENTITY_CAP" ]; then
+  push_espera "$(printf "$S_SESSION_WAITING_IDENTITY_OVER" "$wsdir/$org/$head" "$diagnostico")"
+fi
+
+# La identidad de cada nodo de memoria de la organización entra al mismo chequeo (spec 036,
+# generalizado por la 041 a cualquier tipo declarado, no solo `products`): un nodo de memoria es
+# memoria y su cabeza puede crecer igual que la de la organización. Nada si ningún tipo tiene
+# nodos sobre el tope — sin resolver propio que reportar acá, misma forma que operator.md abajo.
+for tipo in $memory_types_org; do
+  identidad_tipo "$tipo" "$wsdir/$org/"
+done
+
+# The workspace's glossary and context map (spec 072) are loaded whole by the startup read: past
+# `OS_GLOSSARY_CAP` lines each one is flagged the same way an identity over its cap is. The scan
+# diagnoses and the read never truncates: trimming or splitting is the operator's call.
+for opcional in context/glossary.md context/context-map.md; do
+  [ -f "$brain/$wsdir/$org/$opcional" ] || continue
+  opcional_n=$(contar_lineas_todas "$brain/$wsdir/$org/$opcional")
+  if [ "$opcional_n" -gt "$OS_GLOSSARY_CAP" ]; then
+    push_espera "$(printf "$S_SESSION_WAITING_GLOSSARY_OVER" "$wsdir/$org/$opcional" \
+      "$opcional_n" "$OS_GLOSSARY_CAP")"
   fi
+done
 
-  # La identidad de cada nodo de memoria de la organización entra al mismo chequeo (spec 036,
-  # generalizado por la 041 a cualquier tipo declarado, no solo `products`): un nodo de memoria es
-  # memoria y su cabeza puede crecer igual que la de la organización. Nada si ningún tipo tiene
-  # nodos sobre el tope — sin resolver propio que reportar acá, misma forma que operator.md abajo.
-  for tipo in $memory_types_org; do
-    identidad_tipo "$tipo" "$wsdir/$org/"
-  done
-fi
-
-ident_op=$(contar_lineas "$brain/operator.md")
-if [ "$root" = "1" ]; then
-  diagnostico=$(printf "$S_SESSION_IDENTITY_DIAG" "$ident_op" "$OS_IDENTITY_CAP" "$filas")
-fi
+ident_op=$(contar_lineas "$brain/$OS_OPERATOR_FILE")
 if [ "$ident_op" -gt "$OS_IDENTITY_CAP" ]; then
-  push_espera "$(printf "$S_SESSION_WAITING_IDENTITY_OVER" "operator.md" \
+  push_espera "$(printf "$S_SESSION_WAITING_IDENTITY_OVER" "$OS_OPERATOR_FILE" \
     "$(printf "$S_SESSION_IDENTITY_SIMPLE" "$ident_op" "$OS_IDENTITY_CAP")")"
 fi
 
@@ -387,30 +404,25 @@ fi
 # La búsqueda del oficio es una sola (`os_buscar_oficio` en common.sh): la mitad negativa —el aviso
 # de acá abajo— y la positiva —la línea `active-role:` al final de la salida (spec 009)— leen del
 # mismo lugar, para no tener dos copias del mismo recorrido.
-#
-# La raíz no activa rol: el operador no es una posición (fuera de alcance de la spec 018), y no tiene
-# cabeza con `role:` que leer.
 role=""
 rol_ruta=""
-if [ "$root" = "0" ]; then
-  fm_read "$ctx"
-  if [ -n "$fm_roto" ]; then
-    push_chequeo "$(printf "$S_SESSION_CHECK_ROLE_NOT_ACTIVATED" "$wsdir/$org/$head" \
-      "$(translate_fm_broken "$fm_roto")")"
-  fi
-  role="$fm_role"
-  if [ -n "$role" ]; then
-    if rol_ruta=$(os_buscar_oficio "$brain" "$role"); then
-      :
-    else
-      rol_ruta=""
-      # El ofrecimiento del pack va pegado al aviso (spec 029): un oficio que no resuelve es la
-      # demanda, y sin ningún pack instalado el comando que lo trae es la respuesta.
-      # `os_pack_hint` always returns its text in Spanish — translating it means touching
-      # `pack-install.sh`, which generates the line, and is out of this spec's scope (documented
-      # gap).
-      push_chequeo "$(printf "$S_SESSION_CHECK_CAPABILITY_MISSING" "$role" "$(os_pack_hint "$brain")")"
-    fi
+fm_read "$ctx"
+if [ -n "$fm_roto" ]; then
+  push_chequeo "$(printf "$S_SESSION_CHECK_ROLE_NOT_ACTIVATED" "$wsdir/$org/$head" \
+    "$(translate_fm_broken "$fm_roto")")"
+fi
+role="$fm_role"
+if [ -n "$role" ]; then
+  if rol_ruta=$(os_buscar_oficio "$brain" "$role"); then
+    :
+  else
+    rol_ruta=""
+    # El ofrecimiento del pack va pegado al aviso (spec 029): un oficio que no resuelve es la
+    # demanda, y sin ningún pack instalado el comando que lo trae es la respuesta.
+    # `os_pack_hint` always returns its text in Spanish — translating it means touching
+    # `pack-install.sh`, which generates the line, and is out of this spec's scope (documented
+    # gap).
+    push_chequeo "$(printf "$S_SESSION_CHECK_CAPABILITY_MISSING" "$role" "$(os_pack_hint "$brain")")"
   fi
 fi
 
@@ -420,37 +432,21 @@ fi
 cabezas=""
 while IFS="$sep" read -r raiz f || [ -n "$raiz" ]; do
   [ -n "$f" ] || continue
-  if [ "$root" = "1" ]; then
-    # Solo lo que vive en el brain mismo: la raíz no tiene montajes propios en esta spec, y un
-    # archivo montado con ruta que no empieza en el prefijo de la carpeta de espacios de trabajo no
-    # puede confundirse con una cabeza propia.
-    [ "$raiz" = "$brain" ] || continue
-    case "$f" in
-      "$wsdir"/*) continue ;;
-    esac
-    propios="$OS_ROOT_PROPIOS"
-  else
-    case "$f" in
-      "$wsdir/$org/"*) ;;
-      *) continue ;;
-    esac
-    propios="$org_propios"
-  fi
-  base=$(basename "$f")
+  case "$f" in
+    "$wsdir/$org/"*) ;;
+    *) continue ;;
+  esac
+  propios="$org_propios"
   propio=0
-  if [ "$root" = "1" ]; then
-    for p in $propios; do [ "$base" = "$p" ] && propio=1; done
-  else
-    # El nombre propio solo cuenta a la altura directa de la organización: un archivo debajo de una
-    # subcarpeta (`products/<slug>/<cabeza>`) puede compartir basename con un canónico de la
-    # organización sin serlo — comparar solo por basename lo excluía del conteo de nodos aunque el
-    # árbol lo alcance con su propio `glob:` (Q-12 del nodo de producto).
-    resto="${f#$wsdir/$org/}"
-    case "$resto" in
-      */*) ;;
-      *) for p in $propios; do [ "$resto" = "$p" ] && propio=1; done ;;
-    esac
-  fi
+  # El nombre propio solo cuenta a la altura directa de la organización: un archivo debajo de una
+  # subcarpeta (`products/<slug>/<cabeza>`) puede compartir basename con un canónico de la
+  # organización sin serlo — comparar solo por basename lo excluía del conteo de nodos aunque el
+  # árbol lo alcance con su propio `glob:` (Q-12 del nodo de producto).
+  resto="${f#$wsdir/$org/}"
+  case "$resto" in
+    */*) ;;
+    *) for p in $propios; do [ "$resto" = "$p" ] && propio=1; done ;;
+  esac
   [ "$propio" = "1" ] && continue
   cabezas="$cabezas$raiz$sep$f$nl"
 done <<TREE
@@ -480,7 +476,7 @@ while IFS="$sep" read -r raiz f || [ -n "$raiz" ]; do
   # declarado, no solo `products`): ya sumó al conteo de nodos con `marcar_leido` de arriba, pero no
   # entra a ninguna de las cuatro secciones. No tiene `status`/`horizon` que reportar, y tratarlo
   # como "sin status" sería ruido fijo en cada arranque, nunca un hallazgo real.
-  if os_memory_own_file "$wsdir" "$head" "$memory_types_org" "$memory_types_root" "$f"; then
+  if os_memory_own_file "$wsdir" "$head" "$memory_types_org" "" "$f"; then
     continue
   fi
 
@@ -527,62 +523,71 @@ while IFS="$sep" read -r raiz f || [ -n "$raiz" ]; do
   # cargar contenido no es cargar un nodo.
   sufijo_about=""
   if [ -n "$fm_about" ]; then
-    about_motivo=""
-    about_dest=$(os_rel_norm "$fm_about")
+    # `about:` names one head or, written as `[<path>, <path>]` on one line, several (spec 076, C16):
+    # each value is validated on its own, and a broken one is its own finding naming that value — the
+    # others still count. A value not written as a list that names more than one path is one broken
+    # value, as before.
     case "$fm_about" in
-      *,*|*' '*) about_motivo="$S_ABOUT_IS_A_LIST" ;;
+      '['*']') about_vals=$(os_about_values "$fm_about") ;;
+      *) about_vals="$fm_about" ;;
     esac
-    if [ -z "$about_motivo" ] && ! os_rel_ok "$about_dest"; then
-      about_motivo="$S_ABOUT_NOT_RELATIVE"
-    fi
-    if [ -z "$about_motivo" ]; then
-      case "$nl$tree_files" in
-        *"$nl$about_dest$nl"*) ;;
-        *) about_motivo="$S_ABOUT_NOT_A_HEAD" ;;
+    about_nombres=""
+    while IFS= read -r about_val || [ -n "$about_val" ]; do
+      about_motivo=""
+      about_dest=$(os_rel_norm "$about_val")
+      case "$about_val" in
+        *,*|*' '*|'') about_motivo="$S_ABOUT_IS_A_LIST" ;;
       esac
-    fi
-    if [ -z "$about_motivo" ] && [ "$about_dest" = "$f" ]; then about_motivo="$S_ABOUT_SELF"; fi
-    if [ -z "$about_motivo" ] && [ -L "$brain/$about_dest" ]; then about_motivo="$S_ABOUT_IS_A_LINK"; fi
-    if [ -z "$about_motivo" ] && ! os_inside_brain "$brain" "$about_dest"; then
-      about_motivo="$S_ABOUT_OUT_OF_BRAIN"
-    fi
-    # El destino tiene que ser una entidad del modelo de nodos (spec 056): una iniciativa no
-    # encadena, y una cabeza que no es entidad —workspace, raíz, cualquier otra— tampoco. Las dos
-    # cabezas se clasifican por su ruta, sin abrir ni un archivo más.
-    if [ -z "$about_motivo" ]; then
-      kind_dest=$(os_head_kind "$wsdir" "$head" "$about_dest")
-      kind_dest_tipo="${kind_dest%% *}"
-      kind_dest_ws="${kind_dest#* }"
-      [ "$kind_dest_ws" = "$kind_dest_tipo" ] && kind_dest_ws=""
-      case "$kind_dest_tipo" in
-        initiative) about_motivo="$S_ABOUT_TARGET_IS_INITIATIVE" ;;
-        entity)
-          kind_own=$(os_head_kind "$wsdir" "$head" "$f")
-          kind_own_ws="${kind_own#* }"
-          [ "$kind_own_ws" = "${kind_own%% *}" ] && kind_own_ws=""
-          if [ "$kind_dest_ws" != "$kind_own_ws" ]; then
-            about_motivo="$S_ABOUT_TARGET_OTHER_WORKSPACE"
-          fi
-          ;;
-        *) about_motivo="$S_ABOUT_TARGET_NOT_ENTITY" ;;
-      esac
-    fi
-    if [ -n "$about_motivo" ]; then
-      push_chequeo "$(printf "$S_SESSION_CHECK_ABOUT_BROKEN" "$f" "$fm_about" "$about_motivo")"
-    else
-      sufijo_about=" · $(printf "$S_SESSION_ABOUT" "$(os_entity_name "$about_dest")")"
+      if [ -z "$about_motivo" ] && ! os_rel_ok "$about_dest"; then
+        about_motivo="$S_ABOUT_NOT_RELATIVE"
+      fi
+      if [ -z "$about_motivo" ]; then
+        case "$nl$tree_files" in
+          *"$nl$about_dest$nl"*) ;;
+          *) about_motivo="$S_ABOUT_NOT_A_HEAD" ;;
+        esac
+      fi
+      if [ -z "$about_motivo" ] && [ "$about_dest" = "$f" ]; then about_motivo="$S_ABOUT_SELF"; fi
+      if [ -z "$about_motivo" ] && [ -L "$brain/$about_dest" ]; then about_motivo="$S_ABOUT_IS_A_LINK"; fi
+      if [ -z "$about_motivo" ] && ! os_inside_brain "$brain" "$about_dest"; then
+        about_motivo="$S_ABOUT_OUT_OF_BRAIN"
+      fi
+      # El destino tiene que ser una entidad del modelo de nodos (spec 056): una iniciativa no
+      # encadena, y una cabeza que no es entidad —workspace, raíz, cualquier otra— tampoco. Las dos
+      # cabezas se clasifican por su ruta, sin abrir ni un archivo más.
+      if [ -z "$about_motivo" ]; then
+        kind_dest=$(os_head_kind "$wsdir" "$head" "$about_dest")
+        kind_dest_tipo="${kind_dest%% *}"
+        kind_dest_ws="${kind_dest#* }"
+        [ "$kind_dest_ws" = "$kind_dest_tipo" ] && kind_dest_ws=""
+        case "$kind_dest_tipo" in
+          initiative) about_motivo="$S_ABOUT_TARGET_IS_INITIATIVE" ;;
+          entity)
+            kind_own=$(os_head_kind "$wsdir" "$head" "$f")
+            kind_own_ws="${kind_own#* }"
+            [ "$kind_own_ws" = "${kind_own%% *}" ] && kind_own_ws=""
+            if [ "$kind_dest_ws" != "$kind_own_ws" ]; then
+              about_motivo="$S_ABOUT_TARGET_OTHER_WORKSPACE"
+            fi
+            ;;
+          *) about_motivo="$S_ABOUT_TARGET_NOT_ENTITY" ;;
+        esac
+      fi
+      if [ -n "$about_motivo" ]; then
+        push_chequeo "$(printf "$S_SESSION_CHECK_ABOUT_BROKEN" "$f" "$about_val" "$about_motivo")"
+      else
+        about_nombre=$(os_entity_name "$about_dest")
+        if [ -z "$about_nombres" ]; then about_nombres="$about_nombre"; else about_nombres="$about_nombres, $about_nombre"; fi
+      fi
+    done <<ABOUT_VALS
+$about_vals
+ABOUT_VALS
+    if [ -n "$about_nombres" ]; then
+      sufijo_about=" · $(printf "$S_SESSION_ABOUT" "$about_nombres")"
     fi
   fi
 
-  # `about:` es obligatorio en toda iniciativa (spec 056), nunca en el resto de las cabezas: una
-  # entidad puede no tenerlo y no es un hallazgo. Se cuenta junto a `status` y `horizon`, con el
-  # mismo mecanismo de "sin clasificar" — no una sección nueva.
-  if [ -z "$fm_about" ]; then
-    kind_own_falta=$(os_head_kind "$wsdir" "$head" "$f")
-    case "$kind_own_falta" in
-      initiative*) falta="$S_SESSION_MISSING_ABOUT" ;;
-    esac
-  fi
+  # `about:` is optional (spec 076, C16, D3): an initiative that names no node is not a finding.
   if [ -n "$fm_horizon" ]; then :; else
     [ -n "$falta" ] && falta="$falta, $S_SESSION_MISSING_HORIZON" || falta="$S_SESSION_MISSING_HORIZON"
   fi
@@ -668,34 +673,47 @@ TOKENS
   done < "$file"
 }
 
-revisar_rutas "$brain/resolver.md" "resolver.md"
+revisar_rutas "$brain/$OS_ROOT_RESOLVER_FILE" "$OS_ROOT_RESOLVER_FILE"
 revisar_rutas "$brain/.os/core/resolver.md" ".os/core/resolver.md"
-if [ "$root" = "0" ]; then
-  revisar_rutas "$res_org" "$wsdir/$org/resolver.md"
-fi
-
-# ---------------------------------------------------------------- nodos fuera del árbol
-# El check de la raíz es de la spec 003: acá el barrido mira solo su ámbito — su espacio de
-# trabajo, o (con `--root`) los archivos propios de la raíz: sueltos en el brain, o bajo
-# `initiatives/` y `voice/`, nunca la carpeta de espacios de trabajo ni lo que instala el producto.
-fuera=""
-n_fuera=0
-if [ "$root" = "1" ]; then
-  listado=$(cd "$brain" && {
-      for f in *.md; do
-        [ -f "$f" ] || continue
-        [ "$f" = "CLAUDE.md" ] && continue
-        [ "$f" = "tree.md" ] && continue
-        printf '%s\n' "$f"
-      done
-      [ -d initiatives ] && find initiatives -type f -name '*.md'
-      [ -d voice ] && find voice -type f -name '*.md'
-    } | sort)
-else
-  listado=$(cd "$brain" && find "$wsdir/$org" -type f -name '*.md' | sort)
-fi
+revisar_rutas "$res_org" "$wsdir/$org/.resolver.md"
+# The optional resolver of each area node of this workspace (spec 076, C15): a node with
+# `.resolver.md` gets the same route check as the workspace's. Only what a `glob:` line reaches.
 while IFS= read -r f || [ -n "$f" ]; do
   [ -n "$f" ] || continue
+  case "$f" in
+    "$wsdir/$org/"*/*/.resolver.md) revisar_rutas "$brain/$f" "$f" ;;
+  esac
+done <<RESOLVERS
+$tree_files
+RESOLVERS
+
+# ---------------------------------------------------------------- an index written by hand (spec 076, C18)
+# The startup read generates `decisions/index.md`, `learnings/index.md` and the `index.md` of each
+# area node; one that is there without `generated: true` was written by a person, and the generator
+# skips it. The scan names it — it reads that file's frontmatter and nothing else, and never writes.
+for idx in "$brain/$wsdir/$org/decisions/index.md" "$brain/$wsdir/$org/learnings/index.md" \
+           "$brain/$wsdir/$org"/*/*/index.md; do
+  [ -f "$idx" ] || continue
+  idx_rel="${idx#"$brain"/}"
+  case "$idx_rel" in
+    "$wsdir/$org/initiatives/"*) continue ;;
+  esac
+  fm_read "$idx"
+  [ "$fm_generated" = "true" ] && continue
+  push_chequeo "$(printf "$S_SESSION_CHECK_INDEX_BY_HAND" "$idx_rel")"
+done
+
+# ---------------------------------------------------------------- nodos fuera del árbol
+# El check de la raíz es de la spec 003: acá el barrido mira solo su propio espacio de trabajo,
+# nunca la carpeta de espacios de trabajo entera ni lo que instala el producto.
+fuera=""
+n_fuera=0
+listado=$(cd "$brain" && find "$wsdir/$org" -type f -name '*.md' | sort)
+while IFS= read -r f || [ -n "$f" ]; do
+  [ -n "$f" ] || continue
+  # A backlog at the workspace's root is not named here either (spec 076, C29): it is the mark of a
+  # brain from before that spec, and the migration's own check names it.
+  [ "$f" = "$wsdir/$org/backlog.md" ] && continue
   if ! en_tree "$f"; then
     n_fuera=$(( n_fuera + 1 ))
     if [ "$n_fuera" -le "$CAP_NOMBRES" ]; then
@@ -714,6 +732,25 @@ if [ "$n_fuera" -gt 0 ]; then
   push_chequeo "$msg"
 fi
 
+# ---------------------------------------------------------------- trabajo suelto en la raíz (spec 059)
+# Un brain nacido antes de esta spec puede todavía tener trabajo propio del operador escrito
+# directamente en la raíz — `initiatives/`, `backlog.md`, `decisions.md`, `learnings.md` — que desde
+# acá vive en el espacio de trabajo `personal`. Nunca se mueve solo: se declara con su conteo, y
+# `migrate-root.sh` es el comando que lo mueve, a pedido del operador.
+raiz_n=0
+if [ -d "$brain/initiatives" ]; then
+  for ini_head in "$brain/initiatives/"*/"$head"; do
+    [ -f "$ini_head" ] || continue
+    raiz_n=$(( raiz_n + 1 ))
+  done
+fi
+for f in backlog.md decisions.md learnings.md; do
+  [ -f "$brain/$f" ] && raiz_n=$(( raiz_n + 1 ))
+done
+if [ "$raiz_n" -gt 0 ]; then
+  push_chequeo "$(printf "$S_SESSION_CHECK_ROOT_WORK" "$raiz_n")"
+fi
+
 # ---------------------------------------------------------------- la cola
 push_cola "next $n_next · later $n_later"
 
@@ -726,11 +763,7 @@ push_cola "next $n_next · later $n_later"
 # `initiatives/*/backlog.md` — nunca abre la cabeza (`README.md`) de ninguna iniciativa, y nunca lee
 # `tree.md`: el `backlog.md` de una iniciativa ya está alcanzado por un `content:` (spec 007), así
 # que no hace falta pasar por `os_tree_content_files` para saber dónde están.
-if [ "$root" = "1" ]; then
-  ini_prefix=""
-else
-  ini_prefix="$wsdir/$org/"
-fi
+ini_prefix="$wsdir/$org/"
 
 hoy=$(date +%Y-%m-%d)
 b_pend=0
@@ -770,25 +803,9 @@ if [ "$b_alguno" = "1" ]; then
   push_cola "$(printf "$S_SESSION_BACKLOG_READY" "$b_listas" "$b_pend")"
 fi
 
-# Un `backlog.md` que no vive adentro de una iniciativa es un hallazgo, no un destino: desde esta
-# spec ninguna herramienta escribe ahí, y el que quede es trabajo de antes de la migración —o de
-# otra sesión escribiendo a mano—. Se cuenta y se nombra, sin sumarlo a la cola de arriba.
-if [ "$root" = "1" ]; then
-  stray_backlog="$brain/backlog.md"
-  stray_rel="backlog.md"
-else
-  stray_backlog="$brain/$wsdir/$org/backlog.md"
-  stray_rel="$wsdir/$org/backlog.md"
-fi
-if [ -f "$stray_backlog" ]; then
-  marcar_leido
-  stray_n=0
-  while IFS= read -r line || [ -n "$line" ]; do
-    os_backlog_lee "$line" || continue
-    stray_n=$(( stray_n + 1 ))
-  done < "$stray_backlog"
-  push_chequeo "$(printf "$S_SESSION_BACKLOG_OUTSIDE_INITIATIVE" "$stray_rel" "$stray_n")"
-fi
+# A `backlog.md` outside an initiative is not read (spec 076, C29): no tool writes one, so it is the
+# mark of a brain from before that spec, and the migration's own check names it (C27). It is neither
+# counted nor named here.
 
 if [ -f "$brain/inbox.md" ]; then
   marcar_leido

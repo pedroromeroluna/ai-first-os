@@ -108,6 +108,10 @@ os_canon_check() {
   carpeta="$brain/${prefijo}${nombre}"
   relidx="${prefijo}${nombre}.md"
   nl2=$(printf '\nx'); nl2="${nl2%x}"
+  # Since spec 076 a workspace keeps no hand-written index: `decisions/index.md` and
+  # `learnings/index.md` are generated from the files themselves, so there is nothing to keep in sync
+  # and nothing to check. The check stays for a brain that still has the hand-written one.
+  [ -f "$idx" ] || return 0
   if [ -f "$idx" ]; then
     while IFS= read -r line || [ -n "$line" ]; do
       case "$line" in
@@ -127,6 +131,7 @@ os_canon_check() {
     for f in "$carpeta"/*.md; do
       [ -e "$f" ] || continue
       base=$(basename "$f")
+      [ "$base" = "index.md" ] && continue
       rel="$nombre/$base"
       case "$nl2$linked" in
         *"$nl2$rel$nl2"*) ;;

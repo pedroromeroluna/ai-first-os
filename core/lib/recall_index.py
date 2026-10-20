@@ -26,7 +26,7 @@ from markdown import DATE_RE, read_frontmatter, split_entries  # noqa: E402
 
 db_path, brain, mode, scope_kind, wsdir, scope_slug, arg, limit = sys.argv[1:9]
 limit = int(limit)
-FM_KEYS = ("updated", "fecha", "date", "status", "about", "superseded_by")
+FM_KEYS = ("updated", "fecha", "date", "status", "about", "superseded_by", "generated")
 
 
 def file_status(fm):
@@ -77,6 +77,41 @@ def parse_file(abspath, relpath):
         out_entries.append((line, header, text, date))
     title = out_entries[0][1] if out_entries else os.path.splitext(os.path.basename(relpath))[0]
     return fm, out_entries, status, superseded_by, title
+
+
+def about_values(raw):
+    """The paths an `about:` value names: one, or each item of `[<path>, <path>]`. Same reading as
+    `os_about_values` in common.sh, which is the authority."""
+    raw = raw.strip()
+    if raw.startswith("[") and raw.endswith("]"):
+        inner = raw[1:-1].strip()
+        values = [v.strip() for v in inner.split(",") if v.strip()] if inner else []
+    else:
+        values = [raw] if raw else []
+    return [rel_norm(unquote(v)) for v in values]
+
+
+def unquote(v):
+    """V without one pair of matching surrounding quotes: the rule of `os_unquote` in common.sh."""
+    if len(v) >= 2 and v[0] == v[-1] and v[0] in "\"'":
+        return v[1:-1]
+    return v
+
+
+def rel_norm(p):
+    """The same spelling `os_rel_norm` (common.sh) gives a path: no leading `./`, no `//`, no `/./`,
+    no trailing `/` or `/.`, repeated until nothing changes."""
+    prev = None
+    while p != prev:
+        prev = p
+        if p.startswith("./"):
+            p = p[2:]
+        p = p.replace("//", "/").replace("/./", "/")
+        if p.endswith("/."):
+            p = p[:-2]
+        if p.endswith("/"):
+            p = p[:-1]
+    return p
 
 
 def connect(path):
@@ -176,8 +211,15 @@ def reconcile(conn, brain, all_files, true_heads):
             " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (rel, size, mtime, digest, node, title, status, superseded_by, about),
         )
-        if about:
-            cur.execute("INSERT INTO relations (src, rel, dst) VALUES (?, 'about', ?)", (rel, about))
+        # A file a script generated (spec 076, C18: `generated: true`) is derived from the files it
+        # lists: its row keeps the stat filter working, and it adds no entry and no relation, so a
+        # search never answers with the index instead of the document.
+        if fm.get("generated", "") == "true":
+            continue
+        # `about:` names one head, or several as `[<path>, <path>]` on one line (spec 076, C16): one
+        # relation per value, in order.
+        for value in about_values(about):
+            cur.execute("INSERT INTO relations (src, rel, dst) VALUES (?, 'about', ?)", (rel, value))
         if superseded_by:
             cur.execute(
                 "INSERT INTO relations (src, rel, dst) VALUES (?, 'superseded_by', ?)",
@@ -257,9 +299,9 @@ def run_expand():
     reconcile(conn, brain, all_files, true_heads)
 
     lines = []
-    row = conn.execute("SELECT about FROM files WHERE path=?", (arg,)).fetchone()
-    if row and row[0]:
-        dst = row[0]
+    for (dst,) in conn.execute(
+        "SELECT dst FROM relations WHERE rel='about' AND src=? ORDER BY rowid", (arg,)
+    ):
         lines.append("about · %s · %s" % (dst, title_of(conn, dst)))
     for (src,) in conn.execute(
         "SELECT src FROM relations WHERE rel='about' AND dst=?", (arg,)

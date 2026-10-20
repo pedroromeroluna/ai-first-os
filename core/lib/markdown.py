@@ -3,8 +3,8 @@
 
 `common.sh`'s `fm_read` is the bash reading of the same bounded format and stays the authority
 whenever the two disagree on the shape. On the Python side there is exactly one reading, and it is
-this file: `recall_index.py` (spec 050) and `my_wiki_build.py` (spec 060) both import from here
-instead of carrying a parser of their own. A second Python parser of frontmatter or of headings is
+this file: `recall_index.py` (spec 050) and the Python tools after it import from here instead of
+carrying a parser of their own. A second Python parser of frontmatter or of headings is
 the desync this module exists to prevent — spec 060 says so as a stopping condition.
 
 What lives here is the format: splitting a file into its frontmatter, its entries and its `##`

@@ -34,10 +34,11 @@ Two questions. Nothing else.
 
 Leaves `workspaces/<org>/products/<slug>/README.md` with the identity. Nothing else: `context/`
 (the strategic layer `prd` writes), `research/` (every dated document about the product — briefs,
-analyses, inventories), `resolver.md` and `decisions.md` are born with their first piece of data,
-same as every other canonical file in this system.
+analyses, inventories) and `resources/` are born with their first document; `.resolver.md` only
+when the product has a row that points outside its folder. Its decisions live in `decisions/` of the
+workspace with `about:` naming it, and the startup read generates its `index.md`.
 
-`--owner` comes from the title of `operator.md`, same as `new-workspace`: the product is created by
+`--owner` comes from the title of `account/operator.md`, same as `new-workspace`: the product is created by
 the operator, so they are the owner unless someone else runs it.
 
 **The head never gets `role:` and never gets `repo:`.** `role:` activates a standing oficio and that

@@ -3,12 +3,16 @@
 # `core/resolver.md`, igual que `remote-backup.sh`, y lo conducen `core/skills/bootstrap.md` al
 # cerrar el bootstrap y cualquier sesión posterior que lo rutee.
 #
-# Uso: pack-install.sh --brain DIR [--defer] [--line]
+# Uso: pack-install.sh --brain DIR [--defer [--note]] [--line]
 #
 #   (sin flags)  el ofrecimiento: qué hay instalado, qué falta y el comando exacto.
-#   --defer      la salida "después": deja la tarea en el backlog de la raíz, con el comando
-#                adentro. Escribe el archivo directo, sin pasar por `capture` (spec 057): este paso
-#                es determinístico, sin ningún modelo que pueda nombrar una iniciativa.
+#   --defer      la salida "después", sin escribir nada: imprime el paso pendiente y la pregunta del
+#                catálogo («¿Te lo anoto para después?») y sale con 7. Nada se anota solo (Gate 2 final
+#                de la spec 076).
+#   --defer --note  el sí del operador en ese turno: deja la tarea, con el comando adentro, en el
+#                backlog de la iniciativa tasks-to-sort del workspace personal, que nace si no está
+#                (`os_personal_backlog_append`). Sin pasar por `capture` (spec 057): este paso es
+#                determinístico, sin ningún modelo que pueda nombrar una iniciativa.
 #   --line       una línea, para el aviso de capacidad no instalada del arranque de sesión.
 #
 # El script NUNCA corre `npx`: bajar software a la máquina del operador escapa del sistema y se hace
@@ -21,7 +25,8 @@
 # El nombre del repo del pack se escribe una sola vez —el default de `scripts/release-public.sh`— y
 # el release lo inyecta acá donde el fuente lleva `pedroromeroluna/ai-first-product-skills`.
 #
-# Exit: 0 el ofrecimiento o la tarea quedaron dichos · 1 el brain no existe.
+# Exit: 0 el ofrecimiento o la tarea quedaron dichos · 1 el brain no existe · 7 --defer sin --note:
+#       la pregunta quedó impresa y no se escribió nada.
 
 set -eu
 
@@ -30,11 +35,13 @@ here=$(cd "$(dirname "$0")" && pwd)
 
 brain=""
 modo="ofrecer"
+note=0
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --brain) brain="$2"; shift 2 ;;
     --defer) modo="defer"; shift ;;
+    --note) note=1; shift ;;
     --line) modo="line"; shift ;;
     *) os_die "argumento desconocido: $1" ;;
   esac
@@ -52,11 +59,15 @@ comando="npx skills add $pack_repo"
 # Qué del pack ya está donde el CLI lo deja. No es una lista escrita: es lo que hay en el brain.
 instalados=""
 n_instalados=0
-for d in "$brain"/.claude/skills/*/SKILL.md; do
-  [ -f "$d" ] || continue
-  d=$(dirname "$d")
-  instalados="$instalados$(basename "$d") "
-  n_instalados=$(( n_instalados + 1 ))
+for sd in $OS_SKILL_DIRS; do
+  for d in "$brain/$sd"/*/SKILL.md; do
+    [ -f "$d" ] || continue
+    d=$(dirname "$d")
+    # A skill present in both folders (the link `npx skills add` leaves) counts once.
+    case " $instalados" in *" $(basename "$d") "*) continue ;; esac
+    instalados="$instalados$(basename "$d") "
+    n_instalados=$(( n_instalados + 1 ))
+  done
 done
 
 if [ "$modo" = "line" ]; then
@@ -71,33 +82,36 @@ language=$(os_language "$brain")
 os_lang_load "$language"
 tarea="$S_PACK_TASK \`$comando\`"
 
+if [ "$modo" = "defer" ] && [ "$note" = "0" ]; then
+  # Nothing is noted down on its own (spec 076, final Gate 2): the step and the plain question, and the
+  # skill that drives this step asks it; only a yes in that turn re-runs this with --note.
+  printf "$S_NOTE_FOR_LATER_STEP\n" "$tarea"
+  printf '%s\n' "$S_NOTE_FOR_LATER_QUESTION"
+  exit 7
+fi
+
 if [ "$modo" = "defer" ]; then
-  if [ -f "$brain/backlog.md" ] && grep -qF "$tarea" "$brain/backlog.md"; then
-    printf 'pack: la tarea pendiente ya estaba en el backlog de la raíz\n'
-    exit 0
-  fi
-  # No pasa por `capture` (spec 057, decisión 2: nada entra sin clasificar): este paso corre
-  # determinístico, sin ningún modelo en el medio que pueda proponer una iniciativa y esperar la
-  # confirmación del operador — instalar el pack de skills no es trabajo de ninguna iniciativa, es
-  # un paso pendiente del propio sistema. Escribe directo en `backlog.md` de la raíz, con el mismo
-  # formato de línea y el mismo contador global que usa el resto del sistema; ese archivo, fuera de
-  # toda iniciativa, es justo el hallazgo que la spec 057 declara aparte (S057-C5) hasta que el
-  # operador corra el comando.
-  hoy=$(date +%Y-%m-%d)
-  nacio=0
-  [ -f "$brain/backlog.md" ] || nacio=1
-  [ "$nacio" = "1" ] && os_backlog_cabecera "$brain" "$(os_titulo "$brain/operator.md")" > "$brain/backlog.md"
-  id=$(os_backlog_next_id "$brain")
-  printf '%s\n' "$(os_backlog_linea "$id" "$tarea" "" "" "" "0" "$hoy")" >> "$brain/backlog.md"
-  printf 'pack: pendiente — la tarea quedó en el backlog de la raíz, con el comando adentro\n'
+  # No pasa por `capture` (spec 057, decisión 2: nada entra sin clasificar): instalar el pack de
+  # skills no es trabajo de ninguna iniciativa, es un paso pendiente del propio sistema. Va al
+  # backlog de la iniciativa `tasks-to-sort` del workspace `personal` (spec 076, C29: ningún backlog
+  # vive fuera de una iniciativa), que nace con esta tarea si no existía.
+  os_ws_check "$brain"
+  rc=0
+  os_personal_backlog_append "$brain" "$tarea" || rc=$?
+  case "$rc" in
+    0) printf 'pack: pendiente — la tarea quedó en el backlog de la iniciativa tasks-to-sort del workspace personal, con el comando adentro\n' ;;
+    1) printf 'pack: la tarea pendiente ya estaba en el backlog de la iniciativa tasks-to-sort del workspace personal\n' ;;
+    3) printf 'pack: pendiente y sin escribir — el slug tasks-to-sort del workspace personal lo usa una iniciativa que trata sobre un nodo\n' ;;
+    *) printf 'pack: pendiente y sin escribir — el workspace personal no existe todavía; correr migrate-root.sh y repetir\n' ;;
+  esac
   exit 0
 fi
 
 # --------------------------------------------------------------------- el ofrecimiento
 if [ "$n_instalados" = "0" ]; then
-  printf 'pack: nada instalado todavía en .claude/skills\n'
+  printf 'pack: nada instalado todavía en .agents/skills ni en .claude/skills\n'
 else
-  printf 'pack: ya instalado en .claude/skills: %s\n' "$instalados"
+  printf 'pack: ya instalado en las carpetas de skills: %s\n' "$instalados"
 fi
 
 # El comando baja solo lo que el pack ofrece: lo que el chasis ya provee viaja marcado interno y el

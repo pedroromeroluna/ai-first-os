@@ -20,8 +20,8 @@ es: el texto en español
 - Supported languages: `en`, `es`. Adding one is adding its prefix to every block here.
 
 key: OPERATOR_VOICE_POINTER
-en: Voice: `voice.md`.
-es: Voz: `voice.md`.
+en: Voice: `account/voice/voice.md`.
+es: Voz: `account/voice/voice.md`.
 
 key: OPERATOR_PROFILE_HEADING
 en: Profile
@@ -56,6 +56,10 @@ en: The record is per channel: with no channel declared, it goes here. A channel
 en: of its own becomes an identity, with its own `voice.md` in its own node.
 es: El registro es por canal: sin canal declarado, entra acá. Un canal con personalidad propia se
 es: vuelve una identidad, con su `voice.md` en su nodo.
+
+key: PERSONAL_WORKSPACE_NAME
+en: My workspace
+es: Mi workspace
 
 key: VOICE_PENDING
 en: Not declared yet. The interview asks for it and takes "later" for an answer: it gets written
@@ -150,6 +154,18 @@ key: FIRST_COMMIT
 en: the brain is born
 es: nace el brain
 
+key: NOTE_FOR_LATER_QUESTION
+en: Should I note it down for later?
+es: ¿Te lo anoto para después?
+
+key: NOTE_FOR_LATER_STEP
+en: Pending step: %s
+es: Paso pendiente: %s
+
+key: NOTE_FOR_LATER_NOTHING
+en: Nothing was written: the step is noted down only if you say yes.
+es: No se anotó nada: el paso se anota solo si decís que sí.
+
 key: PACK_TASK
 en: Product Builder pack pending: install it from the brain folder with
 es: Pack Product Builder pendiente: instalarlo desde la carpeta del brain con
@@ -195,8 +211,8 @@ en: missing tree.md — the scan does not know which paths to walk
 es: falta tree.md — el barrido no sabe qué rutas recorrer
 
 key: SESSION_CHECK_LANGUAGE_NOT_DECLARED
-en: language not declared in operator.md — assuming en
-es: language: no declarado en operator.md — se asume en
+en: language not declared in account/operator.md — assuming en
+es: language: no declarado en account/operator.md — se asume en
 
 key: SESSION_CHECK_MOUNTS_TABLE_MISSING
 en: declared table not found: %s — the scan covers only the brain
@@ -218,6 +234,10 @@ key: SESSION_READ_MISSING
 en: missing: %s
 es: falta: %s
 
+key: SESSION_READ_TREE_DECLARE_FAILED
+en: could not write tree.md: recall will not find %s until the line is added by hand
+es: no se pudo escribir tree.md: recall no va a encontrar %s hasta que se agregue la línea a mano
+
 key: SESSION_IDENTITY_DIAG
 en: identity %s/%s · resolver %s rows
 es: identidad %s/%s · resolver %s filas
@@ -229,6 +249,10 @@ es: identidad %s/%s
 key: SESSION_WAITING_IDENTITY_OVER
 en: %s — %s · summarize the history or split into context/
 es: %s — %s · resumir la historia o partir a context/
+
+key: SESSION_WAITING_GLOSSARY_OVER
+en: %s — %s/%s lines · loaded whole at every start: trim it or split it
+es: %s — %s/%s líneas · se carga entero en cada arranque: recortarlo o partirlo
 
 key: SESSION_CHECK_ROLE_NOT_ACTIVATED
 en: %s: %s — the role does not activate
@@ -306,6 +330,18 @@ key: SESSION_OLD_MARKER_LINE
 en: (line %s)
 es: (línea %s)
 
+key: SESSION_CHECK_ROOT_WORK
+en: root work: %s files — migrate-root.sh moves it to workspaces/personal
+es: trabajo en la raíz: %s archivos — migrate-root.sh lo mueve a workspaces/personal
+
+key: MIGRATE_ROOT_MOUNTS_STOP
+en: A mounted repo names a root path that this migration would move. Nothing was moved. A repo is code: the brain never edits it. Read every line below. If any of them must keep working, fix it in that repo first. If they can all stay as they are (the repo's own history, or a fixture that only shares the name), run again with --mounts-reviewed.
+es: Un repo montado nombra una ruta de la raíz que esta migración movería. No se movió nada. Un repo es código: el brain nunca lo edita. Leé cada línea de abajo. Si alguna tiene que seguir funcionando, arreglala primero en ese repo. Si todas pueden quedar como están (la historia del propio repo, o un fixture que solo comparte el nombre), corré de nuevo con --mounts-reviewed.
+
+key: MIGRATE_ROOT_MOUNTS_REVIEWED
+en: Mounted repos that name a moved path — reviewed with --mounts-reviewed, left as they are:
+es: Repos montados que nombran una ruta movida — revisados con --mounts-reviewed, quedan como están:
+
 key: SESSION_INBOX_UNCLASSIFIED
 en: inbox: %s unclassified
 es: inbox: %s sin clasificar
@@ -325,6 +361,38 @@ es: %s nodos · %s
 key: INSTALL_VERSION_LINE
 en: AI First OS v%s
 es: AI First OS v%s
+
+key: INSTALL_FOREIGN_CONTRACT
+en: error: this brain already has rules files that are not the product's: %s. Nothing was changed. Run it again with --adopt: their content is appended to account/operator.md, the foreign files are removed and the product's links take their place.
+es: error: este brain ya tiene archivos de reglas que no son los del producto: %s. No se cambió nada. Volvé a correrlo con --adopt: su contenido se agrega a account/operator.md, los archivos ajenos se borran y los enlaces del producto quedan en su lugar.
+
+key: INSTALL_ADOPT_NEEDS_OPERATOR
+en: error: --adopt appends the foreign rules to %s and that file is not there yet. Nothing was changed. Run the bootstrap first (core/lib/bootstrap.sh), then run the installer again with --adopt.
+es: error: --adopt agrega las reglas ajenas a %s y ese archivo todavía no existe. No se cambió nada. Corré primero el bootstrap (core/lib/bootstrap.sh) y después el instalador de nuevo con --adopt.
+
+key: INSTALL_ADOPT_NOT_A_FILE
+en: error: %s does not lead to a readable file (it is a folder, a broken link or an unreadable file), so it cannot be adopted. Nothing was changed. Fix it by hand and run the installer again.
+es: error: %s no lleva a un archivo legible (es una carpeta, un enlace roto o un archivo sin permiso de lectura), así que no se puede adoptar. No se cambió nada. Arreglalo a mano y volvé a correr el instalador.
+
+key: INSTALL_ADOPTED_HEADING
+en: Rules adopted from the files that were here before
+es: Reglas adoptadas de los archivos que había antes
+
+key: INSTALL_ADOPTED_NOTICE
+en: notice: the rules that were in the brain were appended to %s; the foreign files were removed.
+es: aviso: las reglas que había en el brain se agregaron a %s; los archivos ajenos se borraron.
+
+key: INSTALL_CONTRACT_LOCKED
+en: contract: read-only (installed copy of the product). Your own rules go in account/operator.md.
+es: contrato: en solo lectura (copia instalada del producto). Tus reglas propias van en account/operator.md.
+
+key: INSTALL_CONTRACT_NOT_LOCKED
+en: contract: could NOT be made read-only (installed copy of the product, the permission change did not hold). Your own rules go in account/operator.md; do not edit the contract.
+es: contrato: NO se pudo dejar en solo lectura (copia instalada del producto, el cambio de permiso no quedó). Tus reglas propias van en account/operator.md; no edites el contrato.
+
+key: INSTALL_CONTRACT_DEV
+en: contract: left editable (development checkout of the product, it has .git).
+es: contrato: queda editable (checkout de desarrollo del producto, tiene .git).
 
 key: FM_NO_FRONTMATTER
 en: no frontmatter
@@ -939,8 +1007,8 @@ en: is not a path relative to the brain
 es: no es una ruta relativa al brain
 
 key: ABOUT_IS_A_LIST
-en: names more than one path, and the key takes exactly one
-es: nombra más de una ruta, y la clave acepta exactamente una
+en: names more than one path without the list form — write `[<path>, <path>]` on one line
+es: nombra más de una ruta sin la forma de lista — se escribe `[<ruta>, <ruta>]` en una línea
 
 key: FOCUS_NOT_A_HEAD
 en: %s is not a head that a `glob:` line of the tree reaches: there is nothing to focus on there.
@@ -1078,308 +1146,365 @@ key: ARCHIVE_STALE_NONE
 en: nothing the brain declared out of date is outside `archive/`.
 es: nada de lo que el brain declaró fuera de vigencia quedó fuera de `archive/`.
 
-key: WIKI_TITLE
-en: My Wiki
-es: Mi wiki
+key: INDEX_WARNING_TITLE
+en: > [!WARNING] Generated file
+es: > [!WARNING] Archivo generado automáticamente
 
-key: WIKI_PEOPLE
-en: People
-es: Personas
+key: INDEX_WARNING_NOT_SAVED
+en: > Changes to this file are not saved. It is regenerated at the start of every session.
+es: > Los cambios en este archivo no se guardan, porque se regenera al inicio de cada sesión.
 
-key: WIKI_SEARCH
-en: Search your brain…
-es: Buscá en tu cerebro…
+key: INDEX_SOURCE_NODE
+en: > This list comes from the `about:` field of each initiative, decision and learning. Make changes there.
+es: > Esta lista sale del campo `about:` de cada iniciativa, decisión y aprendizaje. Los cambios se hacen ahí.
 
-key: WIKI_EDIT
-en: Edit markdown
-es: Editar markdown
+key: INDEX_SOURCE_DECISIONS
+en: > This list comes from the decision files in this folder, one per decision. Make changes there.
+es: > Esta lista sale de los archivos de decisión de esta carpeta, uno por decisión. Los cambios se hacen ahí.
 
-key: WIKI_EDIT_COPIED
-en: Obsidian could not be opened from here; the path is copied:
-es: Obsidian no se pudo abrir desde acá; la ruta quedó copiada:
+key: INDEX_SOURCE_LEARNINGS
+en: > This list comes from the learning files in this folder, one per learning. Make changes there.
+es: > Esta lista sale de los archivos de aprendizaje de esta carpeta, uno por aprendizaje. Los cambios se hacen ahí.
 
-key: WIKI_EDIT_PATH
-en: Open in Obsidian:
-es: Abrir en Obsidian:
-
-key: WIKI_THREAD_RESUME
-en: Copy the command to resume it
-es: Copiar el comando para retomarlo
-
-key: WIKI_THREAD_COPIED
-en: Copied — paste it in a terminal:
-es: Copiado — pegalo en una terminal:
-
-key: WIKI_GRAPH_LABELS
-en: Labels
-es: Etiquetas
-
-key: WIKI_APPEARANCE
-en: Appearance
-es: Apariencia
-
-key: WIKI_ACCENT
-en: Accent
-es: Acento
-
-key: WIKI_TYPE
-en: Type
-es: Letra
-
-key: WIKI_SIZE
-en: Size
-es: Tamaño
-
-key: WIKI_THEME
-en: Theme
-es: Tema
-
-key: WIKI_LIGHT
-en: Light
-es: Claro
-
-key: WIKI_DARK
-en: Dark
-es: Oscuro
-
-key: WIKI_INITIATIVES
+key: INDEX_INITIATIVES
 en: Initiatives
 es: Iniciativas
 
-key: WIKI_DOCUMENTS
-en: Documents
-es: Documentos
+key: INDEX_COL_INITIATIVE
+en: Initiative
+es: Iniciativa
 
-key: WIKI_DEVELOPMENT
-en: Development
-es: Desarrollo
+key: INDEX_COL_STATUS
+en: Status
+es: Estado
 
-key: WIKI_MENTIONS
-en: Mentions
-es: Menciones
+key: INDEX_COL_HORIZON
+en: Horizon
+es: Horizonte
 
-key: WIKI_NO_ENTITY
-en: No entity
-es: Sin entidad
+key: INDEX_DECISIONS
+en: Decisions
+es: Decisiones
 
-key: WIKI_EMPTY
-en: Nothing here yet
-es: Todavía no hay nada acá
+key: INDEX_LEARNINGS
+en: Learnings
+es: Aprendizajes
 
-key: WIKI_ENTITIES
-en: entities
-es: entidades
+key: INDEX_EMPTY
+en: Nothing yet.
+es: Nada todavía.
 
-key: WIKI_RESULTS
-en: results
-es: resultados
+key: INDEX_KEY_LABEL
+en: key
+es: clave
 
-key: WIKI_NO_RESULTS
-en: No results.
-es: Sin resultados.
+key: INDEX_SUPERSEDED_LABEL
+en: superseded by
+es: reemplazada por
 
-key: WIKI_NO_PEOPLE
-en: No people in this workspace yet.
-es: Todavía no hay personas en este espacio de trabajo.
+key: SESSION_CHECK_INDEX_BY_HAND
+en: %s — written by hand, without `generated: true`: the index is not regenerated there
+es: %s — escrito a mano, sin `generated: true`: el índice no se regenera ahí
+# ---------------------------------------------------------------- spec 076 · delivery C (migrate-layout)
+# The vocabulary of the layout migration's plan, stops and findings. The plan is what the operator reads
+# before anything moves; the old-brain findings are what the startup says about a brain still on the
+# old layout.
 
-key: WIKI_NO_MENTIONS
-en: Nobody mentions this page yet.
-es: Todavía nadie menciona esta página.
+key: MIGRATE_LAYOUT_PLAN_HEAD
+en: Layout migration plan: %s operations. Nothing is written until it runs with --apply.
+es: Plan de migración de la forma del cerebro: %s operaciones. No se escribe nada hasta correrlo con --apply.
 
-key: WIKI_REPO_UNMOUNTED
-en: Repo not mounted on this machine.
-es: El repo no está montado en esta máquina.
+key: MIGRATE_LAYOUT_STEP_1
+en: Step 1 · the account (operator and voice)
+es: Paso 1 · la cuenta (operador y voz)
 
-key: WIKI_NO_SPECS
-en: No specs in this repo yet.
-es: Todavía no hay specs en este repo.
+key: MIGRATE_LAYOUT_STEP_2
+en: Step 2 · the session contract (AGENTS.md and .claude/CLAUDE.md)
+es: Paso 2 · el reglamento de sesión (AGENTS.md y .claude/CLAUDE.md)
 
-key: WIKI_LAST_MERGE
-en: last merge
-es: último merge
+key: MIGRATE_LAYOUT_STEP_3
+en: Step 3 · the machinery of the root goes to .system/
+es: Paso 3 · la maquinaria de la raíz pasa a .system/
 
-key: WIKI_DECISION
-en: decision
-es: decisión
+key: MIGRATE_LAYOUT_STEP_4
+en: Step 4 · roles become skills
+es: Paso 4 · los roles pasan a skills
 
-key: WIKI_PERSON
-en: person
-es: persona
+key: MIGRATE_LAYOUT_STEP_5
+en: Step 5 · the link to the manual
+es: Paso 5 · el enlace al manual
 
-key: WIKI_NOT_FOUND
-en: Nothing here
-es: Acá no hay nada
+key: MIGRATE_LAYOUT_STEP_6
+en: Step 6 · the hand-written indexes go into the files they link
+es: Paso 6 · los índices escritos a mano pasan a los archivos que enlazan
 
-key: WIKI_WROTE
-en: Page written: %s · %s KB · %s pages · %s workspaces
-es: Página escrita: %s · %s KB · %s páginas · %s espacios de trabajo
+key: MIGRATE_LAYOUT_STEP_7
+en: Step 7 · tasks outside an initiative go to an initiative
+es: Paso 7 · las tareas fuera de una iniciativa pasan a una iniciativa
 
-key: WIKI_PUBLISH_HINT
-en: It publishes from the session with the Artifact tool, never from here.
-es: Se publica desde la sesión con la herramienta Artifact, nunca desde acá.
+key: MIGRATE_LAYOUT_STEP_8
+en: Step 8 · the decisions of each node go to the workspace
+es: Paso 8 · las decisiones de cada nodo pasan al espacio de trabajo
 
-key: WIKI_FILES
-en: files
-es: archivos
+key: MIGRATE_LAYOUT_STEP_9
+en: Step 9 · resolvers become hidden files
+es: Paso 9 · los resolvers pasan a archivos ocultos
 
-key: WIKI_GRAPH
-en: Graph
-es: Grafo
+key: MIGRATE_LAYOUT_STEP_10
+en: Step 10 · voice, glossary and material to their new folders
+es: Paso 10 · voz, glosario y material a sus carpetas nuevas
 
-key: WIKI_GRAPH_WORKSPACE
-en: Workspace
-es: Espacio de trabajo
+key: MIGRATE_LAYOUT_STEP_11
+en: Step 11 · links rewritten from the fixed map
+es: Paso 11 · enlaces reescritos con el mapa fijo
 
-key: WIKI_GRAPH_ENTITY
-en: Entities
-es: Entidades
+key: MIGRATE_LAYOUT_STEP_12
+en: Step 12 · the tree, last
+es: Paso 12 · el árbol, al final
 
-key: WIKI_GRAPH_INITIATIVE
-en: Initiatives
-es: Iniciativas
+key: MIGRATE_LAYOUT_V_MOVE
+en: move
+es: mover
 
-key: WIKI_GRAPH_PERSON
-en: People
-es: Personas
+key: MIGRATE_LAYOUT_V_REWRITE
+en: rewrite
+es: reescribir
 
-key: WIKI_GRAPH_DOCUMENT
-en: Documents
-es: Documentos
+key: MIGRATE_LAYOUT_V_DELETE
+en: delete
+es: borrar
 
-key: WIKI_GRAPH_SHOW_DOCS
-en: Show documents
-es: Mostrar documentos
+key: MIGRATE_LAYOUT_V_CREATE
+en: create
+es: crear
 
-key: WIKI_GRAPH_SHOW_PEOPLE
-en: Show people
-es: Mostrar personas
+key: MIGRATE_LAYOUT_V_LINK
+en: link
+es: enlazar
 
-key: WIKI_GRAPH_GREW
-en: How it grew
-es: Cómo creció
+key: MIGRATE_LAYOUT_V_INSTALL
+en: install
+es: instalar
 
-key: WIKI_GRAPH_PLAY
-en: Play
-es: Reproducir
+key: MIGRATE_LAYOUT_V_ADOPT
+en: adopt
+es: adoptar
 
-key: WIKI_GRAPH_PAUSE
-en: Pause
-es: Pausar
+key: MIGRATE_LAYOUT_V_UNKNOWN
+en: not moved
+es: sin mover
 
-key: WIKI_GRAPH_PAGES
-en: pages
-es: páginas
+key: MIGRATE_LAYOUT_UNKNOWN_HEAD
+en: The product does not know these; they stay where they are (their links are still rewritten):
+es: El producto no conoce estos; quedan donde están (sus enlaces igual se reescriben):
 
-key: WIKI_GRAPH_LINKS
-en: links
-es: vínculos
+key: MIGRATE_LAYOUT_R_ROOT_BACKLOG
+en: a backlog at the root belongs to no workspace
+es: un backlog en la raíz no es de ningún espacio de trabajo
 
-key: WIKI_GRAPH_HINT
-en: Hover a node to see its neighbours · click opens the page
-es: Pasá el mouse por un nodo para ver sus vecinos · clic abre la página
-key: WIKI_BACK
-en: Back
-es: Atrás
+key: MIGRATE_LAYOUT_R_LINKED_BACKLOG
+en: a link, not a backlog: its tasks are not moved
+es: es un enlace, no un backlog: sus tareas no se mueven
 
-key: WIKI_FORWARD
-en: Forward
-es: Adelante
-key: WIKI_OVERVIEW
-en: Overview
-es: Panorama
+key: MIGRATE_LAYOUT_R_SHARED_ROLE
+en: linked by two or more roles
+es: lo enlazan dos o más roles
 
-key: WIKI_THREADS
-en: Threads waiting for you
-es: Hilos que te esperan
+key: MIGRATE_LAYOUT_D_CLAUDE
+en: replaced by AGENTS.md and .claude/CLAUDE.md
+es: lo reemplazan AGENTS.md y .claude/CLAUDE.md
 
-key: WIKI_THREADS_WINDOW
-en: last %s days · grouped by focus
-es: últimos %s días · agrupados por foco
+key: MIGRATE_LAYOUT_D_MANUAL
+en: the link is renamed HOW-IT-WORKS.md
+es: el enlace pasa a llamarse HOW-IT-WORKS.md
 
-key: WIKI_NO_THREADS
-en: No thread is waiting for you.
-es: No hay ningún hilo esperándote.
+key: MIGRATE_LAYOUT_D_INDEX
+en: the generated index replaces it
+es: lo reemplaza el índice generado
 
-key: WIKI_NO_SESSIONS
-en: No local Claude Code sessions to read on this machine.
-es: En esta máquina no hay sesiones locales de Claude Code para leer.
+key: MIGRATE_LAYOUT_D_BACKLOG
+en: its tasks are now in an initiative
+es: sus tareas ya están en una iniciativa
 
-key: WIKI_NO_FOCUS
-en: No focus
-es: Sin foco
+key: MIGRATE_LAYOUT_D_RESOLVER
+en: no rows
+es: sin filas
 
-key: WIKI_THREAD_ASKS
-en: asks you
-es: te pregunta
+key: MIGRATE_LAYOUT_N_LINKS
+en: links: %s
+es: enlaces: %s
 
-key: WIKI_THREAD_GATE1
-en: Gate 1
-es: Gate 1
+key: MIGRATE_LAYOUT_N_TREE
+en: %s lines out, %s lines in
+es: %s líneas salen, %s líneas entran
 
-key: WIKI_THREAD_UNREAD
-en: finished · unread
-es: terminado · sin leer
+key: MIGRATE_LAYOUT_STOPPED
+en: stopped, nothing more was written:
+es: frenó, no se escribió nada más:
 
-key: WIKI_UNREAD_WHY
-en: Claude Code keeps no record of what you opened: a finished thread is shown as unread for lack of that datum.
-es: Claude Code no deja registro de lo que abriste: un hilo terminado se muestra como sin leer por falta de ese dato.
+key: MIGRATE_LAYOUT_WOULD_STOP
+en: With --apply this would stop (nothing written):
+es: Con --apply esto frenaría (no se escribe nada):
 
-key: WIKI_GATES
-en: Gates
-es: Gates
+key: MIGRATE_LAYOUT_NOTHING
+en: Nothing to migrate: this brain already has the new layout.
+es: Nada para migrar: este cerebro ya tiene la forma nueva.
 
-key: WIKI_NO_GATES
-en: No gate is open.
-es: No hay ningún gate abierto.
+key: MIGRATE_LAYOUT_HINT
+en: To run exactly this plan: migrate-layout.sh --brain <dir> --apply
+es: Para correr exactamente este plan: migrate-layout.sh --brain <dir> --apply
 
-key: WIKI_GATE_1
-en: Gate 1
-es: Gate 1
+key: MIGRATE_LAYOUT_RESUME
+en: Resuming the migration in progress (%s of %s operations already done).
+es: Retomando la migración en curso (%s de %s operaciones ya hechas).
 
-key: WIKI_GATE_2
-en: Gate 2 · merge
-es: Gate 2 · merge
+key: MIGRATE_LAYOUT_RESUME_PENDING
+en: A migration is in progress (%s of %s operations done). Run it with --apply to resume. Left to do:
+es: Hay una migración en curso (%s de %s operaciones hechas). Correla con --apply para retomarla. Falta:
 
-key: WIKI_WAITING_OTHERS
-en: Waiting on others
-es: Esperando a otros
+key: MIGRATE_LAYOUT_DONE
+en: Migration done: %s operations. Nothing was committed: review it with git status.
+es: Migración hecha: %s operaciones. No se commiteó nada: revisala con git status.
 
-key: WIKI_NO_WAITING
-en: Nobody owes you an answer.
-es: Nadie te debe una respuesta.
+key: MIGRATE_LAYOUT_B_DIRTY
+en: the git tree has uncommitted changes (%s): commit or stash them first
+es: el árbol de git tiene cambios sin commitear (%s): commitealos o guardalos antes
 
-key: WIKI_THIS_WEEK
-en: This week
-es: Esta semana
+key: MIGRATE_LAYOUT_B_EXISTS
+en: %s already exists with other content (it is the destination of %s)
+es: %s ya existe con otro contenido (es el destino de %s)
 
-key: WIKI_WEEK_WINDOW
-en: next %s days
-es: próximos %s días
+key: MIGRATE_LAYOUT_B_SAME_DEST
+en: %s and %s go to the same destination: %s
+es: %s y %s van al mismo destino: %s
 
-key: WIKI_NO_WEEK
-en: Nothing has a date this week.
-es: Nada tiene fecha esta semana.
+key: MIGRATE_LAYOUT_B_NO_OPERATOR
+en: a rules file of another product needs adopting, and account/operator.md does not exist: run the bootstrap first
+es: hay que adoptar un reglamento de otro producto y account/operator.md no existe: correr primero el bootstrap
 
-key: WIKI_AGO_MIN
-en: min
-es: min
+key: MIGRATE_LAYOUT_B_NOT_A_FILE
+en: %s is not a readable file: it cannot be adopted
+es: %s no es un archivo legible: no se puede adoptar
 
-key: WIKI_AGO_HOUR
-en: h
-es: h
+key: MIGRATE_LAYOUT_B_ROLE_CYCLE
+en: %s is linked in a loop or from a role that stays: it cannot be placed
+es: %s está enlazado en un ciclo o desde un rol que se queda: no se puede ubicar
 
-key: WIKI_AGO_DAY
-en: d
-es: d
+key: MIGRATE_LAYOUT_B_FM
+en: %s has a frontmatter that cannot be read
+es: %s tiene un frontmatter que no se puede leer
 
-key: WIKI_COUNT_THREADS
-en: threads wait for you
-es: hilos te esperan
+key: MIGRATE_LAYOUT_B_INDEX_LINE
+en: %s line %s cannot be read, its data would be lost: %s
+es: %s línea %s no se puede leer, se perdería su dato: %s
 
-key: WIKI_COUNT_GATES
-en: gates
-es: gates
+key: MIGRATE_LAYOUT_B_INDEX_DISAGREE
+en: two index lines give %s different values for %s
+es: dos líneas de índice dan a %s valores distintos para %s
 
-key: WIKI_COUNT_WAITING
-en: waiting on others
-es: esperando a otros
+key: MIGRATE_LAYOUT_WARN_HEAD
+en: Warnings (they do not stop the migration):
+es: Avisos (no frenan la migración):
+
+key: MIGRATE_LAYOUT_W_DUP_ID
+en: the task id %s was already used by more than one task (%s): both keep it, nothing is renumbered
+es: el id de tarea %s ya lo usaba más de una tarea (%s): las dos lo conservan, no se renumera nada
+
+key: MIGRATE_LAYOUT_B_DUP_CREATED
+en: the task id %s would appear %d time(s) before and %d after: a task would be copied
+es: el id de tarea %s aparecería %d vez/veces antes y %d después: se copiaría una tarea
+
+key: MIGRATE_LAYOUT_B_INI_TWO
+en: %s has two candidate permanent initiatives (%s)
+es: %s tiene dos iniciativas permanentes candidatas (%s)
+
+key: MIGRATE_LAYOUT_B_INI_TAKEN
+en: the initiative slug %s is taken by another initiative (needed for %s)
+es: el slug de iniciativa %s lo ocupa otra iniciativa (hacía falta para %s)
+
+key: MIGRATE_LAYOUT_B_TASK_LOST
+en: the task would not arrive whole: %s
+es: la tarea no llegaría entera: %s
+
+key: MIGRATE_LAYOUT_B_NO_TREE
+en: the brain has no tree.md to migrate
+es: el cerebro no tiene tree.md para migrar
+
+key: MIGRATE_LAYOUT_B_FOREIGN
+en: changed outside the plan: %s
+es: cambió fuera del plan: %s
+
+key: MIGRATE_LAYOUT_B_OP_FAILED
+en: %s could not be done: %s
+es: %s no se pudo hacer: %s
+
+key: TASKS_TO_SORT_TITLE
+en: Tasks to sort
+es: Tareas por ordenar
+
+key: CAPTURE_CREATE_QUESTION
+en: I am going to create the initiative "%s" to keep the tasks of %s. Shall I create it?
+es: Voy a crear la iniciativa «%s» para guardar las tareas de %s. ¿La creo?
+key: SESSION_OLD_BRAIN_OPERATOR
+en: %s is at the root: this brain has the old layout. Run migrate-layout to bring it to the new one; until then it runs degraded.
+es: %s está en la raíz: este cerebro tiene la forma vieja. Corré migrate-layout para llevarlo a la nueva; hasta entonces funciona degradado.
+
+key: SESSION_OLD_BRAIN_BACKLOG
+en: %s is a backlog outside any initiative: this brain has the old layout. Run migrate-layout to move its tasks into initiatives.
+es: %s es un backlog fuera de una iniciativa: este cerebro tiene la forma vieja. Corré migrate-layout para pasar sus tareas a iniciativas.
+
+key: SESSION_OLD_BRAIN_CONTRACT
+en: %s is at the root: this brain has the old layout. Run migrate-layout to move the contract to AGENTS.md and .claude/CLAUDE.md.
+es: %s está en la raíz: este cerebro tiene la forma vieja. Corré migrate-layout para pasar el reglamento a AGENTS.md y .claude/CLAUDE.md.
+
+key: MIGRATE_LAYOUT_D_ADOPT
+en: the rules of the foreign contract are appended
+es: se agregan las reglas del reglamento ajeno
+
+key: MIGRATE_LAYOUT_D_ADOPTED
+en: its text is now in account/operator.md
+es: su texto ya está en account/operator.md
+
+key: MIGRATE_LAYOUT_D_RELINK
+en: its target moved: the link is recomputed
+es: su destino se movió: el enlace se recalcula
+
+key: MIGRATE_LAYOUT_B_ANCESTOR
+en: %s is a link or a file where a folder is needed (it would be written through it for %s)
+es: %s es un enlace o un archivo donde hace falta una carpeta (se escribiría a través de él para %s)
+
+key: ORCHESTRATOR_ACTIVATE_QUESTION
+en: I am going to set up a session that hands work out to the others and remembers which one carries each topic. Nothing new will show up in your folders. Shall I set it up?
+es: Voy a preparar una sesión que reparte el trabajo entre las demás y recuerda cuál lleva cada tema. No va a aparecer nada nuevo en tus carpetas. ¿La preparo?
+
+key: ORCHESTRATOR_ACTIVE_ALREADY
+en: The orchestrator is already on in this brain. Nothing was changed.
+es: La orquestadora ya está activa en este cerebro. No se cambió nada.
+
+key: ORCHESTRATOR_CREATED
+en: The orchestrator is on. Nothing new shows up in your folders.
+es: La orquestadora quedó activa. No aparece nada nuevo en tus carpetas.
+
+key: ORCHESTRATOR_MODE_DESKTOP
+en: You are in the desktop app: I can open one session per topic, send work to each one, and see how much context each one is using.
+es: Estás en la app de escritorio: puedo abrir una sesión por tema, mandarle trabajo a cada una y ver cuánto contexto usa cada una.
+
+key: ORCHESTRATOR_MODE_TERMINAL
+en: You are in the terminal: I can hand work out, but I cannot open new sessions or see how much context each one is using.
+es: Estás en la terminal: puedo repartir trabajo, pero no abrir sesiones nuevas ni ver cuánto contexto tiene cada una.
+
+key: ORCHESTRATOR_SESSION_NAME
+en: 🏠 Orchestrator
+es: 🏠 Orquestadora
+
+key: SUPERSEDE_CALLOUT
+en: This file was replaced by %s
+es: Este archivo fue reemplazado por %s
+
+key: SUPERSEDE_UNMARKED
+en: supersede: %s no longer carries the mark; its callout is gone and the rest of the file is as it was
+es: supersede: %s ya no lleva la marca; su recuadro se fue y el resto del archivo quedó como estaba
+
+key: SUPERSEDE_NOT_MARKED
+en: supersede: %s carries no mark; nothing changed
+es: supersede: %s no lleva marca; no se cambió nada
