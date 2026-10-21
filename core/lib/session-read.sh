@@ -48,9 +48,9 @@
 #     relative to that folder (`os_doc_index_line`, the shape every generated index uses). A scope with
 #     no key decision prints no marker and no lines.
 #   - Right after them, the indexes of the scope are generated (`build-indexes.sh`, spec 076 C18):
-#     `decisions/index.md`, `learnings/index.md` and the `index.md` of each area node something names
-#     in `about:`. Nothing of them is printed — the focus of a node prints its index — except, as one
-#     entry, a `gitignore-declared: <path>` line per path written for the first time, which the
+#     `decisions/index.md`, `learnings/index.md` and the `index.md` of each area node that has
+#     something to list (spec 079, C13). Nothing of them is printed — the focus of a node prints its index — except, as one
+#     entry, a `gitignore-declared: <path>` line per path written for the first time or dropped because its index was retired, which the
 #     session contract tells the session to commit (`.gitignore`) in the same turn, and a
 #     `gitignore-declare-failed: <path>` line per index that could not be ignored and so was not written.
 #   - A file that is not there prints `── missing: <path>` and no body, and never stops the read.

@@ -1,4 +1,4 @@
-# AI First OS — cómo funciona este sistema
+# 📘 AI First OS — cómo funciona este sistema
 
 > [!NOTE] Este archivo es el manual del sistema
 > Es parte del producto y está enlazado desde él, así que se mantiene solo: cuando el sistema se
@@ -6,7 +6,7 @@
 > archivo lo pisa la próxima actualización. Tus cosas viven en los otros archivos, y este manual dice
 > cuáles son.
 
-## La idea en una línea
+## 💡 La idea en una línea
 
 **Tu agente lee tu contexto de archivos, trabaja con vos en la sesión y lo que importa queda
 escrito** — nunca adentro de la memoria de un chat.
@@ -14,7 +14,7 @@ escrito** — nunca adentro de la memoria de un chat.
 Los archivos son tuyos: texto plano, en tu carpeta, legibles sin este sistema instalado. Lo que el
 sistema agrega es dónde va cada cosa y quién la vuelve a leer.
 
-## Dos nombres, dos cosas
+## 🏷️ Dos nombres, dos cosas
 
 - **AI First OS** es el software: los skills, el contrato de sesión, los agentes. Se instala y se
   actualiza, y no guarda nada tuyo.
@@ -24,7 +24,7 @@ sistema agrega es dónde va cada cosa y quién la vuelve a leer.
 La analogía es un sistema operativo y tu disco: el OS se actualiza; tu brain no se toca. Por eso
 no se "instala un brain" — se instala el OS, y tu brain nace una sola vez, con la entrevista.
 
-## Qué ves en esta carpeta
+## 🗂️ Qué ves en esta carpeta
 
 **En la raíz de esta carpeta se ven cuatro cosas. Todo lo demás está oculto, porque solo lo lee el
 sistema.** La raíz tiene la maquinaria del sistema y tu cuenta — nunca trabajo. Tu trabajo propio es
@@ -84,11 +84,19 @@ permiso de escritura, para que el editor te frene antes de empezar.
 ### Archivos generados
 
 Un **archivo generado** es uno que el sistema escribe por vos y reescribe solo. Su frontmatter dice
-`generated: true`, y la cabecera de abajo dice de qué archivos sale. El `index.md` de un producto, una
-cuenta o un canal es uno: una tabla con las iniciativas y las listas de decisiones y aprendizajes
-que tratan de ese producto. **No lo edites**: tu edición desaparece en el próximo arranque de sesión. Editá la fuente —
-la iniciativa, la decisión o el aprendizaje— y el índice la sigue. Un archivo generado no se sube a
-git: cada copia del brain arma el suyo.
+`generated: true`, y la cabecera de abajo dice de qué archivos sale. Todos empiezan con un título y
+una línea debajo que dicen qué es y qué vas a encontrar adentro, por ejemplo «Índice de <nombre>». El
+`index.md` de un producto, un curso, un canal o una cuenta es uno: después de ese título tiene una
+tabla con sus iniciativas en curso, con su estado, su horizonte y una columna **Tareas**, las
+iniciativas cerradas en una segunda tabla, y después tablas con las decisiones (las clave primero),
+los aprendizajes y los documentos de sus carpetas `context/`, `research/` y `resources/`. El nombre
+de cada iniciativa enlaza a su `README.md`, donde ves de qué trata, y la columna Tareas enlaza a su
+`backlog.md` y dice cuántas tareas tiene abiertas. Para tildar una tarea, abrí el `index.md` del
+producto, hacé clic en el número de la columna Tareas y tildá la tarea en `backlog.md`: ese archivo
+sí lo editás vos, el índice no. Una iniciativa no tiene un índice propio: sus documentos están al
+lado de su `README.md`. **No edites los archivos generados**: tu edición desaparece en el próximo
+arranque de sesión. Editá la fuente —la iniciativa, la decisión, el aprendizaje o el documento— y el
+índice la sigue. Un archivo generado no se sube a git: cada copia del brain arma el suyo.
 
 ### Cómo arranca una sesión
 
@@ -182,7 +190,7 @@ propia sección:
 - **Equipo del espacio de trabajo** — una sección `## Team` en la cabeza del espacio de trabajo, para
   quien es parte de él de forma permanente, sin atarse a ninguna iniciativa.
 
-## El ciclo de una sesión
+## 🔄 El ciclo de una sesión
 
 > [!EXAMPLE] Una sesión de punta a punta
 > 1. **Arranque.** Nombrás el espacio de trabajo —tu trabajo propio es `personal`, el que trae todo
@@ -197,7 +205,7 @@ propia sección:
 >    partes: qué se archivó, qué no, qué fila podría ganar el resolver y por dónde retomar. Nunca un
 >    "listo" a secas: un cierre que solo dice que terminó no se distingue de uno que perdió algo.
 
-## Living Memory: encontrar lo que el foco no carga
+## 🧠 Living Memory: encontrar lo que el foco no carga
 
 El barrido y el foco solo cargan una lista fija de archivos, más un salto por `about:`. Una decisión
 escrita meses atrás en otro espacio de trabajo es real, pero nada la saca a la luz sola — hasta que
@@ -214,7 +222,7 @@ contradicción para resolver, nunca elegidos en silencio. Y es descartable: lo q
 archivo chico que se reconstruye solo desde tus propios archivos, nunca algo que vos escribís o
 respaldás.
 
-## Dónde vive la maquinaria
+## ⚙️ Dónde vive la maquinaria
 
 Las herramientas —skills, scripts, agentes— viven en `.os/`, `.claude/` y `.agents/`. Esas carpetas
 están ocultas en Obsidian y se ven desde la terminal, y lo que el sistema pone adentro es un
@@ -236,7 +244,7 @@ Cualquier skill que escribas vos va al lado, como carpeta común en `.claude/ski
 > manual apunta ahí en vez de contarlo de nuevo, porque dos versiones del mismo procedimiento se
 > separan.
 
-## Qué podés pedir, y cómo
+## 💬 Qué podés pedir, y cómo
 
 **El índice es el resolver, no tu memoria.** Pedís con tus palabras —"qué hay pendiente", "cerrá la
 sesión", "capturá esto"— y el agente busca qué herramienta cubre esa capacidad. Dos archivos
@@ -286,7 +294,7 @@ sesión: **"instalá el pack `<nombre>`"**.
 acordaba. Pedí lo que querés con tus palabras: la sesión lee el índice de lo que esté instalado y te
 rutea, o te dice que nada de lo instalado lo cubre.
 
-## Una orquestadora, si querés una
+## 🎛️ Una orquestadora, si querés una
 
 **Es opcional y está apagada hasta que la pidas.** Una orquestadora es una sesión donde decidís qué
 importa y desde donde se reparte el trabajo a las demás sesiones, una por tema. Para que exista no
@@ -303,7 +311,7 @@ lleva cada tema, qué espera a qué) lo guarda en un archivo oculto que nunca te
   no puede abrir sesiones nuevas ni ver cuánto contexto tiene cada una. Al prenderse te dice en cuál
   estás.
 
-## Trabajar con agentes: dos gates y un tramo autónomo
+## 🚦 Trabajar con agentes: dos gates y un tramo autónomo
 
 El trabajo pesado se delega a agentes que corren en segundo plano, mientras la sesión principal se
 queda al timón — nunca se muda de carpeta ni pierde tu contexto.
@@ -319,7 +327,7 @@ queda al timón — nunca se muda de carpeta ni pierde tu contexto.
 > principal y nunca con un push → una persona lee la rama y la mergea (**gate 2**). Autonomía en
 > el medio, control humano en los bordes.
 
-## Capacidades dormidas: la capa de construcción
+## 🛠️ Capacidades dormidas: la capa de construcción
 
 Este sistema no es solo para decidir: **también construye producto, y esa mitad queda dormida hasta
 que la pidas.** No es un modo que se prende para todo el brain, ni algo que se instale de nuevo: se
@@ -340,7 +348,7 @@ Cuando eso pasa, se despiertan dos capacidades:
 No hace falta que prepares nada hoy. Pedilo —"esta iniciativa se va a construir"— y las dos ya están
 instaladas.
 
-## Lo que el sistema nunca hace solo
+## 🛑 Lo que el sistema nunca hace solo
 
 - **Nada se activa por su cuenta.** La herramienta se elige por el resolver y se invoca explícito.
 - **Ninguna acción irreversible corre sola.** Mandar, publicar, firmar y mergear se preparan y
@@ -349,7 +357,7 @@ instaladas.
   inferencia · ❓ hueco. Lo que falta queda registrado como abierto, con quién lo cierra. Nunca se
   inventa.
 
-## Cómo leer los recuadros
+## 🧭 Cómo leer los recuadros
 
 Los archivos del sistema usan pocos recuadros, cada uno con un solo significado:
 

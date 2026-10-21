@@ -65,7 +65,7 @@ for f in "$brain/$OS_OPERATOR_FILE" "$brain/operator.md"; do
   [ -f "$f" ] || continue
   fm_read "$f"
   if [ -n "$fm_language" ] && os_language_valido "$fm_language"; then lang="$fm_language"; fi
-  owner=$(os_titulo "$f")
+  owner=$(os_strip_emoji "$(os_titulo "$f")")
   break
 done
 

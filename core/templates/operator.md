@@ -2,7 +2,7 @@
 language: {{LANGUAGE}}
 ---
 
-# {{NAME}}
+# 👤 {{NAME}}
 
 {{T_OPERATOR_VOICE_POINTER}}
 

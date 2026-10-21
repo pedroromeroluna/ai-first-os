@@ -43,7 +43,8 @@ commit `.system/tree.md` in that same turn, like any other file the brain edits.
 could not be written and the reason the line gives, and do not retry silently.
 
 If the read prints `gitignore-declared:`, it generated an index for the first time and added that
-exact path to the brain's `.gitignore`: commit `.gitignore` in that same turn, the same way. The
+exact path to the brain's `.gitignore`, or retired an index it no longer generates and dropped that
+exact path from it: commit `.gitignore` in that same turn, the same way. The
 index itself is never committed. If it prints `gitignore-declare-failed:`, that index could not be
 kept out of git and was not written: tell the operator, in outcome language, and do not retry silently.
 

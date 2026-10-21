@@ -303,7 +303,7 @@ if [ -f "$brain/$OS_OPERATOR_FILE" ]; then
   marcar_leido
   while IFS= read -r line || [ -n "$line" ]; do
     case "$line" in
-      '# '*) operador=$(os_trim "${line#\# }"); break ;;
+      '# '*) operador=$(os_strip_emoji "$(os_trim "${line#\# }")"); break ;;
     esac
   done < "$brain/$OS_OPERATOR_FILE"
 fi
@@ -688,16 +688,13 @@ $tree_files
 RESOLVERS
 
 # ---------------------------------------------------------------- an index written by hand (spec 076, C18)
-# The startup read generates `decisions/index.md`, `learnings/index.md` and the `index.md` of each
-# area node; one that is there without `generated: true` was written by a person, and the generator
-# skips it. The scan names it — it reads that file's frontmatter and nothing else, and never writes.
+# The startup read generates `decisions/index.md`, `learnings/index.md`, the `index.md` of each area
+# node that has something to list (spec 079 no longer writes one per initiative, and deletes the generated ones); one that is there without `generated: true`
+# was written by a person, and the generator skips it. The scan names it — it reads that file's frontmatter and nothing else, and never writes.
 for idx in "$brain/$wsdir/$org/decisions/index.md" "$brain/$wsdir/$org/learnings/index.md" \
            "$brain/$wsdir/$org"/*/*/index.md; do
   [ -f "$idx" ] || continue
   idx_rel="${idx#"$brain"/}"
-  case "$idx_rel" in
-    "$wsdir/$org/initiatives/"*) continue ;;
-  esac
   fm_read "$idx"
   [ "$fm_generated" = "true" ] && continue
   push_chequeo "$(printf "$S_SESSION_CHECK_INDEX_BY_HAND" "$idx_rel")"

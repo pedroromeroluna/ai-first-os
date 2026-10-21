@@ -1,4 +1,4 @@
-# AI First OS — how this system works
+# 📘 AI First OS — how this system works
 
 > [!NOTE] This file is the manual of the system
 > It is part of the product and linked from it, so it keeps itself current: when the system is
@@ -6,7 +6,7 @@
 > file is overwritten by the next update. Your things live in the other files, and this manual says
 > which ones.
 
-## The idea in one line
+## 💡 The idea in one line
 
 **Your agent reads your context from files, works with you in the session, and whatever matters
 stays written down** — never inside the memory of a chat.
@@ -14,7 +14,7 @@ stays written down** — never inside the memory of a chat.
 The files are yours: plain text, in your folder, readable without this system installed. What the
 system adds is where each thing goes and who reads it back.
 
-## Two names, two things
+## 🏷️ Two names, two things
 
 - **AI First OS** is the software: the skills, the session contract, the agents. It gets installed
   and updated, and it stores nothing of yours.
@@ -25,7 +25,7 @@ The analogy is an operating system and your disk: the OS gets updated; your brai
 touched. That is why you do not "install a brain" — you install the OS, and your brain is born
 once, through the interview.
 
-## What you see in this folder
+## 🗂️ What you see in this folder
 
 **Four things are visible at the root of this folder. Everything else is hidden, because only the
 system reads it.** The root holds the machinery of the system and your account — never work. Your
@@ -77,11 +77,19 @@ the system also takes the write permission off it, so the editor stops you befor
 ### Generated files
 
 A **generated file** is one the system writes for you and rewrites on its own. Its frontmatter says
-`generated: true`, and the header under it says which files it is built from. The `index.md` of a
-product, an account or a channel is one: a table of the initiatives, and the lists of decisions and learnings,
-that are about that product. **Do not edit it**: your edit disappears at the next session start. Edit the
-source — the initiative, the decision or the learning — and the index follows. A generated file is
-not committed to git: every copy of the brain builds its own.
+`generated: true`, and the header under it says which files it is built from. Every one opens with a
+title and a line under it that say what it is and what you will find in it, such as «Index of
+<name>». The `index.md` of a product, a course, a channel or an account is one: after that title it
+has a table of its initiatives in progress, with their status, their horizon and a **Tasks** column,
+the closed initiatives in a second table, and then tables of the decisions (the key ones first), the
+learnings and the documents in its `context/`, `research/` and `resources/` folders. The name of
+each initiative links to its `README.md`, where you see what it is about, and the Tasks column links
+to its `backlog.md` and says how many tasks are open. To tick a task, open the product's `index.md`,
+click the number in the Tasks column and tick the task in `backlog.md`: that file is yours to edit,
+the index is not. An initiative has no index of its own: its documents sit next to its `README.md`.
+**Do not edit the generated files**: your edit disappears at the next session start. Edit the
+source — the initiative, the decision, the learning or the document — and the index follows. A
+generated file is not committed to git: every copy of the brain builds its own.
 
 ### How a session starts
 
@@ -171,7 +179,7 @@ the reason the scan stays fast — and it is written at three heights, each its 
 - **Team of the workspace** — a `## Team` section on the workspace's own head, for whoever is part of
   it on a standing basis, tied to no initiative.
 
-## The cycle of one session
+## 🔄 The cycle of one session
 
 > [!EXAMPLE] One session from start to end
 > 1. **Start.** You name the workspace — your own work is `personal`, the one every brain is born with
@@ -187,7 +195,7 @@ the reason the scan stays fast — and it is written at three heights, each its 
 >    Never a plain "done": a close that only says it finished cannot be told apart from one that lost
 >    something.
 
-## Living Memory: finding what the focus does not load
+## 🧠 Living Memory: finding what the focus does not load
 
 The scan and the focus only ever load a fixed list of files, plus one jump through `about:`. A
 decision written months ago in another workspace is real, but nothing surfaces it on its own — until
@@ -204,7 +212,7 @@ handed to you as a contradiction to resolve, never quietly picked between. And i
 it searches is a small file it rebuilds from your own files on its own, never something you write to
 or back up.
 
-## Where the machinery lives
+## ⚙️ Where the machinery lives
 
 The tools —skills, scripts, agents— live in `.os/`, `.claude/` and `.agents/`. Those folders are
 hidden in Obsidian and visible from the terminal, and what the system puts in them is a **link** to
@@ -225,7 +233,7 @@ them, as a plain folder in `.claude/skills/`.
 > written once, in the `README.md` of the product's folder under **Update**; this manual points at
 > it instead of telling it again, because two versions of the same procedure drift apart.
 
-## What you can ask for, and how
+## 💬 What you can ask for, and how
 
 **The index is the resolver, not your memory.** You ask in your own words —"what is pending", "close
 the session", "capture this"— and the agent looks up which tool covers that capability. Two files
@@ -275,7 +283,7 @@ that index arrives with it — so the list you read is always the list you have,
 manual remembered. Ask for what you want in your own words: the session reads the index of whatever
 is installed and routes you there, or tells you that nothing installed covers it.
 
-## An orchestrator, if you want one
+## 🎛️ An orchestrator, if you want one
 
 **Optional, and off until you ask.** An orchestrator is one session where you decide what matters
 and from which the work is handed to the other sessions, one per topic. Nothing in this folder
@@ -292,7 +300,7 @@ each topic, what is waiting for what) it keeps in a hidden file that you never h
   cannot open new sessions or see how much context each one is using. It tells you which one you are
   in when it turns on.
 
-## Working with agents: two gates, one autonomous stretch
+## 🚦 Working with agents: two gates, one autonomous stretch
 
 Heavy work is delegated to agents that run in the background, while the main session stays at the
 helm — it never changes folders and never loses your context.
@@ -308,7 +316,7 @@ helm — it never changes folders and never loses your context.
 > branch and never with a push → a person reads the branch and merges it (**gate 2**). Autonomy in
 > the middle, human control at the edges.
 
-## Dormant capabilities: the building layer
+## 🛠️ Dormant capabilities: the building layer
 
 This system is not only for deciding: **it also builds product, and that half stays asleep until you
 ask for it.** It is not a mode you turn on for the whole brain, nor something you install again: it
@@ -330,7 +338,7 @@ When that happens, two capabilities wake up:
 You do not need to prepare anything today. Ask for it —"this initiative is going to be built"— and
 the two are already installed.
 
-## What the system never does on its own
+## 🛑 What the system never does on its own
 
 - **Nothing activates by itself.** The tool is chosen through the resolver and invoked explicitly.
 - **No irreversible action runs alone.** Sending, publishing, signing and merging are prepared and
@@ -338,7 +346,7 @@ the two are already installed.
 - **Whatever the AI writes is marked**: 📌 literal, with the file and the line it came from · 🔍
   inference · ❓ gap. What is missing is recorded as open, with who closes it. It is never invented.
 
-## How to read the callouts
+## 🧭 How to read the callouts
 
 The system's files use few callouts, each with one meaning only:
 

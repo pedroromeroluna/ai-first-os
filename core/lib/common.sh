@@ -14,6 +14,14 @@ OS_SYSTEM_DIR=".system"
 OS_TREE_FILE="$OS_SYSTEM_DIR/tree.md"
 OS_ROOT_RESOLVER_FILE="$OS_SYSTEM_DIR/resolver.md"
 
+# The two lines of a generated node index that the focus read cuts at (spec 078, C4; spec 079, C4): what is
+# between them is the part of the index the AI loads, everything outside is for the person. An index
+# written by the spec 078 has only the end line, and the focus then prints from its first line to it. HTML
+# comments, so no reader of Markdown shows them. Only statement of the text; `build-indexes.sh` writes them
+# and `focus-read.sh` cuts at them.
+OS_FOCUS_START='<!-- os:focus-start -->'
+OS_FOCUS_END='<!-- os:focus-end -->'
+
 # The account (spec 076, C8): who the operator is and how they write. Visible, edited by the person.
 OS_ACCOUNT_DIR="account"
 OS_OPERATOR_FILE="$OS_ACCOUNT_DIR/operator.md"
@@ -1044,6 +1052,37 @@ os_doc_title() {
   printf '%s' "$t"
 }
 
+# md_cell TEXT -> the text safe inside a table cell or a link label: backslash, `|`, `[` and `]` escaped.
+md_cell() {
+  local t="$1"
+  t="${t//\\/\\\\}"
+  t="${t//|/\\|}"
+  t="${t//[/\\[}"
+  t="${t//]/\\]}"
+  printf '%s' "$t"
+}
+
+# md_dest PATH -> the path as a link destination: `%`, `&`, `\`, tab, space, parentheses, `|`, `<`, `>`, `#` and `?`
+# encoded, and `./` before a first segment with a colon. The one place that knows it (spec 078, C6): every generated index line goes through it.
+md_dest() {
+  local t="$1"
+  t="${t//%/%25}"
+  t="${t//&/%26}"
+  t="${t//\\/%5C}"
+  t="${t//$'\t'/%09}"
+  t="${t// /%20}"
+  t="${t//(/%28}"
+  t="${t//)/%29}"
+  t="${t//|/%7C}"
+  t="${t//</%3C}"
+  t="${t//>/%3E}"
+  t="${t//#/%23}"
+  t="${t//\?/%3F}"
+  # A first segment with a colon would read as a URI scheme: `./` keeps it a relative path.
+  case "${t%%/*}" in *:*) t="./$t" ;; esac
+  printf '%s' "$t"
+}
+
 # os_doc_index_line BRAIN REL FROM_DIR -> the index line of the document at REL (relative to the
 # brain), with its links relative to FROM_DIR. Exit 1 when the file is not there.
 os_doc_index_line() {
@@ -1055,11 +1094,11 @@ os_doc_index_line() {
   line="-"
   [ -n "$date" ] && line="$line $date ·"
   os_doc_is_key "$key" && line="$line $S_INDEX_KEY_LABEL ·"
-  line="$line [$title]($(os_rel_link "$from" "$rel"))"
+  line="$line [$(md_cell "$title")]($(md_dest "$(os_rel_link "$from" "$rel")"))"
   [ -n "$note" ] && line="$line — $note"
   if [ -n "$sup" ]; then
     if [ -f "$brain/$sup" ]; then sup_title=$(os_doc_title "$brain/$sup"); else sup_title="${sup##*/}"; fi
-    line="$line — **$S_INDEX_SUPERSEDED_LABEL**: [$sup_title]($(os_rel_link "$from" "$sup"))"
+    line="$line — **$S_INDEX_SUPERSEDED_LABEL**: [$(md_cell "$sup_title")]($(md_dest "$(os_rel_link "$from" "$sup")"))"
   fi
   printf '%s' "$line"
   return 0
@@ -1071,6 +1110,19 @@ os_doc_superseded() {
   [ -n "$fm_superseded_by" ] && return 0
   case "$fm_status" in superseded*) return 0 ;; esac
   return 1
+}
+
+# os_doc_superseded_path -> the normalised path of the file that replaced the document `fm_read` just read, or
+# nothing (the one place outside the writer that reads the key for an index).
+os_doc_superseded_path() {
+  case "$fm_superseded_by" in
+    '') ;;
+    *) os_rel_norm "$fm_superseded_by"; return 0 ;;
+  esac
+  # MADR's own form, `status: superseded by <path>` (spec 070), when the key is not there.
+  case "$fm_status" in
+    "superseded by "*) os_rel_norm "$(os_trim "${fm_status#superseded by }")" ;;
+  esac
 }
 
 # os_docs_sorted BRAIN DIR_REL -> the `.md` files of that folder (never its generated `index.md`),
@@ -1449,9 +1501,21 @@ FILES
 # title comes from the strings catalog (`TASKS_TO_SORT_TITLE`), in the language of the brain.
 OS_TASKS_TO_SORT_SLUG="tasks-to-sort"
 
-# os_operator_name BRAIN -> the operator's name: the first `# Title` of `account/operator.md`.
+# os_strip_emoji TEXT -> TEXT without the emoji the product itself writes at the start of a title and the space
+# after it (spec 079, C15): `👤 ` on the operator's heading and `✍️ ` on the voice's. Nothing else is touched, so a
+# name that begins with any other Unicode character comes out as it came in.
+os_strip_emoji() {
+  case "$1" in
+    "👤 "*) printf '%s' "${1#"👤 "}" ;;
+    "✍️ "*) printf '%s' "${1#"✍️ "}" ;;
+    *) printf '%s' "$1" ;;
+  esac
+}
+
+# os_operator_name BRAIN -> the operator's name: the first `# Title` of `account/operator.md`, without the
+# emoji that opens it.
 os_operator_name() {
-  os_titulo "$1/$OS_OPERATOR_FILE"
+  os_strip_emoji "$(os_titulo "$1/$OS_OPERATOR_FILE")"
 }
 
 # os_ini_render TITLE STATUS ABOUT OWNER DATE -> the text of the head of a new initiative, on stdout:

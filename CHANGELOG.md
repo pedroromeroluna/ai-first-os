@@ -5,6 +5,36 @@ Every published version of AI First OS, newest first. The format follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html): *major* when an already installed brain
 needs a manual step to keep working, *minor* for a new capability, *patch* for a fix.
 
+## [2.1.0] — 2026-10-21
+
+An installed brain needs no step to use this version: the indexes regenerate at the next session
+start, and the old generated index of each initiative is deleted then.
+
+### Changed
+
+- Every product, course, channel and account has an `index.md` that is its complete map: its
+  initiatives, its decisions, its learnings and its own documents. A node gets an index when it has
+  something to list, and loses a generated one it no longer needs. Each index opens with a title and a
+  line that say what it is.
+- The initiatives table has a Tasks column. Each row links the initiative's `README.md`, and the
+  Tasks cell links its `backlog.md` and says how many tasks are open. Tasks are ticked in that backlog.
+- Initiatives in progress come first, ordered by horizon; the closed ones are in their own table below.
+- Status and horizon show in the language of the brain (Active, Ongoing, Now, Next, Later; Activa,
+  Permanente, Ahora, Después, Más adelante). The files keep their codes.
+- Decisions, learnings and documents are tables. Key decisions have their own table, separate from
+  the other decisions; a replaced decision points to the one that replaced it.
+- The AI reads less of an index: a marker in the file makes it read only the table of initiatives in
+  progress, and nothing for a node with none.
+- The generated indexes and the two manuals use emoji headings. The person's `operator.md` and
+  `voice.md` open with an emoji too, and the system still reads the operator's name without it.
+- A title that starts with a bracket, or a file whose name has a space, a `%`, a `#` or a parenthesis,
+  no longer breaks a link in a generated index.
+
+### Removed
+
+- The generated `index.md` inside each initiative, from 2.0.x, is gone: the initiative's documents sit
+  next to its `README.md`, and a person's own `index.md` there is never touched.
+
 ## [2.0.0] — 2026-10-20
 
 My Wiki stops being distributed from this version: 1.11.0, which removed it, was never published on its own.

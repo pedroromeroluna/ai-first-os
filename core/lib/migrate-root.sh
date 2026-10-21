@@ -211,7 +211,7 @@ done
 # ---------------------------------------------------------------- the destination workspace
 if [ -n "$items" ] && [ ! -e "$brain/$dest" ]; then
   printf 'created\t%s\n' "$dest" >> "$state"
-  owner=$(os_titulo "$brain/$OS_OPERATOR_FILE")
+  owner=$(os_strip_emoji "$(os_titulo "$brain/$OS_OPERATOR_FILE")")
   [ -n "$owner" ] || owner="$S_PERSONAL_WORKSPACE_NAME"
   "$here/new-workspace.sh" --brain "$brain" --name "$S_PERSONAL_WORKSPACE_NAME" --role "" \
     --title "" --owner "$owner" --slug "$slug" > /dev/null \

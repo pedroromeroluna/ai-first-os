@@ -16,7 +16,13 @@
 #   1. the head named by `--focus`
 #   2. its body: the files a `content:` line reaches **directly inside** that node's folder,
 #      `LC_ALL=C sort` by path — for an area node (a product, a course, a channel, an account) that is
-#      its generated `index.md` (spec 076, C20)
+#      its generated `index.md` (spec 076, C20), **printed only between the lines `<!-- os:focus-start -->`
+#      and `<!-- os:focus-end -->`** (neither included): the table of the initiatives in progress and
+#      nothing else, not the title, the warning or what comes below (spec 079, C4). An index written by
+#      spec 078 has only the end line and prints from its first line up to it; an index without the end
+#      line prints whole, and so does one written by a person. A generated index whose table has no
+#      initiative row prints nothing. An initiative has no generated index (spec 079, C10); a generated
+#      `index.md` in its folder is not printed at all
 #   3. when the focus is an area node: its own `.resolver.md`, when a `glob:` line reaches it (spec
 #      076, C15), and its key decisions (see 6)
 #   4. only if that head declares `about:` — for each path it names, in the order of the list (spec
@@ -148,10 +154,57 @@ separar() {
   if [ "$primera" = "1" ]; then primera=0; else printf '\n'; fi
 }
 
-# cuerpo ARCHIVO — the bytes of the file, plus the closing newline it may not have.
+# indice_generado ARCHIVO -> 0 when the file is a generated `index.md`. Reads its frontmatter.
+indice_generado() {
+  [ "${1##*/}" = "index.md" ] || return 1
+  [ -f "$1" ] || return 1
+  fm_read "$1"
+  [ "$fm_generated" = "true" ]
+}
+
+# region_del_foco ARCHIVO -> the lines of a generated node index that the AI reads: those between `OS_FOCUS_START`
+# and `OS_FOCUS_END`, or from the first line when the index has no start line (spec 078).
+region_del_foco() {
+  local line buf="" dentro=0
+  grep -qxF -- "$OS_FOCUS_START" "$1" || dentro=1
+  while IFS= read -r line || [ -n "$line" ]; do
+    if [ "$line" = "$OS_FOCUS_END" ]; then break; fi
+    if [ "$dentro" = "1" ]; then
+      buf="$buf$line$nl"
+    elif [ "$line" = "$OS_FOCUS_START" ]; then
+      dentro=1
+    fi
+  done < "$1"
+  printf '%s' "$buf"
+}
+
+# indice_oculto RUTA -> 0 when the AI reads nothing from that file (spec 078, C4, C5; spec 079, C4, C9, C10): the
+# generated index of an initiative left by spec 078, and the generated index of a node whose region holds no
+# row of an initiative in progress. The one place that decides it; `cuerpo` is the one place that prints, so no
+# route (the head, a jump, the body of the node) can print what this hides, or what the markers cut.
+indice_oculto() {
+  local f="$brain/$1" region
+  indice_generado "$f" || return 1
+  case "$1" in */initiatives/*/index.md) return 0 ;; esac
+  grep -qxF -- "$OS_FOCUS_END" "$f" || return 1
+  region=$(region_del_foco "$f")
+  case "$nl$region" in *"$nl| ["*) return 1 ;; esac
+  return 0
+}
+
+# cuerpo ARCHIVO — the bytes of the file, plus the closing newline it may not have. A generated index with
+# the end marker prints only its region; one that `indice_oculto` hides prints nothing.
 cuerpo() {
-  local last
+  local last rel="${1#"$brain"/}" buf
   [ -s "$1" ] || return 0
+  if indice_generado "$1"; then
+    indice_oculto "$rel" && return 0
+    if grep -qxF -- "$OS_FOCUS_END" "$1"; then
+      buf=$(region_del_foco "$1")
+      [ -z "$buf" ] || printf '%s\n' "$buf"
+      return 0
+    fi
+  fi
   cat "$1"
   last=$(tail -c 1 "$1")
   if [ -n "$last" ]; then printf '\n'; fi
@@ -161,6 +214,7 @@ cuerpo() {
 # emitir RUTA — one entry: its header and its body, or its `missing:` line.
 impresos="$nl"
 emitir() {
+  if [ -f "$brain/$1" ] && indice_oculto "$1"; then impresos="$impresos$1$nl"; return 0; fi
   separar
   impresos="$impresos$1$nl"
   if [ -f "$brain/$1" ]; then
@@ -174,6 +228,7 @@ emitir() {
 }
 
 wsdir=$(os_ws_dir "$brain")
+tipo_foco=""
 
 # claves HEAD — step 6: the key decisions about one area node, read from the frontmatter of each
 # decision of its workspace. Nothing for a head that is not an area node.
@@ -231,6 +286,7 @@ $contents
 CONTENIDOS
   # `sort -u`: two `content:` lines that reach the same file —two sessions declaring it at once
   # (spec 072)— must not print its body twice.
+  # What a generated index prints is decided in `cuerpo` and `indice_oculto`, for every route.
   while IFS= read -r f || [ -n "$f" ]; do
     [ -n "$f" ] || continue
     emitir "$f"

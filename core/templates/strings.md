@@ -1155,8 +1155,8 @@ en: > Changes to this file are not saved. It is regenerated at the start of ever
 es: > Los cambios en este archivo no se guardan, porque se regenera al inicio de cada sesión.
 
 key: INDEX_SOURCE_NODE
-en: > This list comes from the `about:` field of each initiative, decision and learning. Make changes there.
-es: > Esta lista sale del campo `about:` de cada iniciativa, decisión y aprendizaje. Los cambios se hacen ahí.
+en: > This list comes from the `about:` of what is about this node and from its own folders. Make changes there.
+es: > Esta lista sale del `about:` de lo que trata de este nodo y de sus propias carpetas. Los cambios se hacen ahí.
 
 key: INDEX_SOURCE_DECISIONS
 en: > This list comes from the decision files in this folder, one per decision. Make changes there.
@@ -1166,9 +1166,157 @@ key: INDEX_SOURCE_LEARNINGS
 en: > This list comes from the learning files in this folder, one per learning. Make changes there.
 es: > Esta lista sale de los archivos de aprendizaje de esta carpeta, uno por aprendizaje. Los cambios se hacen ahí.
 
-key: INDEX_INITIATIVES
-en: Initiatives
-es: Iniciativas
+key: INDEX_NODE_TITLE
+en: 🗺️ Index of %s
+es: 🗺️ Índice de %s
+
+key: INDEX_NODE_DESC_PRODUCT
+en: The initiatives of this product with their open tasks, and its decisions, learnings and documents.
+es: Las iniciativas de este producto con sus tareas, y sus decisiones, aprendizajes y documentos.
+
+key: INDEX_NODE_DESC_COURSE
+en: The initiatives of this course with their open tasks, and its decisions, learnings and documents.
+es: Las iniciativas de este curso con sus tareas, y sus decisiones, aprendizajes y documentos.
+
+key: INDEX_NODE_DESC_CHANNEL
+en: The initiatives of this channel with their open tasks, and its decisions, learnings and documents.
+es: Las iniciativas de este canal con sus tareas, y sus decisiones, aprendizajes y documentos.
+
+key: INDEX_NODE_DESC_ACCOUNT
+en: The initiatives of this account with their open tasks, and its decisions, learnings and documents.
+es: Las iniciativas de esta cuenta con sus tareas, y sus decisiones, aprendizajes y documentos.
+
+key: INDEX_NODE_DESC_NODE
+en: The initiatives of this node with their open tasks, and its decisions, learnings and documents.
+es: Las iniciativas de este nodo con sus tareas, y sus decisiones, aprendizajes y documentos.
+
+key: INDEX_DECISIONS_TITLE
+en: ⚖️ Decisions of %s
+es: ⚖️ Decisiones de %s
+
+key: INDEX_DECISIONS_DESC
+en: Every decision of this workspace, newest first, with a link to each one.
+es: Todas las decisiones de este espacio de trabajo, de la más nueva a la más vieja, con un enlace a cada una.
+
+key: INDEX_LEARNINGS_TITLE
+en: 💡 Learnings of %s
+es: 💡 Aprendizajes de %s
+
+key: INDEX_LEARNINGS_DESC
+en: Every learning of this workspace, newest first, with a link to each one.
+es: Todos los aprendizajes de este espacio de trabajo, del más nuevo al más viejo, con un enlace a cada uno.
+
+key: INDEX_INITIATIVES_OPEN
+en: 🚀 Initiatives in progress
+es: 🚀 Iniciativas en curso
+
+key: INDEX_INITIATIVES_CLOSED
+en: 📦 Closed initiatives
+es: 📦 Iniciativas cerradas
+
+key: INDEX_COL_TASKS
+en: Tasks
+es: Tareas
+
+key: INDEX_TASKS_MANY
+en: %s open
+es: %s abiertas
+
+key: INDEX_TASKS_ONE
+en: 1 open
+es: 1 abierta
+
+key: INDEX_TASKS_NONE
+en: None open
+es: Ninguna abierta
+
+key: INDEX_TASKS_NO_BACKLOG
+en: No tasks
+es: Sin tareas
+
+key: INDEX_STATUS_ACTIVE
+en: Active
+es: Activa
+
+key: INDEX_STATUS_ONGOING
+en: Ongoing
+es: Permanente
+
+key: INDEX_STATUS_CLOSED
+en: Closed
+es: Cerrada
+
+key: INDEX_STATUS_BLOCKED
+en: Blocked
+es: Trabada
+
+key: INDEX_HORIZON_NOW
+en: Now
+es: Ahora
+
+key: INDEX_HORIZON_NEXT
+en: Next
+es: Después
+
+key: INDEX_HORIZON_LATER
+en: Later
+es: Más adelante
+
+key: INDEX_COL_DATE
+en: Date
+es: Fecha
+
+key: INDEX_COL_DECISION
+en: Decision
+es: Decisión
+
+key: INDEX_COL_TYPE
+en: Type
+es: Tipo
+
+key: INDEX_COL_WHEN_TO_READ
+en: When to read it
+es: Cuándo leerla
+
+key: INDEX_COL_LEARNING
+en: Learning
+es: Aprendizaje
+
+key: INDEX_COL_FOLDER
+en: Folder
+es: Carpeta
+
+key: INDEX_COL_DOCUMENT
+en: Document
+es: Documento
+
+key: INDEX_DECISIONS_KEY
+en: ⭐ Key decisions
+es: ⭐ Decisiones clave
+
+key: INDEX_DECISIONS_OTHER
+en: 🗂️ Other decisions
+es: 🗂️ Otras decisiones
+
+key: INDEX_TYPE_SUPERSEDED
+en: Superseded
+es: Reemplazada
+
+key: INDEX_SUPERSEDED_BY_CELL
+en: Superseded by
+es: Reemplazada por
+
+key: INDEX_FOLDER_CONTEXT
+en: Context
+es: Contexto
+
+key: INDEX_FOLDER_RESEARCH
+en: Research
+es: Investigación
+
+key: INDEX_FOLDER_RESOURCES
+en: Resources
+es: Recursos
 
 key: INDEX_COL_INITIATIVE
 en: Initiative
@@ -1183,12 +1331,16 @@ en: Horizon
 es: Horizonte
 
 key: INDEX_DECISIONS
-en: Decisions
-es: Decisiones
+en: 🗂️ Decisions
+es: 🗂️ Decisiones
 
 key: INDEX_LEARNINGS
-en: Learnings
-es: Aprendizajes
+en: 💡 Learnings
+es: 💡 Aprendizajes
+
+key: INDEX_DOCUMENTS
+en: 📄 Documents
+es: 📄 Documentos
 
 key: INDEX_EMPTY
 en: Nothing yet.
