@@ -233,6 +233,19 @@ them, as a plain folder in `.claude/skills/`.
 > written once, in the `README.md` of the product's folder under **Update**; this manual points at
 > it instead of telling it again, because two versions of the same procedure drift apart.
 
+## 🧰 Requirements
+
+**`git` is required; Python 3 is recommended.** The system installs without Python and says so when it
+does. Without Python 3, two things do not work:
+
+- **Connecting a code repository** (`mount-repo`).
+- **Living Memory search** (`recall`). The AI searches the files as plain text instead: it cannot put
+  the current version of a document above a replaced one, open the exact section, or follow what a
+  document is about or what replaced it.
+
+To get them, install Python from python.org: the system finds it as `python3`, `python` or `py -3`.
+Nothing needs to be reinstalled.
+
 ## 💬 What you can ask for, and how
 
 **The index is the resolver, not your memory.** You ask in your own words —"what is pending", "close

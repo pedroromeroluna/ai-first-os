@@ -57,6 +57,12 @@ Prints the head this file's `about:` names, the files whose `about:` names this 
 one's `superseded_by:` names, and the files whose `superseded_by:` names this one — one line each,
 `<relation> · <path> · <title>`. One jump: what a neighbour itself declares is never followed.
 
+## Exit codes
+
+`0` ran, with or without results. `1` bad arguments, or Python 3 is there and the index failed. `2` the
+named workspace does not exist. `3` Python 3 is not on this computer (not as `python3`, `python` or
+`py -3`): the command says so and the session searches with `grep` instead.
+
 ## What it does not do
 
 It does not read meaning across two matches, and it does not follow a chain of more than one jump.

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Funciones compartidas por los comandos de core/. Interno: no es invocable.
-# Bash 3.2 en adelante. Sin dependencias fuera de bash + coreutils, con una excepción: `python3`
-# —requisito duro del producto junto a `git`, spec 030— lo usa `os_settings_authorize` para leer y
-# escribir JSON.
+# Bash 3.2 en adelante. Sin dependencias fuera de bash + coreutils, con una excepción: Python 3 (python3)
+# —recomendado, no obligatorio desde la spec 080— lo usan `os_settings_authorize`, `mount-repo.sh` y
+# `recall.sh`. Se busca con `os_python_find`, por sus tres nombres.
 
 # Tope de identidad, en líneas. Única enunciación del número en el código distribuido.
 OS_IDENTITY_CAP=40
@@ -2221,9 +2221,61 @@ os_gitignore_ensure() {
   return 0
 }
 
-# El nombre del archivo de permisos del harness, relativo al brain (spec 030). `python3` lo lee y
-# escribe: es requisito duro del producto junto a `git` desde la spec 030 (en macOS los dos llegan
-# con las mismas Command Line Tools; `bootstrap.sh` y `mount-repo.sh` lo chequean antes de escribir).
+# Python 3 por sus tres nombres (spec 080). Única enunciación del orden y de la prueba en bash;
+# `findPython` de ai-first-os.js (el lanzador de npx) la espeja. Orden: `python3`, `python`, `py -3` (el lanzador de Windows,
+# que deja `py` y `python` pero nunca `python3`). Un candidato se acepta solo si corre de verdad y
+# termina con éxito únicamente cuando su versión mayor es 3: así quedan afuera el atajo de la
+# Microsoft Store (falla) y un Python 2.
+# El comando queda en el arreglo `OS_PY` —una palabra o dos (`py -3`)—, y se corre siempre como
+# "${OS_PY[@]}" o con `os_py`, sin depender de que una cadena se parta en espacios.
+OS_PY=()
+OS_PYTHON_PROBE='import sys; sys.exit(0 if sys.version_info[0] == 3 else 1)'
+
+# os_python_probe CMD... -> 0 si CMD (una o dos palabras) corre y es Python 3. Con `perl` en el PATH la
+# prueba tiene un plazo (OS_PYTHON_PROBE_TIMEOUT, 10 s por defecto): un candidato colgado cuenta como
+# fallo y se pasa al siguiente. Sin `perl` no hay plazo.
+os_python_probe() {
+  if command -v perl > /dev/null 2>&1; then
+    perl -e 'alarm shift; exec @ARGV' "${OS_PYTHON_PROBE_TIMEOUT:-10}" "$@" -c "$OS_PYTHON_PROBE" > /dev/null 2>&1
+  else
+    "$@" -c "$OS_PYTHON_PROBE" > /dev/null 2>&1
+  fi
+}
+
+# os_python_find -> 0 y deja el comando en OS_PY; 1 y deja OS_PY vacío si ningún nombre sirve.
+os_python_find() {
+  OS_PY=()
+  if command -v python3 > /dev/null 2>&1 && os_python_probe python3; then
+    OS_PY=(python3); return 0
+  fi
+  if command -v python > /dev/null 2>&1 && os_python_probe python; then
+    OS_PY=(python); return 0
+  fi
+  if command -v py > /dev/null 2>&1 && os_python_probe py -3; then
+    OS_PY=(py -3); return 0
+  fi
+  return 1
+}
+
+# os_python_cmd -> imprime el comando de Python 3 (`python3`, `python` o `py -3`); sin Python 3 no
+# imprime nada y sale 1. Para mostrarlo y para los evals; para correrlo, `os_py`.
+os_python_cmd() {
+  ( os_python_find && printf '%s' "${OS_PY[*]}" )
+}
+
+# os_py ARGS... -> corre Python 3 con ARGS (stdin y stdout pasan tal cual). Sale 127 sin escribir
+# nada si no hay Python 3. Busca una vez por proceso. Fuerza UTF-8 en la entrada y la salida: el Python
+# nativo de Windows usa la página de códigos ANSI en los pipes, que corrompe nombres de archivo con
+# tildes y rompe con `→` o emoji.
+os_py() {
+  if [ "${#OS_PY[@]}" -eq 0 ]; then
+    os_python_find || return 127
+  fi
+  PYTHONIOENCODING=utf-8 PYTHONUTF8=1 "${OS_PY[@]}" "$@"
+}
+
+# El nombre del archivo de permisos del harness, relativo al brain (spec 030). Python 3 lo lee y
+# escribe (`os_py`); `mount-repo.sh` lo busca antes de escribir y frena sin él (spec 080).
 OS_SETTINGS_ARCHIVO=".claude/settings.local.json"
 
 # os_settings_authorize BRAIN RUTA
@@ -2235,11 +2287,12 @@ OS_SETTINGS_ARCHIVO=".claude/settings.local.json"
 #   0  la agregó (el archivo pudo nacer o ya existir)
 #   1  ya estaba
 #   2  el archivo existe y no es JSON válido — no se tocó
+#   9  Python falló por otra razón (una excepción, no haber Python): nada se puede dar por autorizado
 os_settings_authorize() {
   local brain="$1" ruta="$2" archivo
   archivo="$brain/$OS_SETTINGS_ARCHIVO"
   mkdir -p "$(dirname "$archivo")" 2>/dev/null
-  python3 - "$archivo" "$ruta" <<'PY'
+  os_py - "$archivo" "$ruta" <<'PY'
 import json
 import os
 import sys
@@ -2264,7 +2317,7 @@ directorios = permisos.setdefault("additionalDirectories", [])
 if not isinstance(directorios, list):
     sys.exit(2)
 if ruta in directorios:
-    sys.exit(1)
+    sys.exit(10)
 directorios.append(ruta)
 
 with open(archivo, "w", encoding="utf-8") as f:
@@ -2272,7 +2325,14 @@ with open(archivo, "w", encoding="utf-8") as f:
     f.write("\n")
 sys.exit(0)
 PY
-  return $?
+  local rc=$?
+  # Dentro de Python, 10 es «ya estaba»: un `exit 1` es el de una excepción sin atrapar, y no puede
+  # leerse como «ya autorizado».
+  case "$rc" in
+    0|2) return "$rc" ;;
+    10) return 1 ;;
+    *) return 9 ;;
+  esac
 }
 
 # os_now_ms -> milisegundos desde epoch.

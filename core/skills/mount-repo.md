@@ -83,11 +83,12 @@ Running it twice on the same remote neither duplicates the row nor clones again.
 | 3 | The remote does not answer | Check the remote and the permissions; if the repo does not exist yet, `--new` |
 | 4 | The head already declares **another** `repo:` | It belongs to the operator: ask which one stays |
 | 5 | The clone root is missing, or falls inside the brain or inside another repo; with `--new`, the destination is taken by something that is not this remote's repo, or `mounts.md` points this remote outside the clone root | Ask where the checkouts go; a destination or a row that is already there belongs to the operator |
-| 6 | `python3` is missing — hard requirement of the product, next to `git` | Install it (macOS: `xcode-select --install`, the same command that brings git; Windows: python.org; Linux: the distro's package manager) and re-run |
+| 6 | Python 3 is missing under all of its names (`python3`, `python`, `py -3`) — mounting needs it to authorize the checkout | Install it (python.org; macOS: `xcode-select --install`, the same command that brings git; Linux: the distro's package manager) and re-run |
 | 7 | `--new` on a remote that **does** answer | There is nothing to create: mount it without `--new` |
 | 8 | `--new`: the birth failed — the message names why | What the command had created gets removed, or it says what was left behind; fix what the message names and run it again |
+| 9 | Python 3 was found but failed while authorizing the checkout (it is not read as «already authorized») | Fix Python (the message says so) and re-run the same command: the mount resumes |
 
-In all eight cases nothing was written. A half-mounted node is worse than an unmounted one.
+In exits 2 to 8 nothing was written; exit 9 comes after the clone and the table, and re-running resumes it. A half-mounted node is worse than an unmounted one.
 
 ## When it finishes
 

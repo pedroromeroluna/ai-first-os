@@ -15,23 +15,27 @@ This document is written for your agent to execute, not for you to follow step b
 
 ## Requirements
 
-**Installing the system takes two things: git and python3.** They are checked before anything runs
-— an agent that installs first and reads the error afterwards leaves you with `command not found`
-instead of an answer.
+**Installing the system takes one thing: git. Python 3 is recommended.** They are checked before
+anything runs — an agent that installs first and reads the error afterwards leaves you with
+`command not found` instead of an answer.
 
 | What | When it is needed | How the agent checks it | Where it comes from if it is missing |
 |---|---|---|---|
 | git | To install the system | `git --version` | macOS: `xcode-select --install` · Windows: git-scm.com |
-| python3 | To install the system — `mount-repo` uses it to authorize a checkout for the agent | `python3 --version` | macOS: `xcode-select --install` (same command as git) · Windows: python.org · Linux: your distro's package manager |
+| python3 | Recommended, not required — without it the install goes on and warns that two features are missing: connecting a code repository (`mount-repo`) and Living Memory search (`recall`). It is found as `python3`, `python` or `py -3` | `python3 --version` (or `python --version`, or `py -3 --version`) | macOS: `xcode-select --install` (same command as git) · Windows: python.org · Linux: your distro's package manager |
 | Node.js | Only for the `npx` install path and for the pack of skills offered at the end of the install — installing the system by git clone never needs it | `node --version` | The LTS installer at nodejs.org |
 
 **The agent guides; you install.** System software is never installed by the agent on its own: it
 points at the official channel, waits for you to run it, and checks again.
 
-**git has no path around it, and neither does python3.** Every brain is versioned from the moment
-it exists — that is what gives you an auditable history and updates you can undo — and mounting a
-repo needs python3 to authorize it for the agent, so nothing gets written until both are there.
-Install what is missing and say "run bootstrap" again; nothing you already answered is lost.
+**git has no path around it.** Every brain is versioned from the moment it exists — that is what gives
+you an auditable history and updates you can undo — so nothing gets written until git is there.
+Install it and say "run bootstrap" again; nothing you already answered is lost.
+
+**Python 3 does not stop the install.** Without it the system installs completely and warns, once,
+that two features will not be available: connecting a code repository (`mount-repo`) and Living Memory
+search (`recall`; the AI searches files as plain text instead). Install Python from python.org later
+and they start working; nothing needs to be reinstalled.
 
 **Node is not a requirement of the git-clone path below, and that path never runs `npx`.** Node
 belongs to two optional things: installing with `npx ai-first-os` instead of cloning, and the pack of

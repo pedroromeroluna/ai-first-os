@@ -32,9 +32,10 @@
 #
 # Exit: 0 montó o ya estaba · 2 argumentos o cabeza inválidos · 3 el remote no responde
 #       4 la cabeza ya declara otro `repo:` · 5 la raíz de clonado falta o es inválida
-#       6 falta `python3` — requisito duro del producto junto a `git` (spec 030)
+#       6 falta Python 3 —buscado como `python3`, `python` o `py -3`, spec 080—, necesario para autorizar el checkout (spec 030)
 #       7 `--new` on a remote that does answer: there is nothing to create (spec 034)
 #       8 `--new`: the birth of the repo failed — the message names why (spec 034)
+#       9 Python 3 was found but the authorization of the checkout failed (spec 080): not an «already authorized»
 #
 # Nada se escribe antes de que las seis validaciones pasen —siete con `--new`, que suma la del
 # destino—: una negativa a mitad de camino deja el nodo montado a medias, que es peor que no
@@ -106,7 +107,7 @@ remote_github_slug() {
   printf '%s/%s' "$owner" "$name"
 }
 
-# python3 es requisito duro del producto, junto a git (spec 030): el cuarto acto —autorizar el
+# Python 3 es necesario acá (spec 030, buscado por sus tres nombres desde la spec 080): el cuarto acto —autorizar el
 # checkout para el harness— lo necesita para leer y escribir el JSON de settings.local.json. Se
 # chequea antes de la primera escritura, con el mismo criterio que el resto de las validaciones.
 # The language of what gets written is the brain's, declared once in `operator.md` (spec 021), and
@@ -115,7 +116,7 @@ remote_github_slug() {
 language=$(os_language "$brain")
 os_lang_load "$language"
 
-command -v python3 > /dev/null 2>&1 || {
+os_python_find || {
   printf '%s\n' "$S_MOUNT_NO_PYTHON3" >&2
   printf '%s\n' "$S_MOUNT_NOTHING_WRITTEN" >&2
   exit 6
@@ -498,6 +499,7 @@ case "$?" in
   0) printf "$S_MOUNT_SETTINGS_ADDED\n" "$OS_SETTINGS_ARCHIVO" "$destino" ;;
   1) printf "$S_MOUNT_SETTINGS_ALREADY\n" "$OS_SETTINGS_ARCHIVO" ;;
   2) printf "$S_MOUNT_SETTINGS_INVALID\n" "$OS_SETTINGS_ARCHIVO" "$brain/$OS_SETTINGS_ARCHIVO" ;;
+  *) printf '%s\n' "$S_MOUNT_SETTINGS_FAILED" >&2; exit 9 ;;
 esac
 
 # La tabla no viaja: la frontera es el gitignore del brain, y la escribe el comando que crea el

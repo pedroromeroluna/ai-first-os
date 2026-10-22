@@ -4,8 +4,10 @@
 // AI First OS launcher — this is what `npx ai-first-os` runs.
 //
 // It does three things, in this order, and nothing else:
-//   1. checks git and python3 are on PATH — the two hard requirements of the system, the same two
-//      core/lib/bootstrap.sh checks before writing anything;
+//   1. checks git is on PATH — the one hard requirement of the system, the same check
+//      core/lib/bootstrap.sh makes before writing anything. Python 3 is looked up by its three names
+//      (python3, python, py -3: the same order and the same test as os_python_find in
+//      core/lib/common.sh); without it the install goes on and prints a warning;
 //   2. copies core/, README.md and LICENSE from this package to a fixed folder, ~/.ai-first-os,
 //      replacing whatever was already there — the npm cache this script runs from is reclaimed,
 //      so the system cannot keep living inside it;
@@ -31,6 +33,43 @@ function fail(message) {
   process.exit(1);
 }
 
+// A candidate is accepted only if it runs and exits 0 exactly when its major version is 3. That
+// leaves out the Microsoft Store shortcut (it fails) and a Python 2. Same order as os_python_find.
+const PYTHON_PROBE = 'import sys; sys.exit(0 if sys.version_info[0] == 3 else 1)';
+const PYTHON_CANDIDATES = [['python3'], ['python'], ['py', '-3']];
+
+// Each probe has a deadline: a candidate that hangs counts as failed and the next one is tried.
+const PROBE_TIMEOUT_MS = Number(process.env.AI_FIRST_OS_PROBE_TIMEOUT_MS) || 10000;
+
+// Runs one probe of `argv` (command first). On Windows, a `.cmd` shim (pyenv-win and some managers)
+// cannot be spawned directly: the spawn fails with ENOENT or EINVAL, and the probe is retried through
+// `cmd.exe /d /s /c` with the line quoted. `.exe` candidates never reach that retry.
+function runProbe(argv) {
+  const opts = { stdio: 'ignore', timeout: PROBE_TIMEOUT_MS };
+  let result = spawnSync(argv[0], argv.slice(1), opts);
+  if (result.error && process.platform === 'win32' && (result.error.code === 'ENOENT' || result.error.code === 'EINVAL')) {
+    const line = argv.map((a) => (/[\s"]/.test(a) ? '"' + a + '"' : a)).join(' ');
+    result = spawnSync(process.env.ComSpec || 'cmd.exe', ['/d', '/s', '/c', '"' + line + '"'], {
+      ...opts,
+      windowsVerbatimArguments: true,
+    });
+  }
+  return !result.error && result.status === 0;
+}
+
+function findPython() {
+  for (const candidate of PYTHON_CANDIDATES) {
+    if (runProbe(candidate.concat(['-c', PYTHON_PROBE]))) return candidate.join(' ');
+  }
+  return null;
+}
+
+// Required by the evals (S080-C1) to run findPython alone; `npx` runs this file directly, never so.
+if (require.main !== module) {
+  module.exports = { findPython };
+  return;
+}
+
 if (!hasCommand('git')) {
   fail(
     'git is missing. Install it from the official channel (macOS: `xcode-select --install`; ' +
@@ -38,12 +77,29 @@ if (!hasCommand('git')) {
   );
 }
 
-if (!hasCommand('python3')) {
-  fail(
-    'python3 is missing. Install it from the official channel (macOS: `xcode-select --install`, ' +
-      "the same command that brings git; Windows: python.org; Linux: your distro's package " +
-      'manager) and run `npx ai-first-os` again — nothing was written.'
-  );
+// Printed in both languages, English first: the brain does not exist yet, so its language is unknown.
+const PYTHON_WARNING =
+  "Python 3 was not found \u2014 installing anyway. Without Python, 2 features won't be available:\n" +
+  '  \u2022 Connecting a code repository (mount-repo).\n' +
+  '  \u2022 Living Memory search (recall). The AI searches files as plain text instead: it can\'t put the\n' +
+  '    current version of a document above a replaced one, open the exact section, or follow what a\n' +
+  '    document is about or what replaced it.\n' +
+  'To get them: install Python (python.org). Nothing needs to be reinstalled.\n' +
+  '\n' +
+  'No se encontr\u00f3 Python 3: la instalaci\u00f3n sigue. Sin Python hay 2 funcionalidades que no vas a tener disponibles:\n' +
+  '  \u2022 Conectar un repositorio de c\u00f3digo (mount-repo).\n' +
+  '  \u2022 La b\u00fasqueda de Living Memory (recall). La IA busca en los archivos como texto com\u00fan: no puede\n' +
+  '    poner la versi\u00f3n vigente de un documento por encima de una reemplazada, abrir la secci\u00f3n exacta\n' +
+  '    ni seguir de qu\u00e9 trata un documento o qu\u00e9 lo reemplaz\u00f3.\n' +
+  'Para tenerlas: instal\u00e1 Python (python.org). No hace falta reinstalar nada.\n';
+
+// The marker means "the launcher already warned during this install": it is deleted at the start of
+// every run and written only when this run warns. A retry of the launcher warns again.
+const warnedMarker = path.join(os.homedir(), '.ai-first-os', '.python-warned');
+fs.rmSync(warnedMarker, { force: true });
+const pythonFound = findPython() !== null;
+if (!pythonFound) {
+  process.stderr.write(PYTHON_WARNING);
 }
 
 const packageRoot = path.join(__dirname, '..');
@@ -60,6 +116,8 @@ fs.mkdirSync(dest, { recursive: true });
 copyReplace('core');
 copyReplace('README.md');
 copyReplace('LICENSE');
+
+if (!pythonFound) fs.writeFileSync(warnedMarker, 'The launcher warned that Python 3 was not found.\n');
 
 const LOGO = [
   ' █████╗ ██╗  ███████╗██╗██████╗ ███████╗████████╗   ██████╗ ███████╗',
@@ -185,3 +243,4 @@ printLogo().then(() => {
   );
   process.stdout.write('Tell your agent: read and follow ' + bootstrapPath + '\n');
 });
+

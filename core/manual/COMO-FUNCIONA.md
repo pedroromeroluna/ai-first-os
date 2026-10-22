@@ -244,6 +244,19 @@ Cualquier skill que escribas vos va al lado, como carpeta común en `.claude/ski
 > manual apunta ahí en vez de contarlo de nuevo, porque dos versiones del mismo procedimiento se
 > separan.
 
+## 🧰 Requisitos
+
+**`git` es obligatorio; Python 3 es recomendado.** El sistema se instala sin Python y lo avisa cuando
+pasa. Sin Python 3 hay dos cosas que no funcionan:
+
+- **Conectar un repositorio de código** (`mount-repo`).
+- **La búsqueda de Living Memory** (`recall`). La IA busca en los archivos como texto común: no puede
+  poner la versión vigente de un documento por encima de una reemplazada, abrir la sección exacta ni
+  seguir de qué trata un documento o qué lo reemplazó.
+
+Para tenerlas, instalá Python desde python.org: el sistema lo encuentra como `python3`, `python` o
+`py -3`. No hace falta reinstalar nada.
+
 ## 💬 Qué podés pedir, y cómo
 
 **El índice es el resolver, no tu memoria.** Pedís con tus palabras —"qué hay pendiente", "cerrá la

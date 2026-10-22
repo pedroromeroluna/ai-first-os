@@ -603,8 +603,30 @@ en: nothing was written.
 es: no se escribió nada.
 
 key: MOUNT_NO_PYTHON3
-en: python3 is missing: install it from the official channel (macOS: run `xcode-select --install`, the same command that brings git; Windows: python.org; Linux: your distro's package manager) and run this same command again.
-es: falta python3: instalalo desde el canal oficial (macOS: correr `xcode-select --install`, el mismo comando que trae git; Windows: python.org; Linux: el gestor de paquetes de la distro) y volvé a correr este mismo comando.
+en: Python 3 is missing: install it from python.org (macOS: run `xcode-select --install`, the same command that brings git; Linux: your distro's package manager) and run this same command again. It is searched as python3, python or py -3.
+es: falta Python 3: instalalo desde python.org (macOS: correr `xcode-select --install`, el mismo comando que trae git; Linux: el gestor de paquetes de la distro) y volvé a correr este mismo comando. Se busca como python3, python o py -3.
+
+key: PYTHON_MISSING_WARNING
+en: Python 3 was not found — installing anyway. Without Python, 2 features won't be available:
+es: No se encontró Python 3: la instalación sigue. Sin Python hay 2 funcionalidades que no vas a tener disponibles:
+en:   • Connecting a code repository (mount-repo).
+es:   • Conectar un repositorio de código (mount-repo).
+en:   • Living Memory search (recall). The AI searches files as plain text instead: it can't put the
+es:   • La búsqueda de Living Memory (recall). La IA busca en los archivos como texto común: no puede
+en:     current version of a document above a replaced one, open the exact section, or follow what a
+es:     poner la versión vigente de un documento por encima de una reemplazada, abrir la sección exacta
+en:     document is about or what replaced it.
+es:     ni seguir de qué trata un documento o qué lo reemplazó.
+en: To get them: install Python (python.org). Nothing needs to be reinstalled.
+es: Para tenerlas: instalá Python (python.org). No hace falta reinstalar nada.
+
+key: RECALL_NO_PYTHON
+en: recall needs Python 3, which is not available on this computer. Search the brain with grep instead.
+es: recall necesita Python 3, que no está en esta computadora. Buscá en el cerebro con grep.
+
+key: MOUNT_SETTINGS_FAILED
+en: Python 3 failed while authorizing the checkout for the agent: the mount is incomplete. Fix Python and run this same command again.
+es: Python 3 falló al autorizar el checkout para el agente: el montaje quedó incompleto. Arreglá Python y volvé a correr este mismo comando.
 
 key: MOUNT_HEAD_ABSOLUTE
 en: the head is named relative to the brain: %s

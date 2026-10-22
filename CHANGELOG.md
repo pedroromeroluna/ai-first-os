@@ -5,6 +5,21 @@ Every published version of AI First OS, newest first. The format follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html): *major* when an already installed brain
 needs a manual step to keep working, *minor* for a new capability, *patch* for a fix.
 
+## [2.1.1] — 2026-10-21
+
+An installed brain needs no step to use this version.
+
+### Changed
+
+- Python 3 is found under any of its three names: `python3`, `python` or `py -3`. On Windows the
+  Python installer leaves `python` and `py`, never `python3`, so the system did not install there
+  even with Python present. A candidate counts only if it runs and is Python 3.
+- Without Python 3 the installation no longer stops. `npx ai-first-os` and the bootstrap install
+  everything and warn, once, that two features will not be available: connecting a code repository
+  (`mount-repo`) and Living Memory search (`recall`). `git` is still required.
+- `recall` without Python 3 says so and exits with its own code (3) instead of failing as an index error.
+- The manuals and the README say git is required and Python is recommended.
+
 ## [2.1.0] — 2026-10-21
 
 An installed brain needs no step to use this version: the indexes regenerate at the next session

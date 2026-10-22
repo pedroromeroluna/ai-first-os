@@ -20,27 +20,32 @@ what is missing:
 
 ```
 git --version
-python3 --version
+python3 --version   # or `python --version`, or `py -3 --version` on Windows
 ```
 
 - **git missing**: macOS, `xcode-select --install`; Windows, git-scm.com.
-- **python3 missing**: macOS, `xcode-select --install` — the same command that brings git; Windows,
-  python.org; Linux, the distro's package manager.
+- **Python 3 missing** (under all of `python3`, `python` and `py -3`): python.org; macOS,
+  `xcode-select --install` — the same command that brings git; Linux, the distro's package manager.
+  It is recommended, not required: the install goes on without it.
 
-**You guide; the operator installs.** You never install system software on your own — you name the
-official channel, wait for them to run it, and check again. Anything they decline is a choice, not
+**You guide; the operator installs.** You never install system software on your own. For **git**, you
+name the official channel, wait for them to run it, and check again. For Python you wait for nothing
+(see below). Anything they decline is a choice, not
 an error: report it and take the branch below that matches.
 
-**git has no path around it, and neither does python3 — there is no alternative branch for either.**
-If one is missing, stop right there — point at the install channel, wait for the operator to run
-it, check again. `bootstrap.sh` itself refuses to write anything without them — git first, then
-python3 — and re-running the same command once they are installed picks the interview up cleanly.
-`python3` is what `mount-repo` uses later to authorize a checkout for the harness (spec 030);
-checking it here, at the one gate every brain goes through, is cheaper than discovering it missing
-mid-mount.
+**git has no path around it: there is no alternative branch for it.** If it is missing, stop right
+there — point at the install channel, wait for the operator to run it, check again. `bootstrap.sh`
+itself refuses to write anything without git, and re-running the same command once it is installed
+picks the interview up cleanly.
+
+**Python 3 does not stop the install (spec 080).** Without it `bootstrap.sh` prints a warning in the
+brain's language and creates the full brain. Tell the operator the two things it costs: connecting a
+code repository (`mount-repo`) and Living Memory search (`recall`; the AI searches files as plain
+text instead). Then continue straight to the interview: do not ask them to install Python first, do not
+wait for it, do not re-check it. Installing Python later needs no reinstall.
 
 **Nothing else is checked here, and Node is not checked here on purpose.** Installing the system
-needs git and python3 and nothing more: no `npx`, no download from a registry, no npm prompt in the
+needs git and nothing more: no `npx`, no download from a registry, no npm prompt in the
 middle of an install that has not written a single file yet. Node is the requirement of one later
 step —the pack, offered at the close of this bootstrap— and it gets checked there, when it is the
 thing being done.

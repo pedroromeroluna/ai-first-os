@@ -11,8 +11,9 @@
 # WHAT THIS COMMAND INDEXES. The index is `.os/living-memory.sqlite`, inside the brain: never
 # committed (`.os/` is already in every brain's `.gitignore`, `os_gitignore_ensure`), and it is
 # derived and discardable — deleting it just costs the next call a full reindex. It is written with
-# `python3` and the `sqlite3` module of the standard library, using an FTS5 table: no dependency the
-# product does not already carry (`python3` is a hard requirement since spec 030, and the sqlite3
+# Python 3 (found by `os_python_find`: python3, python or py -3) and the `sqlite3` module of the
+# standard library, using an FTS5 table: no dependency the product does not already carry (Python 3
+# is recommended since spec 080, and the sqlite3
 # that ships with the official installers of macOS, Windows and Linux carries FTS5).
 #
 # THE FILE LIST HAS ONE READER. `tree.md` has two classes of line since spec 007, and the only
@@ -54,7 +55,8 @@
 #
 # Exit: 0 the search or the expansion ran, with or without results/neighbours. 1 invalid arguments
 # (missing/contradictory flags, no scope named). 2 the named workspace does not exist (same keys as
-# `session-start.sh`).
+# `session-start.sh`). 3 Python 3 is not available under any of its names (spec 080); 1 stays for a
+# Python that is there and an index that failed.
 #
 # No `set -e`: a query with no results is not a failure.
 
@@ -215,9 +217,18 @@ stdin_data="$true_heads
 %%FILES%%
 $all_files"
 
-result=$(printf '%s\n' "$stdin_data" | python3 -B "$here/recall_index.py" \
+# Python 3 se busca por sus tres nombres (spec 080). Sin él, un mensaje del catálogo y el código 3:
+# distinto del 1, que sigue siendo "hay Python 3 y el índice falló".
+os_python_find || {
+  printf '%s\n' "$S_RECALL_NO_PYTHON" >&2
+  exit 3
+}
+
+result=$(printf '%s\n' "$stdin_data" | os_py -B "$here/recall_index.py" \
   "$db" "$brain" "$mode" "$scope_kind" "$wsdir" "$scope_slug" "$arg" "$limit")
 rc=$?
+# El Python de Windows termina las líneas con CRLF: sin sacar el \r, `grep -qx` no reconoce el centinela.
+result=${result//$'\r'/}
 if [ "$rc" != "0" ]; then
   printf 'error: recall.sh could not run its index (python3/sqlite3)\n' >&2
   exit 1
