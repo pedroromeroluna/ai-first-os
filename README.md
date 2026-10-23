@@ -98,8 +98,8 @@ places, so updating them has two halves and both run:
 1. **The system.** The agent goes to the local folder where the repository ended up, brings down the
    newest version and runs `core/install.sh` from that folder.
 2. **The pack**, if you installed it. The agent runs
-   `npx skills add pedroromeroluna/ai-first-product-skills` again, which replaces the skills in `.agents/skills/` with the
-   published version. With no pack installed there is nothing to refresh, and this half is skipped.
+   `npx --yes skills add pedroromeroluna/ai-first-product-skills --agent claude-code --yes` again, which replaces the skills in
+   `.claude/skills/` with the published version. With no pack installed there is nothing to refresh, and this half is skipped.
 
 Your brain —your workspaces, your decisions, your content— is not touched: the update only
 refreshes the tools. And if the installer were run by mistake through the hook that is already
@@ -139,11 +139,10 @@ my-brain/
 ├── .os/
 │   ├── core -> …/ai-first-os/core        # The chassis by symlink: the eleven system skills in core/skills/, the shell in core/lib/
 │   └── packs/<pack> -> …                 # Each installed pack, by symlink
-├── .agents/skills/              # The pack's skills, left here by `npx skills add` (born with the first skill)
 └── .claude/
     ├── CLAUDE.md                # The same symlink as AGENTS.md: Claude Code reads the contract from here
     ├── agents/                  # complete-spec, ambiguous-spec, scout — one symlink each
-    └── skills/                  # A link to each skill of .agents/skills/, which is where Claude Code looks
+    └── skills/                  # The pack's skills, one folder each, left here by `npx skills add` (born with the first skill)
 ```
 
 The interview writes `account/operator.md`, `account/voice/voice.md`, `.system/resolver.md`, `.system/tree.md` and `workspaces/personal/` —
@@ -157,8 +156,7 @@ needs instead of the whole register.
 **Where the skills live.** The eleven skills of the system are not copied into your brain: they live
 in `.os/core/skills/`, a symlink to the `core/` of the repository you brought down, and the agent
 reaches them through the resolver. The skills of the pack are what `npx skills add` installs: one
-folder per skill under `.agents/skills/<name>/SKILL.md`, with a link to each one in `.claude/skills/`
-—the place Claude Code reads skills from, which is why they show up as `/cpo`, `/prd` and so on— plus
+folder per skill under `.claude/skills/<name>/SKILL.md` —the place Claude Code reads skills from, which is why they show up as `/cpo`, `/prd` and so on— plus
 `product-builder-resolver`, the pack's index. Your own skills, if you write any, go next to them as
 plain folders in `.claude/skills/`.
 

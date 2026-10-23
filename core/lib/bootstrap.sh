@@ -102,14 +102,16 @@ os_append_kv() {
 #   - sin identidad de git configurada, el commit se firma con una identidad genérica del producto y
 #     se avisa: el respaldo vale más que la firma.
 respaldo_local() {
-  local brain="$1" lang="$2" top rc
+  local brain="$1" lang="$2" state
   os_lang_load "$lang"
-  top=$(git -C "$brain" rev-parse --show-toplevel 2>/dev/null) || top=""
-  if [ -n "$top" ] && [ "$top" != "$brain" ]; then
-    printf 'sin respaldo: el brain vive adentro del repo %s — un repo anidado no se crea solo; moverlo afuera o versionarlo a mano lo elige el operador\n' "$top"
-    return 0
-  fi
-  [ -n "$top" ] || git -C "$brain" init -q
+  state=$(os_brain_repo_state "$brain")
+  case "$state" in
+    inside\ *)
+      printf 'sin respaldo: el brain vive adentro del repo %s — un repo anidado no se crea solo; moverlo afuera o versionarlo a mano lo elige el operador\n' "${state#inside }"
+      return 0
+      ;;
+    none) git -C "$brain" init -q ;;
+  esac
   git -C "$brain" add -A
   if git -C "$brain" commit -q -m "$S_FIRST_COMMIT" > /dev/null 2>&1; then
     printf 'respaldo local: git init + primer commit\n'
@@ -187,8 +189,9 @@ fi
 
 templates="$here/../templates"
 mkdir -p "$brain"
-# Ruta física: `git rev-parse --show-toplevel` la devuelve resuelta, y comparar contra una ruta con
-# symlinks adentro (`/var` → `/private/var` en macOS) hace ver como repo ajeno al repo propio.
+# Ruta física: sin symlinks adentro (`/var` → `/private/var` en macOS), para que lo que se imprime
+# y lo que git nombra sean la misma carpeta. Si el brain es la raíz de su repo lo decide
+# `os_brain_repo_state`, no una comparación de rutas.
 brain=$(cd "$brain" && pwd -P)
 
 # El bootstrap crea; no rehace. Si las piezas de la raíz ya están, frena: reescribirlas borraría lo

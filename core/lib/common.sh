@@ -252,6 +252,34 @@ os_language() {
   fi
 }
 
+# os_brain_repo_state BRAIN -> prints one of: `root` (the brain is the root of its own git repo),
+# `inside <toplevel>` (it lives inside another repo, named by its root) or `none` (no repo at all).
+# The decision comes from `git rev-parse --show-prefix`, which is empty exactly at the root and does
+# not depend on how a path is written: on Windows `--show-toplevel` answers `C:/...` while the
+# shell's `pwd -P` answers `/c/...`, so the two never match as text (spec 081). The toplevel is
+# only printed to name the outer repo, never compared against the brain's path.
+# An empty prefix is also what git answers inside a repository's `.git` directory, which is not a
+# worktree: there the brain is reported as inside that repository, named by its git directory, so
+# neither caller treats it as its own root.
+os_brain_repo_state() {
+  local brain="$1" prefix top
+  if ! prefix=$(git -C "$brain" rev-parse --show-prefix 2>/dev/null); then
+    printf 'none'
+    return 0
+  fi
+  if [ "$(git -C "$brain" rev-parse --is-inside-work-tree 2>/dev/null)" != "true" ]; then
+    top=$(git -C "$brain" rev-parse --absolute-git-dir 2>/dev/null) || top=""
+    printf 'inside %s' "$top"
+    return 0
+  fi
+  if [ -z "$prefix" ]; then
+    printf 'root'
+    return 0
+  fi
+  top=$(git -C "$brain" rev-parse --show-toplevel 2>/dev/null) || top=""
+  printf 'inside %s' "$top"
+}
+
 # os_lang_load IDIOMA
 # Carga el catálogo `templates/strings.md` en variables `S_<CLAVE>`, y deja las claves leídas en
 # `OS_STRING_KEYS`. Una clave sin su línea en el idioma pedido cae a `en` y lo dice por stderr: un

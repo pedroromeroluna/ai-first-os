@@ -160,23 +160,43 @@ them. Adding a second workspace to a brain that already exists is `new-workspace
 `git init` and the first commit. Nothing to ask; a brain with no history loses work silently. git is
 guaranteed present by the preflight in Step 0 — there is no unversioned brain to describe here.
 
-**Remote, right after**, and it never runs alone:
+**Remote, right after**, and it never runs alone. First the script asks where it goes:
 
 ```
 .os/core/lib/remote-backup.sh --brain .
 ```
 
-- With `gh` authenticated it prints the offer and the exact `gh repo create` command. **Ask the
-  operator and run it only with their yes**: it leaves a repository in their account, which escapes
-  the system.
-- Without `gh`, it writes nothing: it prints the pending step (create the account at github.com
-  —**the operator creates it, never the agent**—, run `gh auth login`, and any later session finishes
-  the rest by running the same script) and the question to ask, and exits 7. Ask the operator the
-  question it printed, in the brain's language ("Should I note it down for later?", from
-  `NOTE_FOR_LATER_QUESTION` in the strings catalog).
-  **Only with their yes in that turn** run `.os/core/lib/remote-backup.sh --brain . --note`: the guided
-  task lands in the `personal` workspace, in its "Tasks to sort" initiative, created the first
-  time. No yes: nothing is written, and say so plainly ("I did not note anything down").
+With no `origin` declared it prints the question, four numbered options (GitHub, Bitbucket, another
+service, none) and "Reply with the number", writes nothing and exits 8. With an `origin` it prints
+where the backup already is and exits 0: nothing to ask.
+
+**Ask it as a multiple-choice question**: with the harness's multiple-choice tool if it has one (in
+Claude Code, `AskUserQuestion`), using the question, labels and descriptions the script printed; if
+it has none, show the numbered list the script printed, and a number is enough as the answer. Then
+run `.os/core/lib/remote-backup.sh --brain . --service <github|bitbucket|other|none>` and follow what
+it prints:
+
+- **GitHub.** With `gh` authenticated it prints the offer and the exact `gh repo create` command.
+  **Ask the operator and run it only with their yes in that turn**: it leaves a repository in their
+  account, which escapes the system. Without `gh`, it writes nothing: it prints the pending step
+  (create the account at github.com —**the operator creates it, never the agent**—, run
+  `gh auth login`, and any later session finishes the rest by running the same script) and the
+  question to ask, and exits 7. Ask the operator the question it printed, in the brain's language
+  ("Should I note it down for later?", from `NOTE_FOR_LATER_QUESTION` in the strings catalog).
+  **Only with their yes in that turn** run
+  `.os/core/lib/remote-backup.sh --brain . --service github --note`: the guided task lands in the
+  `personal` workspace, in its "Tasks to sort" initiative, created the first time. No yes: nothing
+  is written, and say so plainly ("I did not note anything down").
+- **Bitbucket or another service.** The script never looks at `gh`: it prints the generic pending
+  step (the operator creates an empty private repository there, never the agent; then
+  `git remote add origin <repository address>` and `git push -u origin HEAD`) and the same question,
+  and exits 7. If the person already has the repository address, run those two `git` commands with
+  that address **only with their yes in that turn**. If they do not have it yet, ask the question the
+  script printed and, **only with their yes in that turn**, run
+  `.os/core/lib/remote-backup.sh --brain . --service <bitbucket|other> --note`. No yes: nothing is
+  written, and say so plainly.
+- **None.** Run `--service none`: it says `BACKUP_NONE` ("No remote backup for now...") and writes
+  nothing, not even a note in the backlog.
 
 Synced folders (iCloud, Drive) are not offered as backup: the system runs on symlinks and those
 folders break them.
@@ -197,17 +217,21 @@ got installed.** Whoever came in through `npx ai-first-os` has Node by construct
 the git-clone prompt may or may not.
 
 - **Node present: one question, not two.** There is nothing to defer when the download can run right
-  now:
+  now. The offer prints the question, two numbered options (Install, Later) and "Reply with the
+  number". **Ask it as a multiple-choice question**: with the harness's multiple-choice tool if it has
+  one (in Claude Code, `AskUserQuestion`), with the labels and descriptions the offer printed; if it
+  has none, show the numbered list it printed, and a number is enough as the answer:
 
   > The craft on top —discovery, the metric brief, the interview that writes a product's strategic
-  > layer— travels in a pack of skills. Install it now? The download asks you to confirm once.
+  > layer— travels in a pack of skills. Install it now?
 
-  Yes: run the command the offer printed, from the brain folder, with the operator's yes. `npx` may
-  ask to confirm the download the first time; the operator is right here, so answer it with them.
-  What lands: one folder per skill under `.claude/skills/`, plus the pack's own index
-  (`<pack>-resolver`), which is what the session contract reads to route a request to the pack. The
-  harness also offers those skills natively, because that is where it looks for them. No: leave it as
-  is — **nothing gets written to the backlog**; the same offer comes back the day a session needs a
+  Install: run the command the offer printed, from the brain folder, **only with their yes in that turn**
+  (choosing Install is the yes). The command carries its own confirmations (`npx --yes`, the CLI's `--yes`) and names
+  its destination, so nothing else asks anything in the terminal. What lands: one folder per skill
+  under `.claude/skills/`, plus the pack's own index (`<pack>-resolver`), which is what the session
+  contract reads to route a request to the pack. The harness also offers those skills natively,
+  because that is where it looks for them. Later: leave it as is —
+  **nothing gets written to the backlog**; the same offer comes back the day a session needs a
   capability of the pack that is not installed.
 - **Node missing: the only exit is later.** Point at the LTS installer on nodejs.org — you guide, the
   operator installs, and a no is an answer, not an error. Whether they install it right now or not,
@@ -223,8 +247,10 @@ the git-clone prompt may or may not.
 system already provides travels marked internal in the pack, and the CLI skips it on its own — there
 is no list to keep here, and nothing is ever installed and then deleted.
 
-**If it fails —no network, registry down, the operator says no— the flow does not stop.** Retry once;
-if it fails again, take the later exit above —the same question, and the note only with a yes— and say it out loud. A
+**If it fails —no network, registry down, the operator says no— the flow does not stop.** Retry once,
+and only for a technical failure: the command no longer asks before downloading, so a no from the
+operator is never retried — it takes the later exit right away. If the retry fails too, take the
+later exit above —the same question, and the note only with a yes— and say it out loud. A
 bootstrap aborted halfway because a download failed is the worse outcome of the two.
 
 ## When it finishes

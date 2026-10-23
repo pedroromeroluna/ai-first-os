@@ -5,6 +5,26 @@ Every published version of AI First OS, newest first. The format follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html): *major* when an already installed brain
 needs a manual step to keep working, *minor* for a new capability, *patch* for a fix.
 
+## [2.1.2] — 2026-10-22
+
+An installed brain needs no step to use this version.
+
+### Changed
+
+- On Windows the bootstrap and the remote backup no longer say "the brain is not a git repository"
+  about a brain that already is one. Git writes the repository root as `C:/...` and the shell as
+  `/c/...`, so comparing them as text never matched; the check now asks git whether the brain
+  sits at the root of its repository, which does not depend on how a path is written. A brain that
+  lives inside another repository is still detected.
+- The remote backup asks where it should go: GitHub, Bitbucket, another service (GitLab, Azure DevOps
+  or your company's server) or none for now. GitHub works as before. Bitbucket and other services get
+  generic steps (create an empty private repository, then `git remote add origin` and
+  `git push -u origin HEAD`) with no GitHub in them. "None" notes nothing down.
+- The product pack installs by choosing an option, with no "yes" to type and no second confirmation in
+  the terminal: the command now carries `npx --yes`, the CLI's `--yes` and an explicit destination
+  (`--agent claude-code`), and the question is asked as a multiple-choice question (a numbered list
+  where the harness has no such tool).
+
 ## [2.1.1] — 2026-10-21
 
 An installed brain needs no step to use this version.

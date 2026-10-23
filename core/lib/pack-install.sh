@@ -54,7 +54,12 @@ brain=$(cd "$brain" && pwd -P)
 # El nombre del repo del pack: el fuente lleva el placeholder y el release lo resuelve al generar el
 # chasis. El comando exacto se arma una sola vez acá y lo leen las tres salidas.
 pack_repo="pedroromeroluna/ai-first-product-skills"
-comando="npx skills add $pack_repo"
+# Spec 081: no confirmation left to ask. `npx --yes` skips npx's own "Ok to proceed?" and the CLI's
+# `--yes` skips its prompts; `--agent claude-code` names the destination, because with `--yes` and no
+# agent the CLI installs to every agent it knows when it detects none (skills CLI 1.7.4: only
+# `.claude/skills/` is written, plus `skills-lock.json` at the brain root). Still no `--all` and no
+# `--skill '*'`.
+comando="npx --yes skills add $pack_repo --agent claude-code --yes"
 
 # Qué del pack ya está donde el CLI lo deja. No es una lista escrita: es lo que hay en el brain.
 instalados=""
@@ -118,6 +123,10 @@ fi
 # CLI lo saltea sin que nadie tenga que nombrarlo (spec 029). Nunca se instala para después borrar.
 if command -v node > /dev/null 2>&1; then
   printf 'node: %s\n' "$(node --version 2>/dev/null || printf 'presente')"
+  printf '%s\n' "$S_PACK_OFFER_QUESTION"
+  printf '  1. %s\n' "$S_PACK_OPTION_INSTALL"
+  printf '  2. %s\n' "$S_PACK_OPTION_LATER"
+  printf '%s\n' "$S_CHOICE_REPLY_WITH_NUMBER"
   printf '  comando: %s\n' "$comando"
   printf '  tal cual: sin --all y sin --skill "*", que bajan también lo que el chasis ya provee\n'
   printf '  lo corre la sesión con el sí del operador, desde la carpeta del brain; este script nunca lo corre\n'

@@ -442,6 +442,54 @@ key: BACKUP_TASK
 en: Remote backup pending: create the account at github.com (the operator creates it, never the agent), run `gh auth login`, and then ask any session to run `.os/core/lib/remote-backup.sh --brain .`
 es: Respaldo remoto pendiente: crear la cuenta en github.com (la crea el operador, nunca el agente), correr `gh auth login`, y después pedirle a cualquier sesión que corra `.os/core/lib/remote-backup.sh --brain .`
 
+key: BACKUP_WHERE_QUESTION
+en: Where should the remote backup of your brain live? It is a private copy outside this computer. If your brain will hold your company's information, use the service your company approved.
+es: ¿Dónde querés el respaldo remoto de tu brain? Es una copia privada fuera de esta computadora. Si tu brain va a tener información de tu empresa, usá el servicio que tu empresa aprobó.
+
+key: BACKUP_OPTION_GITHUB
+en: GitHub
+es: GitHub
+
+key: BACKUP_OPTION_BITBUCKET
+en: Bitbucket
+es: Bitbucket
+
+key: BACKUP_OPTION_OTHER
+en: Another service — GitLab, Azure DevOps or your company's server
+es: Otro servicio — GitLab, Azure DevOps o el servidor de tu empresa
+
+key: BACKUP_OPTION_NONE
+en: None for now — the local backup keeps working
+es: Ninguno por ahora — el respaldo local sigue funcionando
+
+key: BACKUP_TASK_GENERIC
+en: Remote backup pending on %s: create an empty private repository there (the operator creates it, never the agent), then ask any session to connect it with `git remote add origin <repository address>` and `git push -u origin HEAD`.
+es: Respaldo remoto pendiente en %s: crear ahí un repositorio privado y vacío (lo crea el operador, nunca el agente), y después pedirle a cualquier sesión que lo conecte con `git remote add origin <dirección del repositorio>` y `git push -u origin HEAD`.
+
+key: BACKUP_SERVICE_OTHER
+en: the service you chose
+es: el servicio que elegiste
+
+key: BACKUP_NONE
+en: No remote backup for now. The local backup keeps working, and nothing was noted down.
+es: Sin respaldo remoto por ahora. El respaldo local sigue funcionando y no se anotó nada.
+
+key: PACK_OFFER_QUESTION
+en: The craft on top —discovery, the metric brief, the interview that writes a product's strategic layer— travels in a pack of skills. Install it now?
+es: El oficio de arriba —discovery, el brief de métricas, la entrevista que escribe la capa estratégica de un producto— viaja en un pack de skills. ¿Lo instalo ahora?
+
+key: PACK_OPTION_INSTALL
+en: Install — downloads the pack into this brain, with no other confirmation
+es: Instalar — baja el pack a este brain, sin otra confirmación
+
+key: PACK_OPTION_LATER
+en: Later — everything else works without it, and nothing is noted down
+es: Después — todo lo demás funciona sin él, y no se anota nada
+
+key: CHOICE_REPLY_WITH_NUMBER
+en: Reply with the number.
+es: Contestá con el número.
+
 key: REPO_INTRO
 en: The body of an initiative: the specs, the decisions and the as-built of what gets built here.
 en: The head —what it is for and what state it is in— lives in the brain that mounted this repo.

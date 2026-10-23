@@ -1,6 +1,6 @@
 {
   "name": "ai-first-os",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "A product operating system for working with agents. Install with npx, no clone required.",
   "license": "MIT",
   "homepage": "https://github.com/pedroromeroluna/ai-first-os",
