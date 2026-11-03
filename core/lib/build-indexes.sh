@@ -10,12 +10,13 @@
 #   - `<ws>/learnings/index.md` — every learning of the workspace, the same way.
 #   - `<node>/index.md` — at the root of every area node (a product, a course, a channel, an account) of
 #     the workspace (spec 078, C1), whether or not anything names it. Spec 079 gives it, in this order: a
-#     title and a line that say what it is (C3); the marker `<!-- os:focus-start -->`; Initiatives in
-#     progress (a table: initiative linked to its `README.md` · status · horizon · tasks linked to its
-#     `backlog.md` with the open count; C1, C6, C9, C11); the marker `<!-- os:focus-end -->`; Closed
-#     initiatives (the same table); and then Key decisions and Other decisions (two tables), Learnings and
-#     Documents, each a table (C12). A node with nothing to list (no initiative, decision or learning about it,
-#     no document of its own) has no index, and a generated one it had is deleted (C13).
+#     title and a line that say what it is (C3); the marker `<!-- os:focus-start -->`; the Initiatives
+#     section and its In progress subsection (a table: initiative linked to its `README.md` · status ·
+#     horizon · tasks linked to its `backlog.md` with the open count; C1, C6, C9, C11); the marker
+#     `<!-- os:focus-end -->`; its Closed subsection (the same table); and then Decisions with its Key and
+#     Other subsections (two tables), Learnings (a table) and Documents, one subsection per folder with its
+#     table (C12; spec 089 reorganizes the sections). A node with nothing to list (no initiative, decision or
+#     learning about it, no document of its own) has no index, and a generated one it had is deleted (C13).
 #     The focus read prints only what is between the two markers (C4).
 # Spec 079 (C10) takes out what spec 078 wrote for an initiative: no `<initiative>/index.md` is written
 # any more, and every generated one found in the workspace is deleted, with its own `.gitignore` line.
@@ -363,6 +364,16 @@ seccion() {
   fi
 }
 
+# subseccion TITLE BODY -> a level-3 heading and the body right under it, the same shape as `seccion`; an empty
+# body says there is nothing yet.
+subseccion() {
+  if [ -n "$2" ]; then
+    printf '### %s\n%s' "$1" "${2%"$nl"}"
+  else
+    printf '### %s\n%s' "$1" "$S_INDEX_EMPTY"
+  fi
+}
+
 # tabla HEADER_CELLS ROWS -> the table (header row, separator, rows), or nothing when there are no rows.
 # HEADER_CELLS are the already-translated column names separated by a tab.
 tabla() {
@@ -421,16 +432,16 @@ doc_record() {
   printf '%s\t%s\t%s\t[%s](%s)\t%s\n' "$sd" "$t" "${rel//$tab/%09}" "$(md_cell "$t")" "$(md_dest "$(os_rel_link "$from" "$rel")")" "$fecha"
 }
 
-# docs_sorted LABEL BASE FROM -> the table rows `| LABEL | date | link |` of the files whose paths come on
+# docs_sorted BASE FROM -> the table rows `| date | link |` of the files whose paths come on
 # stdin: the dated first, newest date first; the same date, by title and then by path; the undated last, by
 # title and then by path.
 docs_sorted() {
-  local label="$1" base="$2" from="$3" rel
+  local base="$1" from="$2" rel
   while IFS= read -r rel || [ -n "$rel" ]; do
     [ -n "$rel" ] || continue
     doc_record "$rel" "$base" "$from"
   done | LC_ALL=C sort -t "$tab" -k1,1r -k2,2 -k3,3 | while IFS="$tab" read -r _d _t _r l f; do
-    printf '| %s | %s | %s |\n' "$(md_cell "$label")" "$(md_cell "$f")" "$l"
+    printf '| %s | %s |\n' "$(md_cell "$f")" "$l"
   done
 }
 
@@ -549,10 +560,10 @@ while IFS= read -r node || [ -n "$node" ]; do
   # Initiatives: the open ones by horizon (the codes, not the labels), title and path; the closed ones by title.
   cols_ini="$S_INDEX_COL_INITIATIVE$tab$S_INDEX_COL_STATUS$tab$S_INDEX_COL_HORIZON$tab$S_INDEX_COL_TASKS"
   rows="$(printf '%s' "$inis_open" | filas_iniciativas)"
-  sec_open="$(seccion "$S_INDEX_INITIATIVES_OPEN" "$(tabla "$cols_ini" "$rows")")"
+  sec_open="$(seccion "$S_INDEX_INITIATIVES" "$(subseccion "$S_INDEX_INITIATIVES_OPEN" "$(tabla "$cols_ini" "$rows")")")"
   rows="$(printf '%s' "$inis_closed" | filas_iniciativas)"
   sec_closed=""
-  [ -z "$rows" ] || sec_closed="$nl$nl$(seccion "$S_INDEX_INITIATIVES_CLOSED" "$(tabla "$cols_ini" "$rows")")"
+  [ -z "$rows" ] || sec_closed="$nl$nl$(subseccion "$S_INDEX_INITIATIVES_CLOSED" "$(tabla "$cols_ini" "$rows")")"
   # Decisions and learnings about the node.
   recs_d=""; recs_l=""
   i=0
@@ -578,8 +589,9 @@ while IFS= read -r node || [ -n "$node" ]; do
   if [ -z "$rows_k$rows_o" ]; then
     decs="$(seccion "$S_INDEX_DECISIONS" "")"
   else
-    [ -z "$rows_k" ] || decs="$(seccion "$S_INDEX_DECISIONS_KEY" "$(tabla "$cols_dec" "$rows_k")")"
-    [ -z "$rows_o" ] || decs="$decs${decs:+$nl$nl}$(seccion "$S_INDEX_DECISIONS_OTHER" "$(tabla "$cols_dec" "$rows_o")")"
+    [ -z "$rows_k" ] || decs="$(subseccion "$S_INDEX_DECISIONS_KEY" "$(tabla "$cols_dec" "$rows_k")")"
+    [ -z "$rows_o" ] || decs="$decs${decs:+$nl$nl}$(subseccion "$S_INDEX_DECISIONS_OTHER" "$(tabla "$cols_dec" "$rows_o")")"
+    decs="$(seccion "$S_INDEX_DECISIONS" "$decs")"
   fi
   lrns="$(tabla "$S_INDEX_COL_DATE$tab$S_INDEX_COL_LEARNING" \
     "$(printf '%s' "$recs_l" | LC_ALL=C sort -t "$tab" -k1,1r -k2,2 -k3,3 | ultimo_campo)")"
@@ -610,12 +622,11 @@ CONTENTS
       *) list="$g_resources"; label="$S_INDEX_FOLDER_RESOURCES" ;;
     esac
     [ -n "$list" ] || continue
-    docs="$docs$(docs_sorted "$label" "$from" "$from" <<LIST
+    docs="$docs${docs:+$nl$nl}$(subseccion "$label" "$(tabla "$S_INDEX_COL_DATE$tab$S_INDEX_COL_DOCUMENT" "$(docs_sorted "$from" "$from" <<LIST
 $list
 LIST
-)$nl"
+)")")"
   done
-  docs="$(tabla "$S_INDEX_COL_FOLDER$tab$S_INDEX_COL_DATE$tab$S_INDEX_COL_DOCUMENT" "$docs")"
   # A node with nothing to list (no initiative, decision or learning about it, no document of its own) has no index.
   if [ -z "$inis_open$inis_closed$recs_d$recs_l$docs" ]; then
     retirar_indice_de_nodo "$from/index.md"

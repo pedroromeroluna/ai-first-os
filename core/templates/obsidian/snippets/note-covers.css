@@ -1,0 +1,129 @@
+/* ai-first-os-look: generated, do not edit */
+/* ============================================
+   GENERATED: do not edit by hand (scripts/make-obsidian-look.py).
+   Notion-style covers on the system pages: a band of color on top and a rounded box with the icon of
+   the type (Lucide, ISC license) over its edge. The READMEs of workspaces, products, courses, channels
+   and accounts all carry the same one, an open book: never one icon per product. And the properties: they
+   show only on the READMEs of initiatives (they move the board); on the rest of the system notes they are
+   hidden.
+   Reading view only; no .md changes. Types are recognized by the prefix of the title (indexes and
+   backlogs) or by the properties the note has.
+   Numbers to tweak: the first six of the common rule.
+   ============================================ */
+
+/* --------------------------------------------
+   Hidden properties
+   -------------------------------------------- */
+.markdown-preview-sizer:has(.metadata-property[data-property-key="generated"]) .metadata-container,
+.markdown-preview-sizer:has(.metadata-property[data-property-key="index_note"]) .metadata-container,
+.markdown-preview-sizer:has(.metadata-property[data-property-key="decision-makers"]) .metadata-container,
+.markdown-preview-sizer:has(.metadata-property[data-property-key="key"]):has(.metadata-property[data-property-key="status"]):not(:has(.metadata-property[data-property-key="horizon"])) .metadata-container,
+.markdown-preview-sizer:has(.metadata-property[data-property-key="owner"]):has(.metadata-property[data-property-key="updated"]):not(:has(.metadata-property[data-property-key="horizon"])):not(:has(.metadata-property[data-property-key="role"]):not(:has(.metadata-property[data-property-key="repo"]))) .metadata-container,
+.markdown-preview-sizer:has(.metadata-property[data-property-key="role"]):not(:has(.metadata-property[data-property-key="repo"])) .metadata-container {
+  display: none;
+}
+
+/* Indexes and backlogs do not always have properties: they are also hidden by the title */
+.markdown-preview-sizer:has(.markdown-rendered :is(h1[data-heading^="🗺️ Índice de "], h1[data-heading^="🗺️ Index of "])) .metadata-container,
+.markdown-preview-sizer:has(.markdown-rendered :is(h1[data-heading^="⚖️ Decisiones de "], h1[data-heading^="⚖️ Decisions of "])) .metadata-container,
+.markdown-preview-sizer:has(.markdown-rendered :is(h1[data-heading^="💡 Aprendizajes de "], h1[data-heading^="💡 Learnings of "])) .metadata-container,
+.markdown-preview-sizer:has(.markdown-rendered :is(h1[data-heading$=" — Backlog"], h1[data-heading^="Backlog"])) .metadata-container {
+  display: none;
+}
+
+/* --------------------------------------------
+   Common rule of the cover
+   -------------------------------------------- */
+.markdown-rendered :is(h1[data-heading^="🗺️ Índice de "], h1[data-heading^="🗺️ Index of "]),
+.markdown-rendered :is(h1[data-heading^="⚖️ Decisiones de "], h1[data-heading^="⚖️ Decisions of "]),
+.markdown-rendered :is(h1[data-heading^="💡 Aprendizajes de "], h1[data-heading^="💡 Learnings of "]),
+.markdown-rendered :is(h1[data-heading$=" — Backlog"], h1[data-heading^="Backlog"]),
+.markdown-preview-sizer:has(.metadata-property[data-property-key="horizon"]) > div:has(> h1):not(.markdown-preview-sizer > div:has(> h1) ~ div) > h1,
+.markdown-preview-sizer:has(.metadata-property[data-property-key="role"]):not(:has(.metadata-property[data-property-key="repo"])) > div:has(> h1):not(.markdown-preview-sizer > div:has(> h1) ~ div) > h1,
+.markdown-preview-sizer:has(.metadata-property[data-property-key="owner"]):has(.metadata-property[data-property-key="updated"]):not(:has(.metadata-property[data-property-key="horizon"])):not(:has(.metadata-property[data-property-key="role"]):not(:has(.metadata-property[data-property-key="repo"]))) > div:has(> h1):not(.markdown-preview-sizer > div:has(> h1) ~ div) > h1 {
+  --cover-band-height: 140px;
+  --cover-bleed: 28px; /* the band goes out this much on each side; the box stays aligned with the text */
+  --cover-box: 84px;
+  --cover-icon: calc(var(--cover-box) * 0.68);
+  --cover-band-fill: color-mix(in srgb, var(--interactive-accent) var(--accent-band-mix, 14%), var(--background-primary, #fff));
+  --cover-box-fill: color-mix(in srgb, var(--interactive-accent) var(--accent-box-mix, 24%), var(--background-primary, #fff));
+  position: relative;
+  margin-inline: calc(-1 * var(--cover-bleed));
+  padding-inline: var(--cover-bleed);
+  padding-top: calc(var(--cover-band-height) + var(--cover-box) / 2 + 0.6rem);
+  background: linear-gradient(var(--cover-band-fill), var(--cover-band-fill)) top left / 100% var(--cover-band-height) no-repeat;
+}
+
+/* The box, half over the band, with a ring of the background color */
+.markdown-rendered :is(h1[data-heading^="🗺️ Índice de "], h1[data-heading^="🗺️ Index of "])::before,
+.markdown-rendered :is(h1[data-heading^="⚖️ Decisiones de "], h1[data-heading^="⚖️ Decisions of "])::before,
+.markdown-rendered :is(h1[data-heading^="💡 Aprendizajes de "], h1[data-heading^="💡 Learnings of "])::before,
+.markdown-rendered :is(h1[data-heading$=" — Backlog"], h1[data-heading^="Backlog"])::before,
+.markdown-preview-sizer:has(.metadata-property[data-property-key="horizon"]) > div:has(> h1):not(.markdown-preview-sizer > div:has(> h1) ~ div) > h1::before,
+.markdown-preview-sizer:has(.metadata-property[data-property-key="role"]):not(:has(.metadata-property[data-property-key="repo"])) > div:has(> h1):not(.markdown-preview-sizer > div:has(> h1) ~ div) > h1::before,
+.markdown-preview-sizer:has(.metadata-property[data-property-key="owner"]):has(.metadata-property[data-property-key="updated"]):not(:has(.metadata-property[data-property-key="horizon"])):not(:has(.metadata-property[data-property-key="role"]):not(:has(.metadata-property[data-property-key="repo"]))) > div:has(> h1):not(.markdown-preview-sizer > div:has(> h1) ~ div) > h1::before {
+  content: "";
+  position: absolute;
+  left: var(--cover-bleed);
+  top: calc(var(--cover-band-height) - var(--cover-box) / 2);
+  width: var(--cover-box);
+  height: var(--cover-box);
+  border-radius: calc(var(--cover-box) * 0.19);
+  /* opaque, so the half over the band and the half over the page are the same gray */
+  background: linear-gradient(var(--cover-box-fill), var(--cover-box-fill)), var(--background-primary, #fff);
+  box-shadow: 0 0 0 4px var(--background-primary, #fff);
+}
+
+/* The icon, centered in the box, in the accent color */
+.markdown-rendered :is(h1[data-heading^="🗺️ Índice de "], h1[data-heading^="🗺️ Index of "])::after,
+.markdown-rendered :is(h1[data-heading^="⚖️ Decisiones de "], h1[data-heading^="⚖️ Decisions of "])::after,
+.markdown-rendered :is(h1[data-heading^="💡 Aprendizajes de "], h1[data-heading^="💡 Learnings of "])::after,
+.markdown-rendered :is(h1[data-heading$=" — Backlog"], h1[data-heading^="Backlog"])::after,
+.markdown-preview-sizer:has(.metadata-property[data-property-key="horizon"]) > div:has(> h1):not(.markdown-preview-sizer > div:has(> h1) ~ div) > h1::after,
+.markdown-preview-sizer:has(.metadata-property[data-property-key="role"]):not(:has(.metadata-property[data-property-key="repo"])) > div:has(> h1):not(.markdown-preview-sizer > div:has(> h1) ~ div) > h1::after,
+.markdown-preview-sizer:has(.metadata-property[data-property-key="owner"]):has(.metadata-property[data-property-key="updated"]):not(:has(.metadata-property[data-property-key="horizon"])):not(:has(.metadata-property[data-property-key="role"]):not(:has(.metadata-property[data-property-key="repo"]))) > div:has(> h1):not(.markdown-preview-sizer > div:has(> h1) ~ div) > h1::after {
+  content: "";
+  position: absolute;
+  left: calc(var(--cover-bleed) + (var(--cover-box) - var(--cover-icon)) / 2);
+  top: calc(var(--cover-band-height) - var(--cover-icon) / 2);
+  width: var(--cover-icon);
+  height: var(--cover-icon);
+  background-color: color-mix(in srgb, var(--interactive-accent) 80%, var(--text-normal, #222));
+  -webkit-mask: var(--cover-icon-url) center / contain no-repeat;
+  mask: var(--cover-icon-url) center / contain no-repeat;
+}
+
+/* Index of a node: map */
+.markdown-rendered :is(h1[data-heading^="🗺️ Índice de "], h1[data-heading^="🗺️ Index of "]) {
+  --cover-icon-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z'/%3E%3Cpath d='M15 5.764v15'/%3E%3Cpath d='M9 3.236v15'/%3E%3C/svg%3E");
+}
+
+/* Decisions index: scale */
+.markdown-rendered :is(h1[data-heading^="⚖️ Decisiones de "], h1[data-heading^="⚖️ Decisions of "]) {
+  --cover-icon-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3v18'/%3E%3Cpath d='m19 8 3 8a5 5 0 0 1-6 0zV7'/%3E%3Cpath d='M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1'/%3E%3Cpath d='m5 8 3 8a5 5 0 0 1-6 0zV7'/%3E%3Cpath d='M7 21h10'/%3E%3C/svg%3E");
+}
+
+/* Learnings index: lightbulb */
+.markdown-rendered :is(h1[data-heading^="💡 Aprendizajes de "], h1[data-heading^="💡 Learnings of "]) {
+  --cover-icon-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5'/%3E%3Cpath d='M9 18h6'/%3E%3Cpath d='M10 22h4'/%3E%3C/svg%3E");
+}
+
+/* Backlog of an initiative: list-checks */
+.markdown-rendered :is(h1[data-heading$=" — Backlog"], h1[data-heading^="Backlog"]) {
+  --cover-icon-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13 5h8'/%3E%3Cpath d='M13 12h8'/%3E%3Cpath d='M13 19h8'/%3E%3Cpath d='m3 17 2 2 4-4'/%3E%3Cpath d='m3 7 2 2 4-4'/%3E%3C/svg%3E");
+}
+
+/* Initiative: rocket */
+.markdown-preview-sizer:has(.metadata-property[data-property-key="horizon"]) > div:has(> h1):not(.markdown-preview-sizer > div:has(> h1) ~ div) > h1 {
+  --cover-icon-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5'/%3E%3Cpath d='M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09'/%3E%3Cpath d='M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z'/%3E%3Cpath d='M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05'/%3E%3C/svg%3E");
+}
+
+/* Workspace README: book-open */
+.markdown-preview-sizer:has(.metadata-property[data-property-key="role"]):not(:has(.metadata-property[data-property-key="repo"])) > div:has(> h1):not(.markdown-preview-sizer > div:has(> h1) ~ div) > h1 {
+  --cover-icon-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 7v14'/%3E%3Cpath d='M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z'/%3E%3C/svg%3E");
+}
+
+/* README of a product, course, channel or account: book-open */
+.markdown-preview-sizer:has(.metadata-property[data-property-key="owner"]):has(.metadata-property[data-property-key="updated"]):not(:has(.metadata-property[data-property-key="horizon"])):not(:has(.metadata-property[data-property-key="role"]):not(:has(.metadata-property[data-property-key="repo"]))) > div:has(> h1):not(.markdown-preview-sizer > div:has(> h1) ~ div) > h1 {
+  --cover-icon-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 7v14'/%3E%3Cpath d='M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z'/%3E%3C/svg%3E");
+}

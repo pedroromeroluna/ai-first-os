@@ -10,6 +10,7 @@ from the brain: the operator's rows go in `.system/resolver.md`, at the root of 
 | Finish the brain's remote backup (private repo + push) | `remote-backup.sh` | `.os/core/lib/remote-backup.sh` |
 | Leave the system manual linked at the root of the brain | `manual-link.sh` | `.os/core/lib/manual-link.sh` |
 | Install the Product Builder pack | `pack-install.sh` | `.os/core/lib/pack-install.sh` |
+| Give the brain the AI First OS look in Obsidian | `obsidian-look.sh` | `.os/core/lib/obsidian-look.sh` |
 | Add a workspace | `new-workspace` | `.os/core/skills/new-workspace.md` |
 | Add a product | `new-product` | `.os/core/skills/new-product.md` |
 | Add a memory node of any type (accounts, channels, or one you invent) | `new-memory` | `.os/core/skills/new-memory.md` |

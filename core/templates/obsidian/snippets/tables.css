@@ -1,0 +1,121 @@
+/* ai-first-os-look: generated, do not edit */
+/* ============================================
+   Tables with color · Works in light and dark
+   Uses Obsidian's native CSS variables
+   ============================================ */
+
+/* Table color: the same accent as the rest */
+body {
+  --table-accent: var(--interactive-accent);
+}
+
+/* General container */
+.markdown-preview-view table,
+.markdown-rendered table,
+.cm-table-widget {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+  font-size: 0.92em;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+/* Header: pastel of the accent */
+.markdown-preview-view table thead tr,
+.markdown-rendered table thead tr {
+  background: color-mix(in srgb, var(--table-accent) var(--accent-table-mix, 18%), var(--background-primary));
+}
+
+.theme-light .markdown-preview-view table thead tr,
+.theme-light .markdown-rendered table thead tr {
+  color: color-mix(in srgb, var(--table-accent) 75%, black);
+}
+
+.theme-dark .markdown-preview-view table thead tr,
+.theme-dark .markdown-rendered table thead tr {
+  color: color-mix(in srgb, var(--table-accent) 45%, white);
+}
+
+.markdown-preview-view table th,
+.markdown-rendered table th {
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  border: none;
+  color: inherit;
+}
+
+/* General cells */
+.markdown-preview-view table td,
+.markdown-rendered table td {
+  padding: 9px 14px;
+  border-top: 1px solid var(--background-modifier-border);
+  vertical-align: top;
+}
+
+/* Zebra rows: background-secondary adapts to the mode */
+.markdown-preview-view table tbody tr:nth-child(even),
+.markdown-rendered table tbody tr:nth-child(even) {
+  background: var(--background-secondary);
+}
+
+.markdown-preview-view table tbody tr:nth-child(odd),
+.markdown-rendered table tbody tr:nth-child(odd) {
+  background: var(--background-primary);
+}
+
+/* Hover: only on body rows, never on the header */
+.markdown-preview-view table tbody tr:hover,
+.markdown-rendered table tbody tr:hover {
+  background: var(--background-modifier-hover);
+  transition: background 0.15s ease;
+}
+
+.markdown-preview-view table thead tr:hover,
+.markdown-rendered table thead tr:hover {
+  background: color-mix(in srgb, var(--table-accent) var(--accent-table-mix, 18%), var(--background-primary));
+}
+
+/* Rows with bold content (highlighted pieces)
+   Highlights rows that contain <strong> */
+.markdown-preview-view table tbody tr:has(strong),
+.markdown-rendered table tbody tr:has(strong) {
+  background: color-mix(in srgb, var(--table-accent) 12%, transparent);
+  border-left: 3px solid var(--table-accent);
+}
+
+/* Separator rows (those with a single cell): more subtle */
+.markdown-preview-view table tbody tr:has(td:only-child),
+.markdown-rendered table tbody tr:has(td:only-child) {
+  background: transparent;
+}
+
+/* Bold inside cells */
+.markdown-preview-view table td strong,
+.markdown-rendered table td strong {
+  color: var(--text-accent);
+}
+
+/* Inline code inside tables */
+.markdown-preview-view table code,
+.markdown-rendered table code {
+  font-size: 0.85em;
+  padding: 1px 6px;
+  background: var(--code-background);
+  border-radius: 4px;
+}
+
+/* Light mode: fine adjustments for better contrast */
+.theme-light .markdown-preview-view table,
+.theme-light .markdown-rendered table {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Dark mode: softer borders */
+.theme-dark .markdown-preview-view table,
+.theme-dark .markdown-rendered table {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}

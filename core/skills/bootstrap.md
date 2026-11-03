@@ -253,6 +253,31 @@ operator is never retried — it takes the later exit right away. If the retry f
 later exit above —the same question, and the note only with a yes— and say it out loud. A
 bootstrap aborted halfway because a download failed is the worse outcome of the two.
 
+## The Obsidian look — offered at the close
+
+**This step runs after the pack, with the brain already born.** Whichever way it goes, the bootstrap already
+succeeded; neither answer stops the install.
+
+Run the offer, which prints the question, two numbered options (Apply it, No, thanks) and "Reply with the
+number":
+
+```
+.os/core/lib/obsidian-look.sh --brain .
+```
+
+**Ask it as a multiple-choice question**, the same way as the pack's: with the harness's multiple-choice tool
+if it has one (in Claude Code, `AskUserQuestion`), with the labels the offer printed; if it has none, show the
+numbered list it printed, and a number is enough as the answer.
+
+- **Apply it**: run `.os/core/lib/obsidian-look.sh --brain . --apply`, **only with their yes in that turn**
+  (choosing Apply it is the yes). Pass through any `not touched:` line it prints.
+- **No, thanks**: run `.os/core/lib/obsidian-look.sh --brain . --decline`. It is not asked again. Whoever
+  changes their mind asks for it later (the capability is in `core/resolver.md`).
+
+Confirm, and commit and push in that same turn what the command wrote (`.obsidian/`, `.system/obsidian-look`
+and `.gitignore`). **Never install Obsidian** and never ask whether it is installed: the look changes how the
+brain is seen there and nothing the operator wrote.
+
 ## When it finishes
 
 - Show the tree created and what each file answers, in outcomes and not in canonical names.
@@ -268,6 +293,8 @@ bootstrap aborted halfway because a download failed is the worse outcome of the 
 - **Say whether the pack landed.** If it was installed, name what it added and that the harness
   offers it directly. If it was left for later, say the pending line is in the `personal` workspace
   backlog with the command inside it, and that everything else works without it.
+- **Say what happened with the Obsidian look.** If it was applied, tell the operator to open this folder in
+  Obsidian, with its exact path. If not, say it can be asked for later.
 - **How the operator updates all of this is written once**, in the repository's `README.md` under
   **Update**, and is not restated here. Point at it; do not retell it.
 - Say the brain is ready with its `personal` workspace ("My workspace") — the operator's own work

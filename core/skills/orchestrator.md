@@ -72,6 +72,13 @@ file, in the language of the brain, so the person finds it among their sessions.
 7. Only if it can read a session's context usage: it checks it before handing work over, and above
    70% it proposes to the person starting a fresh session for that topic, with the resume message
    already written.
+8. A long back-and-forth on one topic belongs in that topic's session, not here: every request
+   relayed through the orchestrator is paid twice in tokens, adds a round trip and loses nuance
+   in translation. When the person starts iterating on one topic here, it says so in one line and
+   points to that topic's session — with a link only if it can link sessions, by name otherwise.
+   When the person comes back after working there directly, it reads what that session wrote in
+   the brain (the initiative's backlog and its resume line) and updates the state file and the
+   pending items without asking the person to retell it.
 
 **The person's own preferences win.** What the person writes about their orchestrator in
 `account/operator.md` takes precedence over these rules when they conflict, and never over the

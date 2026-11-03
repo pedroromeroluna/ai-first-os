@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/pedroromeroluna/ai-first-os/main/assets/ai-first-os-logo.svg" alt="AI First OS" width="640">
+</p>
+
 # 📘 AI First OS — cómo funciona este sistema
 
 > [!NOTE] Este archivo es el manual del sistema
@@ -100,7 +104,7 @@ arranque de sesión. Editá la fuente —la iniciativa, la decisión, el aprendi
 
 ### Cómo arranca una sesión
 
-1. Nombrás el espacio de trabajo en el que vas a trabajar.
+1. Nombrás el espacio de trabajo en el que vas a trabajar. Si tu brain tiene uno solo, no hace falta: el agente arranca en ese.
 2. El agente corre el **barrido** y la **lectura de arranque** antes de contestar: primero
    `account/operator.md`, después la cabeza del espacio de trabajo y su propia tabla de herramientas,
    su glosario y su mapa de contextos si los tiene, sus decisiones clave, y las tablas de
@@ -194,7 +198,8 @@ propia sección:
 
 > [!EXAMPLE] Una sesión de punta a punta
 > 1. **Arranque.** Nombrás el espacio de trabajo —tu trabajo propio es `personal`, el que trae todo
->    brain al nacer— y el agente corre el **barrido** antes de contestar nada: qué espera tu decisión,
+>    brain al nacer, y con uno solo el agente lo toma por su cuenta— y el agente corre el **barrido**
+>    antes de contestar nada: qué espera tu decisión,
 >    qué está en curso, qué está trabado y por quién, qué hay en cola y qué encontraron los chequeos.
 >    Después elegís foco, y recién ahí se carga el cuerpo de esa iniciativa.
 > 2. **Trabajo.** Cada pedido se rutea a su herramienta por el resolver. Nada se activa solo, y
@@ -222,6 +227,11 @@ contradicción para resolver, nunca elegidos en silencio. Y es descartable: lo q
 archivo chico que se reconstruye solo desde tus propios archivos, nunca algo que vos escribís o
 respaldás.
 
+**Lo que el agente abre por su cuenta.** El arranque y el foco deciden qué se carga al empezar. Después,
+una nota que el agente lee puede mencionar otras: abre una solo cuando tu pedido necesita algo que está
+ahí, y busca el fragmento con `recall` antes de abrir el archivo entero. Un enlace y una ruta cuestan
+lo mismo: lo que gasta la ventana del agente es abrir el archivo, no cómo está escrita la mención.
+
 ## ⚙️ Dónde vive la maquinaria
 
 Las herramientas —skills, scripts, agentes— viven en `.os/`, `.claude/` y `.agents/`. Esas carpetas
@@ -237,9 +247,15 @@ Los skills de un pack están en `.agents/skills/<nombre>/SKILL.md`, una carpeta 
 busca primero en `.agents/skills/` y cuenta una sola vez un skill que está en las dos carpetas.
 Cualquier skill que escribas vos va al lado, como carpeta común en `.claude/skills/`.
 
+**La apariencia de Obsidian.** Si leés tu cerebro en Obsidian, el agente te ofrece una sola vez, al terminar
+de instalar o en tu próxima actualización, dejarlo con la apariencia de AI First OS: íconos, portadas,
+colores y márgenes más anchos. Cambia cómo se ve en Obsidian y nada de lo que escribiste. Si dijiste que no,
+pedila más adelante: "dejá mi cerebro con la apariencia de AI First OS". Con ella puesta, cada actualización
+la mantiene al día.
+
 > [!TIP] Para actualizar, pedile a cualquier sesión «actualizá el sistema»
 > Para actualizar, pedile a cualquier sesión: **"actualizá el sistema"**. Con esa frase alcanza, y
-> cubre las dos mitades de lo que está instalado — el sistema y los packs. Qué hace paso a paso
+> cubre todo lo que está instalado — el sistema, los packs y la apariencia de Obsidian. Qué hace paso a paso
 > está escrito una sola vez, en el `README.md` de la carpeta del producto bajo **Update**; este
 > manual apunta ahí en vez de contarlo de nuevo, porque dos versiones del mismo procedimiento se
 > separan.
@@ -323,6 +339,11 @@ lleva cada tema, qué espera a qué) lo guarda en un archivo oculto que nunca te
   una y ve cuánto contexto usa cada una. **En la terminal** funciona reducida: reparte trabajo, pero
   no puede abrir sesiones nuevas ni ver cuánto contexto tiene cada una. Al prenderse te dice en cuál
   estás.
+- **Un tema largo, en su propia sesión.** Si vas a ir y venir muchas veces sobre una sola cosa,
+  hacelo directo en la sesión de ese tema. La orquestadora es para pasar de un tema a otro, ver
+  prioridades y pendientes, aprobar el último paso que no se puede deshacer y abrir o reiniciar
+  sesiones. Cada pedido que pasa por ella se paga dos veces, tarda una vuelta más y pierde matices
+  en el camino. Cuando vuelvas, lee lo que la sesión del tema dejó escrito y se pone al día sola.
 
 ## 🚦 Trabajar con agentes: dos gates y un tramo autónomo
 

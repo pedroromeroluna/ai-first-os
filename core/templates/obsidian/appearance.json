@@ -1,0 +1,13 @@
+{
+  "accentColor": "#0078ff",
+  "translucency": false,
+  "enabledCssSnippets": [
+    "tables",
+    "callouts",
+    "tasks",
+    "kanban",
+    "heading-icons",
+    "note-covers",
+    "note-margins"
+  ]
+}

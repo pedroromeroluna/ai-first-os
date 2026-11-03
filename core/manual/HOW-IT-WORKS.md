@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/pedroromeroluna/ai-first-os/main/assets/ai-first-os-logo.svg" alt="AI First OS" width="640">
+</p>
+
 # 📘 AI First OS — how this system works
 
 > [!NOTE] This file is the manual of the system
@@ -93,7 +97,7 @@ generated file is not committed to git: every copy of the brain builds its own.
 
 ### How a session starts
 
-1. You name the workspace you are working on.
+1. You name the workspace you are working on. If your brain has only one, you do not need to: the agent starts in it.
 2. The agent runs the **scan** and the **startup read** before answering: first `account/operator.md`,
    then the head of the workspace and its own table of tools, its glossary and its map of contexts
    if it has them, its key decisions, and the tables of tools of the system and of the root. It does
@@ -182,8 +186,9 @@ the reason the scan stays fast — and it is written at three heights, each its 
 ## 🔄 The cycle of one session
 
 > [!EXAMPLE] One session from start to end
-> 1. **Start.** You name the workspace — your own work is `personal`, the one every brain is born with
->    — and the agent runs the **scan** before answering anything: what is waiting on your decision,
+> 1. **Start.** You name the workspace — your own work is `personal`, the one every brain is born with,
+>    and with a single workspace the agent takes it on its own — and the agent runs the **scan** before
+>    answering anything: what is waiting on your decision,
 >    what is in progress, what is blocked and by whom, what is queued, and what the checks found. Then
 >    you pick a focus, and only then is the body of that initiative loaded.
 > 2. **Work.** Every request is routed to its tool through the resolver. Nothing activates on its own,
@@ -212,6 +217,11 @@ handed to you as a contradiction to resolve, never quietly picked between. And i
 it searches is a small file it rebuilds from your own files on its own, never something you write to
 or back up.
 
+**What the agent opens on its own.** The scan and the focus decide what is loaded at the start. After
+that, a note the agent reads may mention others: it opens one only when your request needs something
+in it, and it looks for the fragment with `recall` before opening the whole file. A link and a path
+cost the same: what spends the agent's context is opening the file, not how the mention is written.
+
 ## ⚙️ Where the machinery lives
 
 The tools —skills, scripts, agents— live in `.os/`, `.claude/` and `.agents/`. Those folders are
@@ -227,9 +237,14 @@ link to each one, which is where Claude Code reads skills from; the system looks
 first and counts a skill that is in both folders once. Any skill you write yourself goes next to
 them, as a plain folder in `.claude/skills/`.
 
+**The Obsidian look.** If you read your brain in Obsidian, the agent offers you once, when it finishes
+installing or at your next update, to give it the AI First OS look: icons, covers, colors and wider
+margins. It changes how things look in Obsidian and nothing you wrote. If you said no, ask for it
+later: "give my brain the AI First OS look". Once you have it, each update keeps it current.
+
 > [!TIP] To update, ask any session to "update the system"
 > To update, ask any session: **"update the system"**. That sentence is all you need, and it
-> covers both halves of what is installed — the system and the packs. What it does step by step is
+> covers everything that is installed — the system, the packs and the Obsidian look. What it does step by step is
 > written once, in the `README.md` of the product's folder under **Update**; this manual points at
 > it instead of telling it again, because two versions of the same procedure drift apart.
 
@@ -312,6 +327,12 @@ each topic, what is waiting for what) it keeps in a hidden file that you never h
   how much context each is using. **In the terminal** it works reduced: it hands work out, but it
   cannot open new sessions or see how much context each one is using. It tells you which one you are
   in when it turns on.
+- **A long topic, in its own session.** If you are going to go back and forth many times on one
+  thing, do it directly in that topic's session. The orchestrator is for moving between topics,
+  seeing priorities and pending items, approving the last step that cannot be undone, and opening
+  or restarting sessions. Every request that goes through it is paid twice, takes one more round
+  trip and loses nuance on the way. When you come back, it reads what the topic's session left
+  written and catches up on its own.
 
 ## 🚦 Working with agents: two gates, one autonomous stretch
 

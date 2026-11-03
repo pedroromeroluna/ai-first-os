@@ -1819,6 +1819,22 @@ SLUGS
   return 1
 }
 
+# os_ws_only BRAIN -> prints the slug and returns 0 when the workspaces folder of the brain has exactly one
+# workspace, whatever its name. With none or with two or more it prints nothing and returns 1. The only place
+# that decides when a session may start without being told the workspace (spec 089, part C); the rule itself
+# is written once, in `core/CLAUDE.md`.
+os_ws_only() {
+  local s only="" n=0
+  while IFS= read -r s || [ -n "$s" ]; do
+    [ -n "$s" ] || continue
+    only="$s"; n=$(( n + 1 ))
+  done <<SLUGS
+$(os_org_slugs "$1")
+SLUGS
+  [ "$n" = "1" ] || return 1
+  printf '%s' "$only"
+}
+
 # os_titulo ARCHIVO -> el primer `# Título` del archivo, o vacío.
 os_titulo() {
   local line

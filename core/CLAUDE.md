@@ -13,8 +13,12 @@ in the product repo. Nothing about the operator lives here; that belongs in `acc
 
 **The first message names the scope being worked on: a workspace.** Every brain has at least one —
 `personal`, the operator's own work, is the one every brain is born with. If the message does not
-name one, list the slugs under the workspaces folder and ask which. Never guess it: the context of
-one scope inside the work of another is the most expensive failure in the system.
+name one, run the startup scan without `--workspace`. When the brain has exactly one workspace, the
+scan takes it, whatever its name: start in it without asking and without announcing it, and use the
+name of that only folder for the startup read and for the rest of the session. When it has none or
+several, the scan stops and lists them: ask which. Never guess it: the context of one
+scope inside the work of another is the most expensive failure in the system — with a single
+workspace there is no other scope to mix it with.
 
 Before answering the first message, in this order:
 
@@ -176,6 +180,11 @@ in the product's root resolver.
 - **A lateral question — anything not already loaded by the startup or the focus — runs `recall` in
   the session's own scope before any `grep`.** Two `current` results that contradict each other are
   reported as ❓, never picked between in silence.
+- **A file the agent has read can mention others; the agent opens one only when the task needs
+  something that file holds.** What the startup and the focus load is decided by their scripts, never
+  by this rule. Before opening a mentioned file whole, the agent runs `recall` for the part it needs and
+  opens the file only if the fragment is not enough. A mention written as a Markdown link and one
+  written as a path in backticks follow the same rule.
 - **The brain works on `main` and commits as it goes.** Every file created or edited in the brain
   during a session —a draft, a sketch, a note— is committed and pushed in the same turn it appears;
   nothing of the brain's own work waits for the close to be committed, and no draft is added to

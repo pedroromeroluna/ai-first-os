@@ -1,0 +1,9 @@
+/* ai-first-os-look: generated, do not edit */
+/* ============================================
+   Air at the sides of the notes, in reading and in editing view.
+   Number to tweak: --file-margins-x (Obsidian's own margin is 32 px).
+   ============================================ */
+
+body:not(.is-phone) {
+  --file-margins-x: 52px;
+}

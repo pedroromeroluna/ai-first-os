@@ -350,6 +350,10 @@ key: SESSION_ORG_NOT_FOUND
 en: the workspace "%s" does not exist. Here's what there is:
 es: el espacio de trabajo "%s" no existe. Los que hay:
 
+key: SESSION_ORG_NOT_NAMED
+en: no workspace named. Here's what there is:
+es: no se nombró ningún espacio de trabajo. Los que hay:
+
 key: SESSION_NO_ORGS
 en: (none)
 es: (ninguno)
@@ -485,6 +489,22 @@ es: Instalar — baja el pack a este brain, sin otra confirmación
 key: PACK_OPTION_LATER
 en: Later — everything else works without it, and nothing is noted down
 es: Después — todo lo demás funciona sin él, y no se anota nada
+
+key: OBSIDIAN_LOOK_QUESTION
+en: Do you read your brain in Obsidian? I can leave it with the AI First OS look: icons, covers, colors and margins. It changes how it looks in Obsidian and nothing you wrote.
+es: ¿Leés tu cerebro en Obsidian? Puedo dejarlo con la apariencia de AI First OS: íconos, portadas, colores y márgenes. Cambia cómo se ve en Obsidian y nada de lo que escribiste.
+
+key: OBSIDIAN_LOOK_OPTION_APPLY
+en: Apply it
+es: Aplicarla
+
+key: OBSIDIAN_LOOK_OPTION_NO
+en: No, thanks
+es: No, gracias
+
+key: OBSIDIAN_LOOK_ALREADY_APPLIED
+en: The look is already applied: nothing changed. It is turned off from Obsidian's settings.
+es: La apariencia ya está aplicada: no cambió nada. Se apaga desde los ajustes de Obsidian.
 
 key: CHOICE_REPLY_WITH_NUMBER
 en: Reply with the number.
@@ -1276,13 +1296,17 @@ key: INDEX_LEARNINGS_DESC
 en: Every learning of this workspace, newest first, with a link to each one.
 es: Todos los aprendizajes de este espacio de trabajo, del más nuevo al más viejo, con un enlace a cada uno.
 
+key: INDEX_INITIATIVES
+en: 🚀 Initiatives
+es: 🚀 Iniciativas
+
 key: INDEX_INITIATIVES_OPEN
-en: 🚀 Initiatives in progress
-es: 🚀 Iniciativas en curso
+en: In progress
+es: En curso
 
 key: INDEX_INITIATIVES_CLOSED
-en: 📦 Closed initiatives
-es: 📦 Iniciativas cerradas
+en: Closed
+es: Cerradas
 
 key: INDEX_COL_TASKS
 en: Tasks
@@ -1352,21 +1376,17 @@ key: INDEX_COL_LEARNING
 en: Learning
 es: Aprendizaje
 
-key: INDEX_COL_FOLDER
-en: Folder
-es: Carpeta
-
 key: INDEX_COL_DOCUMENT
 en: Document
 es: Documento
 
 key: INDEX_DECISIONS_KEY
-en: ⭐ Key decisions
-es: ⭐ Decisiones clave
+en: Key
+es: Clave
 
 key: INDEX_DECISIONS_OTHER
-en: 🗂️ Other decisions
-es: 🗂️ Otras decisiones
+en: Other
+es: Otras
 
 key: INDEX_TYPE_SUPERSEDED
 en: Superseded

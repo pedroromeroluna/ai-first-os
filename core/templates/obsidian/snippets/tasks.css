@@ -1,0 +1,78 @@
+/* ai-first-os-look: generated, do not edit */
+/* ============================================
+   Tasks with room to breathe, Google Tasks style
+   One row per task, split by a thin line,
+   round checkbox and the done date in small type
+   ============================================ */
+
+/* Reading view */
+.markdown-rendered ul.contains-task-list > li.task-list-item {
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  line-height: 1.5;
+}
+
+.markdown-rendered ul.contains-task-list > li.task-list-item:last-child {
+  border-bottom: none;
+}
+
+/* Editing view */
+.markdown-source-view.mod-cm6 .HyperMD-task-line {
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+/* Round checkbox, in both views */
+.task-list-item-checkbox {
+  border-radius: 50% !important;
+  width: 18px !important;
+  height: 18px !important;
+}
+
+/* Done task: gray */
+.task-list-item.is-checked,
+.HyperMD-task-line[data-task="x"] {
+  color: var(--text-muted);
+}
+
+/* The date it was ticked (✅ YYYY-MM-DD, written by the Tasks plugin) */
+.task-done {
+  font-size: 0.8em;
+  color: var(--text-faint);
+}
+
+/* On hover, the row is highlighted */
+.markdown-rendered ul.contains-task-list > li.task-list-item,
+.markdown-source-view.mod-cm6 .HyperMD-task-line {
+  border-radius: 6px;
+  transition: background-color 0.12s ease;
+}
+
+.markdown-rendered ul.contains-task-list > li.task-list-item:hover,
+.markdown-source-view.mod-cm6 .HyperMD-task-line:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+/* In reading view: the row starts at the text margin, with the checkbox inside and some room.
+   The list has no indent of its own; a list inside another one does, so the nesting shows */
+.markdown-rendered ul.contains-task-list {
+  padding-inline-start: 0;
+}
+
+.markdown-rendered li ul.contains-task-list {
+  padding-inline-start: var(--list-indent);
+}
+
+.markdown-rendered ul.contains-task-list > li.task-list-item {
+  margin-inline-start: 0;
+  padding-inline-start: calc(var(--checkbox-size) * 1.5 + 10px);
+}
+
+/* The ticked date is not struck through: an inline block does not inherit the task's strikethrough */
+.task-done {
+  display: inline-block;
+  text-decoration: none;
+  margin-inline-start: 4px;
+}
+

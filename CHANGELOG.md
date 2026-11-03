@@ -5,6 +5,22 @@ Every published version of AI First OS, newest first. The format follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html): *major* when an already installed brain
 needs a manual step to keep working, *minor* for a new capability, *patch* for a fix.
 
+## [2.2.0] — 2026-11-02
+
+An installed brain needs no step to use this version. Updating asks once about the Obsidian look, and the
+indexes of every brain are rewritten with the reorganized sections the next time a session starts.
+
+### Added
+
+- The README and the manual open with the AI First OS logo.
+- A brain can take the AI First OS look in Obsidian: it is asked once, at install or at update, and the indexes get reorganized sections for everyone.
+
+### Changed
+
+- A brain with a single workspace starts the session in it without asking which; with several, the session still asks.
+- The agent opens a file a note mentions only when the task needs it, and looks for the fragment with `recall` first.
+- The manual and the orchestrator recommend working a long topic in its own session.
+
 ## [2.1.2] — 2026-10-22
 
 An installed brain needs no step to use this version.

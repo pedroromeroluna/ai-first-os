@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/ai-first-os-logo.svg" alt="AI First OS" width="480">
+</p>
+
 # AI First OS
 
 Latest version and what changed in it: [Releases](https://github.com/pedroromeroluna/ai-first-os/releases) · [CHANGELOG.md](CHANGELOG.md).
@@ -92,17 +96,20 @@ Paste this to your agent:
 > Update the system.
 
 That sentence is enough, and **this is the only place that says what it does** — the manual in your
-brain and the bootstrap skill point here instead of telling the story again. The tools come from two
-places, so updating them has two halves and both run:
+brain and the bootstrap skill point here instead of telling the story again. The update has three
+parts, and each one runs only when it applies:
 
 1. **The system.** The agent goes to the local folder where the repository ended up, brings down the
    newest version and runs `core/install.sh` from that folder.
 2. **The pack**, if you installed it. The agent runs
    `npx --yes skills add pedroromeroluna/ai-first-product-skills --agent claude-code --yes` again, which replaces the skills in
    `.claude/skills/` with the published version. With no pack installed there is nothing to refresh, and this half is skipped.
+3. **The Obsidian look.** The agent runs `.os/core/lib/obsidian-look.sh --brain .` from your brain. A brain that
+   already has the look gets the new version of its style files, without being asked. A brain that never
+   answered is asked once. A brain that said no is left alone.
 
 Your brain —your workspaces, your decisions, your content— is not touched: the update only
-refreshes the tools. And if the installer were run by mistake through the hook that is already
+refreshes the tools and, if you took it, the style files of the Obsidian look. And if the installer were run by mistake through the hook that is already
 installed, it stops on its own with a message before writing anything.
 
 ## Layout

@@ -1,0 +1,127 @@
+/* ai-first-os-look: generated, do not edit */
+/* ============================================
+   Kanban board (a Bases view) with color
+   Columns in the order of the board: now, next, later
+   ============================================ */
+
+.bases-kanban-container {
+  --kanban-container-gap: 16px;
+  --kanban-column-radius: 12px;
+  --kanban-card-radius: 10px;
+  --kanban-card-background: var(--background-primary);
+  --kanban-card-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 0 0 1px var(--background-modifier-border);
+  --kanban-card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.10), 0 0 0 1px var(--background-modifier-border);
+}
+
+/* Color of each column: now green, next blue, later violet */
+.bases-kanban-column:nth-child(1) { --col-rgb: 22, 178, 90; }
+.bases-kanban-column:nth-child(2) { --col-rgb: 30, 120, 255; }
+.bases-kanban-column:nth-child(3) { --col-rgb: 140, 82, 255; }
+
+.bases-kanban-column {
+  --col-pastel: color-mix(in srgb, rgb(var(--col-rgb, 130, 130, 130)) 24%, var(--background-primary));
+  --kanban-column-background: var(--col-pastel);
+  background-color: var(--col-pastel);
+  --kanban-column-header-background: transparent;
+  border-top: 3px solid rgba(var(--col-rgb, 130, 130, 130), 0.8);
+}
+
+/* Column title in its color, and the counter as a pill */
+.bases-kanban-column-header {
+  color: rgb(var(--col-rgb, 130, 130, 130));
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.85em;
+}
+
+.bases-kanban-column-count {
+  background: rgba(var(--col-rgb, 130, 130, 130), 0.15);
+  color: rgb(var(--col-rgb, 130, 130, 130));
+  border-radius: 999px;
+  padding: 0 8px;
+}
+
+/* Cards: on hover only the shadow changes, nothing moves or changes size */
+.bases-kanban-card {
+  transition: box-shadow 0.15s ease;
+}
+
+.bases-kanban-card:hover {
+  box-shadow: var(--kanban-card-shadow-hover);
+}
+
+/* Solid pastel background over the whole list, Trello style (the inner layers do not cover the color) */
+.bases-kanban-column-inner,
+.bases-kanban-column-content,
+.bases-kanban-column-footer {
+  background-color: var(--col-pastel);
+}
+
+/* ============================================
+   Task board (a board note of an initiative)
+   The columns view of the Tasks plugin (`view columns by`),
+   with the same look as the board above: gray list, white cards.
+   ============================================ */
+
+.tablero .tasks-columns {
+  --col-rgb: 90, 110, 140;
+  --col-pastel: color-mix(in srgb, rgb(var(--col-rgb)) 18%, var(--background-primary));
+  gap: 16px;
+  padding: 8px 2px 12px;
+}
+
+/* The list: pastel background, no border, rounded corners */
+.tablero .tasks-columns-column {
+  background: var(--col-pastel);
+  border: none;
+  border-radius: 12px;
+  padding: 6px 10px 10px;
+}
+
+/* List title in capitals, with the counter next to it */
+.tablero .tasks-columns-column .tasks-group-heading {
+  margin: 6px 4px 10px;
+  color: rgb(var(--col-rgb));
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.85em;
+}
+
+.tablero .tasks-columns-column ul.plugin-tasks-query-result {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Cards: white, rounded, with a shadow; without the dividing line of the flat list */
+.tablero .tasks-columns-column-card {
+  margin: 0 0 8px;
+  padding: 10px 12px 10px calc(var(--checkbox-size) * 1.5 + 12px);
+  border: none;
+  border-radius: 10px;
+  background: var(--background-primary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 0 0 1px var(--background-modifier-border);
+  line-height: 1.4;
+  transition: box-shadow 0.15s ease;
+}
+
+.tablero .tasks-columns-column-card:last-child {
+  margin-bottom: 0;
+}
+
+.tablero .tasks-columns-column-card:hover {
+  background: var(--background-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10), 0 0 0 1px var(--background-modifier-border);
+}
+
+/* Done card: gray */
+.tablero .tasks-columns-column-card.is-checked {
+  color: var(--text-muted);
+}
+
+/* The task counter is not a column */
+.tablero .block-language-tasks .tasks-count {
+  display: none;
+}

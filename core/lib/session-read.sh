@@ -121,7 +121,6 @@ fi
 [ "$root_pedido" = "0" ] || os_root_gone "$brain"
 
 [ -n "$brain" ] || os_die "missing --brain"
-[ -n "$org" ] || os_die "missing --org or --workspace"
 [ -d "$brain" ] || os_die "no such brain: $brain"
 brain=$(cd "$brain" && pwd)
 
@@ -134,6 +133,25 @@ head=$(os_head_file "$brain") || true
 
 lang=$(os_language "$brain")
 os_lang_load "$lang"
+
+# No workspace named (spec 089, part C): the same resolution as the scan, through the same function.
+if [ -z "$org" ]; then
+  if org=$(os_ws_only "$brain"); then
+    :
+  else
+    listed=0
+    printf '%s\n' "$S_SESSION_ORG_NOT_NAMED" >&2
+    while IFS= read -r slug || [ -n "$slug" ]; do
+      [ -n "$slug" ] || continue
+      printf '  %s\n' "$slug" >&2
+      listed=1
+    done <<SLUGS
+$(os_org_slugs "$brain")
+SLUGS
+    [ "$listed" = "1" ] || printf '  %s\n' "$S_SESSION_NO_ORGS" >&2
+    exit 2
+  fi
+fi
 
 # ---------------------------------------------------------------- the scope is validated by listing
 # Byte for byte against the real names under the workspaces folder, never with `-d`, and with the

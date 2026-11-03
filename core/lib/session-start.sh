@@ -86,7 +86,6 @@ fi
 [ -n "$org" ] || org="$workspace"
 
 [ -n "$brain" ] || os_die "falta --brain"
-[ -n "$org" ] || os_die "falta --org o --workspace"
 [ -d "$brain" ] || os_die "no existe el brain: $brain"
 brain=$(cd "$brain" && pwd)
 
@@ -111,6 +110,27 @@ memory_types_org=$(os_memory_types "$brain" org) || memory_types_org=""
 # prose.
 lang=$(os_language "$brain")
 os_lang_load "$lang"
+
+# No workspace named (spec 089, part C): with exactly one in the brain, it is that one, as if it had been
+# passed with --workspace; with none or several, the scan stops and lists them. The rule is written once, in
+# `core/CLAUDE.md`, and decided in one place, `os_ws_only` (common.sh).
+if [ -z "$org" ]; then
+  if org=$(os_ws_only "$brain"); then
+    :
+  else
+    listed=0
+    printf '%s\n' "$S_SESSION_ORG_NOT_NAMED" >&2
+    while IFS= read -r slug || [ -n "$slug" ]; do
+      [ -n "$slug" ] || continue
+      printf '  %s\n' "$slug" >&2
+      listed=1
+    done <<SLUGS
+$(os_org_slugs "$brain")
+SLUGS
+    [ "$listed" = "1" ] || printf '  %s\n' "$S_SESSION_NO_ORGS" >&2
+    exit 2
+  fi
+fi
 
 # translate_fm_broken VALUE -> the same `fm_roto`/`bl_roto` value (always in Spanish: common.sh
 # returns it, and it does not know the scan's language) translated with the catalog already loaded
