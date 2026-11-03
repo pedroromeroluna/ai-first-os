@@ -22,6 +22,21 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
+/* Border in the accent color, no lines between columns */
+.markdown-preview-view table,
+.markdown-rendered table {
+  outline: 1px solid var(--table-accent);
+  outline-offset: -1px;
+}
+
+.markdown-preview-view table th,
+.markdown-rendered table th,
+.markdown-preview-view table td,
+.markdown-rendered table td {
+  border-left: none;
+  border-right: none;
+}
+
 /* Header: pastel of the accent */
 .markdown-preview-view table thead tr,
 .markdown-rendered table thead tr {

@@ -5,6 +5,14 @@ Every published version of AI First OS, newest first. The format follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html): *major* when an already installed brain
 needs a manual step to keep working, *minor* for a new capability, *patch* for a fix.
 
+## [2.2.1] — 2026-11-03
+
+An installed brain needs no step to use this version.
+
+### Changed
+
+- In the AI First OS look for Obsidian, tables get a blue border and lose their column lines, the cover is lower with more air under its icon, and on the READMEs of initiatives the properties sit under the title.
+
 ## [2.2.0] — 2026-11-02
 
 An installed brain needs no step to use this version. Updating asks once about the Obsidian look, and the

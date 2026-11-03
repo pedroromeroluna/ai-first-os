@@ -41,7 +41,7 @@
 .markdown-preview-sizer:has(.metadata-property[data-property-key="horizon"]) > div:has(> h1):not(.markdown-preview-sizer > div:has(> h1) ~ div) > h1,
 .markdown-preview-sizer:has(.metadata-property[data-property-key="role"]):not(:has(.metadata-property[data-property-key="repo"])) > div:has(> h1):not(.markdown-preview-sizer > div:has(> h1) ~ div) > h1,
 .markdown-preview-sizer:has(.metadata-property[data-property-key="owner"]):has(.metadata-property[data-property-key="updated"]):not(:has(.metadata-property[data-property-key="horizon"])):not(:has(.metadata-property[data-property-key="role"]):not(:has(.metadata-property[data-property-key="repo"]))) > div:has(> h1):not(.markdown-preview-sizer > div:has(> h1) ~ div) > h1 {
-  --cover-band-height: 140px;
+  --cover-band-height: 90px;
   --cover-bleed: 28px; /* the band goes out this much on each side; the box stays aligned with the text */
   --cover-box: 84px;
   --cover-icon: calc(var(--cover-box) * 0.68);
@@ -50,7 +50,7 @@
   position: relative;
   margin-inline: calc(-1 * var(--cover-bleed));
   padding-inline: var(--cover-bleed);
-  padding-top: calc(var(--cover-band-height) + var(--cover-box) / 2 + 0.6rem);
+  padding-top: calc(var(--cover-band-height) + var(--cover-box) / 2 + 1.5rem);
   background: linear-gradient(var(--cover-band-fill), var(--cover-band-fill)) top left / 100% var(--cover-band-height) no-repeat;
 }
 
@@ -126,4 +126,30 @@
 /* README of a product, course, channel or account: book-open */
 .markdown-preview-sizer:has(.metadata-property[data-property-key="owner"]):has(.metadata-property[data-property-key="updated"]):not(:has(.metadata-property[data-property-key="horizon"])):not(:has(.metadata-property[data-property-key="role"]):not(:has(.metadata-property[data-property-key="repo"]))) > div:has(> h1):not(.markdown-preview-sizer > div:has(> h1) ~ div) > h1 {
   --cover-icon-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 7v14'/%3E%3Cpath d='M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z'/%3E%3C/svg%3E");
+}
+
+/* --------------------------------------------
+   Properties under the title, on the READMEs of initiatives
+   -------------------------------------------- */
+.markdown-preview-sizer:has(.metadata-property[data-property-key="horizon"]) {
+  display: flex;
+  flex-direction: column;
+}
+
+.markdown-preview-sizer:has(.metadata-property[data-property-key="horizon"]) > .markdown-preview-pusher {
+  order: -3;
+}
+
+.markdown-preview-sizer:has(.metadata-property[data-property-key="horizon"]) > div:has(> h1):not(.markdown-preview-sizer > div:has(> h1) ~ div) {
+  order: -2;
+}
+
+.markdown-preview-sizer:has(.metadata-property[data-property-key="horizon"]) > .mod-header {
+  order: -1;
+  margin-top: 1rem;
+}
+
+/* In a column the margins of the blocks add up: each gap is left to the block below */
+.markdown-preview-sizer:has(.metadata-property[data-property-key="horizon"]) > div:not(.mod-header, .mod-footer, .markdown-preview-pusher) > :last-child {
+  margin-bottom: 0;
 }
