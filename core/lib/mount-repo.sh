@@ -332,7 +332,7 @@ birth_error=""
 repo_birth() {
   local dest="$1" name="$2" tpl="$here/../templates/repo-scaffold" d
   birth_error=""
-  mkdir -p "$dest/.claude" "$dest/specs/done" "$dest/docs/postmortems" "$dest/docs/research" \
+  mkdir -p "$dest/.claude" "$dest/specs/done" "$dest/intents" "$dest/docs/postmortems" "$dest/docs/research" \
            "$dest/learnings" "$dest/evals" || { birth_error="mkdir $dest"; return 1; }
   os_render_lang "$tpl/CLAUDE.md" "$language" "NAME=$name" > "$dest/CLAUDE.md" \
     || { birth_error="CLAUDE.md"; return 1; }
@@ -349,7 +349,7 @@ repo_birth() {
   cp "$tpl/gitignore" "$dest/.gitignore" || { birth_error=".gitignore"; return 1; }
   # git does not track empty folders: without a keep file the taxonomy does not survive the first
   # clone, and the next agent finds a tree that is not the one that was born.
-  for d in specs/done docs/postmortems docs/research learnings; do
+  for d in specs/done intents docs/postmortems docs/research learnings; do
     : > "$dest/$d/.gitkeep" || { birth_error="$d/.gitkeep"; return 1; }
   done
 

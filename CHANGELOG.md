@@ -5,6 +5,14 @@ Every published version of AI First OS, newest first. The format follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html): *major* when an already installed brain
 needs a manual step to keep working, *minor* for a new capability, *patch* for a fix.
 
+## [2.3.0] — 2026-11-17
+
+An installed brain needs no step to use this version.
+
+### Added
+
+- A one-page intent, accepted or rejected by a person, now comes before the spec: `new-intent` writes it and `new-spec` asks for it on `feature` specs.
+
 ## [2.2.1] — 2026-11-03
 
 An installed brain needs no step to use this version.

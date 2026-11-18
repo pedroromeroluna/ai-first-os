@@ -526,6 +526,7 @@ key: REPO_LAYOUT
 en: | Question | Where | Lifecycle |
 en: |---|---|---|
 en: | How it is built | `ARCHITECTURE.md` (the as-built) | Live, overwritten |
+en: | What is going to change, and why | `intents/` | Transient: accepted or rejected by a person before the spec |
 en: | What is missing | `specs/` (+ `done/`) | Transient |
 en: | What was decided and why | `decisions.md` | **Append-only**, never corrected |
 en: | What we learned | `learnings/` | Live: updated or deleted |
@@ -535,6 +536,7 @@ en: | The check for each criterion | `evals/run.sh` | Live: one check per criter
 es: | Pregunta | Dónde | Ciclo de vida |
 es: |---|---|---|
 es: | Cómo está construido | `ARCHITECTURE.md` (el as-built) | Vivo, se pisa |
+es: | Qué se va a cambiar y por qué | `intents/` | Transitorio: una persona la acepta o la rechaza antes de la spec |
 es: | Qué falta | `specs/` (+ `done/`) | Transitorio |
 es: | Qué se decidió y por qué | `decisions.md` | **Append-only**, nunca se corrige |
 es: | Qué aprendimos | `learnings/` | Vivo: se actualiza o se borra |

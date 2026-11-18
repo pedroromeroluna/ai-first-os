@@ -87,6 +87,9 @@ and what changes from now on.
 **The supervision pattern has two human gates and one autonomous stretch in the middle**: **Gate 1**
 a person approves the spec → the matching agent implements it **on a branch** of the mounted repo,
 never on its main branch and never with a push → **Gate 2** a person reads the branch and merges.
+Before Gate 1 comes the intent: a one-page file a person accepts or rejects before the spec exists
+(rule in `core/skills/new-intent.md`). The two gates frame the build; the acceptance of the intent is
+the step before it.
 The brain session **supervises without changing folders**: it delegates to the agent over the
 mounted repo and keeps reading the result from here.
 

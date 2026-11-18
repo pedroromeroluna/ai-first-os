@@ -34,16 +34,23 @@ A spec is complete when any agent can read it and answer "does it pass or not?" 
 without asking for an opinion. Whatever is missing from this is not filled in at your own discretion:
 it is asked.
 
-**Frontmatter, two fields and no more:**
+**Intent first, for `feature` specs.** The spec of a `feature` names an accepted intent (`core/skills/new-intent.md`).
+When there is no intent with `status: accepted`, this skill offers to write the intent right there, following the
+steps of `new-intent`, asks the person to accept or reject it, and goes on only on acceptance. `verification` and
+`residuals` specs have no intent and do not ask for one.
+
+**Frontmatter.** A `feature` spec carries three fields; `verification` and `residuals` keep exactly `status` and
+`depends_on`:
 
 ```
 ---
 status: pendiente
 depends_on: []
+intent: intents/NNN-short-name.md
 ---
 ```
 
-`status` is `pendiente | esperando Gate 1 | en curso | implementada`. `depends_on` is an **inline**
+`intent` is the path of the accepted intent. `status` is `pendiente | esperando Gate 1 | en curso | implementada`. `depends_on` is an **inline**
 list of references to other specs (`[]` if it depends on none) — spread over several lines, a `grep`
 returns the first and loses the rest. The reader reports this field; it does not change it just
 because a dependency closed.

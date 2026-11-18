@@ -188,6 +188,7 @@ context.
 | `close-session` | Closes the session with a four-part verdict: captured, not captured, candidate resolver row, where to resume |
 | `mount-repo` | Gives an initiative a body: the remote in the head, the checkout outside the brain (or the repo born from the scaffold, with `--new`), the row in the environment table |
 | `grill` | The pressure interview: counter-question with a concrete example, capped attempts, escape hatches, evidence hierarchy |
+| `new-intent` | Writes a one-page intent a person accepts or rejects before the spec exists |
 | `new-spec` | Writes a spec an agent can implement without asking for an opinion — one runnable eval per criterion |
 | `supersede` | Marks a file as replaced by another —`superseded_by:` in the frontmatter of the old one— so a session that opens it knows what to read instead, and audits the marks of the whole brain |
 | `rename-workspaces` | Adopts the current name of the workspaces folder on a brain born before it, run only when the operator asks |
