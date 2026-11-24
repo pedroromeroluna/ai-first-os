@@ -112,7 +112,23 @@ respaldo_local() {
       ;;
     none) git -C "$brain" init -q ;;
   esac
+  # `.os/` holds symlinks with absolute paths of this machine (spec 051). Whether git ignores them is
+  # asked to git, never read off the file: a negation (`!.os`), a `.gitignore` that is a folder or one
+  # that cannot be read all leave a line `.os` in the file and `.os/` in the commit. What git does not
+  # ignore is declared and kept out of the first commit.
+  local ruta rutas=".os/core" d os_ignorado=1
+  for d in "$brain"/.os/packs/*; do
+    [ -e "$d" ] || [ -L "$d" ] || continue
+    rutas="$rutas .os/packs/${d##*/}"
+  done
+  for ruta in $rutas; do
+    git -C "$brain" check-ignore -q "$ruta" > /dev/null 2>&1 || os_ignorado=0
+  done
   git -C "$brain" add -A
+  if [ "$os_ignorado" = "0" ]; then
+    git -C "$brain" rm -r -q --cached --ignore-unmatch .os > /dev/null 2>&1 || true
+    printf 'sin .gitignore: git no ignora .os (el .gitignore de %s no se pudo escribir, o una regla lo vuelve a incluir) — el primer commit deja .os/ afuera, y hay que ignorarlo a mano antes del próximo git add\n' "$brain"
+  fi
   if git -C "$brain" commit -q -m "$S_FIRST_COMMIT" > /dev/null 2>&1; then
     printf 'respaldo local: git init + primer commit\n'
     return 0
@@ -228,7 +244,20 @@ os_render "$templates/tree.md" "MANUAL=$OS_MANUAL_LINK" > "$brain/$OS_TREE_FILE"
 
 os_check_identity_cap "$brain/$OS_OPERATOR_FILE"
 
-printf '%s · %s · %s · %s\n' "$OS_OPERATOR_FILE" "$OS_VOICE_FILE" "$OS_ROOT_RESOLVER_FILE" "$OS_TREE_FILE"
+# `.os` is the product's own folder (`.os/core` and `.os/packs/*` are symlinks with absolute paths of
+# the machine that made them, broken on any other): the brain declares it in its `.gitignore` before
+# the first commit below (spec 051). The entry is `.os`, the exact text `recall.sh` already writes;
+# `os_gitignore_ensure` compares text, so another spelling would leave two lines. A `.gitignore` that
+# was already there keeps its rules and is not one of the pieces that stop a second run.
+# The output names `.gitignore` only when this run wrote it. `os_gitignore_ensure` answers 1 for
+# "already there" and 0 even when its write failed, so the file is read back for the name; whether
+# `.os/` ends up ignored is asked to git in `respaldo_local`, which declares it when it is not.
+escrito="$OS_OPERATOR_FILE · $OS_VOICE_FILE · $OS_ROOT_RESOLVER_FILE · $OS_TREE_FILE"
+if os_gitignore_ensure "$brain" ".os" > /dev/null 2>&1 \
+   && grep -qx '[[:space:]]*\.os[[:space:]]*' "$brain/.gitignore" 2>/dev/null; then
+  escrito="$escrito · .gitignore"
+fi
+printf '%s\n' "$escrito"
 
 # El manual se engancha por symlink al del producto: nace con el brain y se actualiza con el
 # producto, sin volver a correr nada.

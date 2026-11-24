@@ -5,6 +5,14 @@ Every published version of AI First OS, newest first. The format follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html): *major* when an already installed brain
 needs a manual step to keep working, *minor* for a new capability, *patch* for a fix.
 
+## [2.4.1] — 2026-11-23
+
+An installed brain needs no step to use this version.
+
+### Fixed
+
+- A new brain is born with `.os` in its `.gitignore`, written by `bootstrap` before the first commit, so the first commit no longer carries `.os/core` and `.os/packs/*`, symlinks with absolute paths that are broken on any other machine. A `.gitignore` that was already there keeps its rules.
+
 ## [2.4.0] — 2026-11-18
 
 An installed brain needs no step to use this version.

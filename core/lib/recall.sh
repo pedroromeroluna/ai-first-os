@@ -9,7 +9,8 @@
 # with the same value, or only one, work the same; the two with different values stop with an error.
 #
 # WHAT THIS COMMAND INDEXES. The index is `.os/living-memory.sqlite`, inside the brain: never
-# committed (`.os/` is already in every brain's `.gitignore`, `os_gitignore_ensure`), and it is
+# committed (`bootstrap.sh` writes `.os` into the `.gitignore` of a new brain since spec 051; this
+# command still calls `os_gitignore_ensure` for the brains born before it), and it is
 # derived and discardable — deleting it just costs the next call a full reindex. It is written with
 # Python 3 (found by `os_python_find`: python3, python or py -3) and the `sqlite3` module of the
 # standard library, using an FTS5 table: no dependency the product does not already carry (Python 3
@@ -169,9 +170,10 @@ head_file=$(os_head_file "$brain") || true
 
 mkdir -p "$brain/.os" 2>/dev/null
 # The index never gets committed. `.os/` is meant to be gitignored everywhere it is used
-# (`.os/core` is the product's own symlink), but nothing before this spec had ever written the
-# entry — this is the first thing under `.os/` a brain accumulates on disk instead of just holding a
-# symlink, so the first call that would leave one is the one that makes sure the entry is there.
+# (`.os/core` is the product's own symlink). A brain born since spec 051 already has the entry,
+# written by `bootstrap.sh`, and this call is a no-op there; a brain born before it does not, and
+# this is the first thing under `.os/` it accumulates on disk instead of just holding a symlink, so
+# the first call that would leave one is the one that makes sure the entry is there.
 os_gitignore_ensure "$brain" ".os" > /dev/null 2>&1 || true
 db="$brain/.os/living-memory.sqlite"
 
