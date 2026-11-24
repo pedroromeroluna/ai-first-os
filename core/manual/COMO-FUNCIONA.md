@@ -374,7 +374,10 @@ Cuando eso pasa, se despiertan tres capacidades:
 - **`mount-repo`** — le da cuerpo a una iniciativa: apunta la cabeza al repositorio de código, deja
   el checkout afuera de tu carpeta y registra dónde quedó en esta máquina. Si el repositorio todavía
   no existe, el mismo comando lo hace nacer —con su constitución, sus carpetas y su primer commit— y
-  te deja el comando para crear el remoto. A partir de ahí, esa iniciativa tiene dónde construirse.
+  te deja el comando para crear el remoto. El repo nace con una carpeta `capabilities/`, una
+  descripción viva por capacidad que el merge mantiene al día, y con el script
+  `scripts/merge-if-green.sh` con que se hace el Gate 2. A partir de ahí, esa iniciativa tiene dónde
+  construirse.
 - **`new-intent`** — antes de la spec, escribe una intención de una página —el problema, el
   resultado, a quién afecta, las restricciones, las preguntas abiertas— que una persona acepta o
   rechaza. Una idea rechazada cuesta una página. La regla vive en `core/skills/new-intent.md`.

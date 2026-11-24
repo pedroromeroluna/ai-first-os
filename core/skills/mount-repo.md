@@ -43,7 +43,8 @@ the head's `repo:` is what activates the building mechanics, and this command wr
 **`--new` is for a repo that does not exist yet**: instead of cloning, it writes the scaffold
 —`CLAUDE.md` with the two gates and the Definition of Done, `.claude/settings.json` denying the
 agents `git push` and `gh pr merge`, `ARCHITECTURE.md`, `decisions.md`, `learnings/`,
-`docs/postmortems/`, `docs/research/`, `specs/done/`, `intents/`, `evals/run.sh`—, commits it and points
+`docs/postmortems/`, `docs/research/`, `specs/done/`, `intents/`, `evals/run.sh`, `capabilities/README.md` and
+`scripts/` with the merge script `scripts/merge-if-green.sh` and the capability tools—, commits it and points
 `origin` at the remote. The prose comes out in the brain's language.
 
 **`--new` reads "the remote does not answer" as "it does not exist yet".** A private repo that does

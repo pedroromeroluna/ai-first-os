@@ -5,6 +5,15 @@ Every published version of AI First OS, newest first. The format follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html): *major* when an already installed brain
 needs a manual step to keep working, *minor* for a new capability, *patch* for a fix.
 
+## [2.4.0] — 2026-11-18
+
+An installed brain needs no step to use this version.
+
+### Added
+
+- A repo born with `mount-repo --new` now carries `capabilities/`, one living description per capability, and `scripts/merge-if-green.sh`, which merges, applies the spec's capability changes, runs the repo's own checks and undoes the merge on red.
+- `new-spec` asks every `feature` spec of a repo with `capabilities/` for its `## Capability changes` section.
+
 ## [2.3.0] — 2026-11-17
 
 An installed brain needs no step to use this version.

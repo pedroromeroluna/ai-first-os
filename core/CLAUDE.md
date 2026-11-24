@@ -103,9 +103,14 @@ last commit. A clean tree and a recent commit say nothing about whether the work
 answer given by the session that wrote it dies with that session.
 
 **Gate 2 runs `scripts/merge-if-green.sh <branch>` of the mounted repo, never a bare `git merge`.**
-It refuses a branch that does not declare itself finished, merges, runs the whole eval suite over
-the result, and rolls the merge back if anything turns red. The person decides the branch is ready;
-the suite decides it is correct.
+It refuses a branch that does not declare itself finished, merges, applies the spec's `## Capability changes`
+section onto `capabilities/` (the rules are in the `capabilities/README.md` of the mounted repo), runs the whole
+eval suite of that repo over the result, and rolls the merge back if anything turns red. The person decides the
+branch is ready; the suite decides it is correct.
+
+A repo born from the product's scaffold carries the script.
+A mounted repo that does not have it has no mechanical Gate 2: the session says so before the merge, the person
+makes the merge, and the session never reports a script that did not run.
 
 **Whoever merges removes the worktree and deletes the branch: cleanup is the last step of Gate 2,
 never of the agent's own close.** The agent leaves its worktree standing because that is what the

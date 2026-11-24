@@ -6,6 +6,8 @@
 
 {{T_REPO_LAYOUT}}
 
+{{T_REPO_CAPABILITIES_RULE}}
+
 ## Gates
 
 {{T_REPO_GATES}}

@@ -528,6 +528,7 @@ en: |---|---|---|
 en: | How it is built | `ARCHITECTURE.md` (the as-built) | Live, overwritten |
 en: | What is going to change, and why | `intents/` | Transient: accepted or rejected by a person before the spec |
 en: | What is missing | `specs/` (+ `done/`) | Transient |
+en: | How a capability works today | `capabilities/` (one file per capability) | Live, kept by the merge |
 en: | What was decided and why | `decisions.md` | **Append-only**, never corrected |
 en: | What we learned | `learnings/` | Live: updated or deleted |
 en: | What broke, and why | `docs/postmortems/` | Dated, not overwritten |
@@ -538,21 +539,30 @@ es: |---|---|---|
 es: | Cómo está construido | `ARCHITECTURE.md` (el as-built) | Vivo, se pisa |
 es: | Qué se va a cambiar y por qué | `intents/` | Transitorio: una persona la acepta o la rechaza antes de la spec |
 es: | Qué falta | `specs/` (+ `done/`) | Transitorio |
+es: | Cómo funciona hoy una capacidad | `capabilities/` (un archivo por capacidad) | Vivo, lo mantiene el merge |
 es: | Qué se decidió y por qué | `decisions.md` | **Append-only**, nunca se corrige |
 es: | Qué aprendimos | `learnings/` | Vivo: se actualiza o se borra |
 es: | Qué se rompió, y por qué | `docs/postmortems/` | Fechado, no se pisa |
 es: | Evidencia de investigación | `docs/research/` | Fechada, no se pisa |
 es: | El chequeo de cada criterio | `evals/run.sh` | Vivo: un chequeo por criterio |
 
+key: REPO_CAPABILITIES_RULE
+en: A `feature` spec carries a `## Capability changes` section: what it adds, modifies or removes in each capability. The format and the rules are in `capabilities/README.md`.
+es: Una spec `feature` trae una sección `## Capability changes`: lo que agrega, modifica o quita en cada capacidad. El formato y las reglas están en `capabilities/README.md`.
+
 key: REPO_GATES
 en: - **Gate 1**: no implementation starts without an approved spec.
-en: - **Gate 2**: a person merges. Agents work on branches, never push to `main` and never merge:
-en:   `.claude/settings.json` denies them both commands.
+en: - **Gate 2**: a person decides the merge and makes it with `scripts/merge-if-green.sh <branch>`, never with
+en:   a bare `git merge`. The script merges, applies the spec's capability changes, runs `evals/run.sh` over
+en:   the result and undoes the merge if anything turns red. Agents work on branches, never push to `main` and
+en:   never merge: `.claude/settings.json` denies them both commands.
 en: - The PR carries the evidence of the evals. Whoever reviews it reports nothing they cannot quote
 en:   literally with `file:line`, and nothing without naming what breaks.
 es: - **Gate 1**: ninguna implementación arranca sin spec aprobada.
-es: - **Gate 2**: el merge lo hace una persona. Los agentes trabajan en ramas, nunca pushean a `main`
-es:   ni mergean: `.claude/settings.json` les niega los dos comandos.
+es: - **Gate 2**: el merge lo decide una persona y lo hace con `scripts/merge-if-green.sh <branch>`, nunca con
+es:   un `git merge` a secas. El script mergea, aplica los cambios de capacidades de la spec, corre
+es:   `evals/run.sh` sobre el resultado y deshace el merge si algo da rojo. Los agentes trabajan en ramas,
+es:   nunca pushean a `main` ni mergean: `.claude/settings.json` les niega los dos comandos.
 es: - El PR lleva la evidencia de los evals. El que lo revisa no reporta nada que no pueda citar
 es:   textualmente con `archivo:línea`, ni nada sin nombrar qué se rompe.
 

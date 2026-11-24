@@ -363,8 +363,9 @@ When that happens, three capabilities wake up:
 - **`mount-repo`** — gives an initiative a body: it points the head at the code repository, leaves
   the checkout outside your folder, and records where it landed on this machine. If the repository
   does not exist yet, the same command gives birth to it —with its constitution, its folders and its
-  first commit— and hands you the command to create the remote. From there, that initiative has
-  somewhere to build.
+  first commit— and hands you the command to create the remote. The repo is born with a `capabilities/`
+  folder, one living description per capability that the merge keeps up to date, and with the script
+  `scripts/merge-if-green.sh` that does Gate 2. From there, that initiative has somewhere to build.
 - **`new-intent`** — before the spec, writes a one-page intent —the problem, the outcome, who it
   affects, the constraints, the open questions— that a person accepts or rejects. A rejected idea
   costs one page. The rule lives in `core/skills/new-intent.md`.

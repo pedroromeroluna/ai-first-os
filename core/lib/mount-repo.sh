@@ -333,7 +333,8 @@ repo_birth() {
   local dest="$1" name="$2" tpl="$here/../templates/repo-scaffold" d
   birth_error=""
   mkdir -p "$dest/.claude" "$dest/specs/done" "$dest/intents" "$dest/docs/postmortems" "$dest/docs/research" \
-           "$dest/learnings" "$dest/evals" || { birth_error="mkdir $dest"; return 1; }
+           "$dest/learnings" "$dest/evals" "$dest/capabilities" "$dest/scripts" \
+    || { birth_error="mkdir $dest"; return 1; }
   os_render_lang "$tpl/CLAUDE.md" "$language" "NAME=$name" > "$dest/CLAUDE.md" \
     || { birth_error="CLAUDE.md"; return 1; }
   os_render_lang "$tpl/ARCHITECTURE.md" "$language" "NAME=$name" > "$dest/ARCHITECTURE.md" \
@@ -347,6 +348,19 @@ repo_birth() {
   # merge— and the ignore list that keeps a secret out of the first commit.
   cp "$tpl/settings.json" "$dest/.claude/settings.json" || { birth_error=".claude/settings.json"; return 1; }
   cp "$tpl/gitignore" "$dest/.gitignore" || { birth_error=".gitignore"; return 1; }
+  # The living capabilities travel with the repo: the format that explains them, and the merge script
+  # with the tools it calls. They are copied as they are —never rendered— so the born repo and the
+  # product hold the same bytes; the execute permission is set here, not trusted from the source,
+  # which an installation can lose.
+  cp "$tpl/capabilities/README.md" "$dest/capabilities/README.md" \
+    || { birth_error="capabilities/README.md"; return 1; }
+  for d in merge-if-green.sh capability_tools.py apply-capability-changes.sh check-capability-diagrams.sh \
+           check-capability-evals.sh render-mermaid.sh; do
+    cp "$tpl/scripts/$d" "$dest/scripts/$d" || { birth_error="scripts/$d"; return 1; }
+    case "$d" in
+      *.sh) chmod +x "$dest/scripts/$d" || { birth_error="chmod scripts/$d"; return 1; } ;;
+    esac
+  done
   # git does not track empty folders: without a keep file the taxonomy does not survive the first
   # clone, and the next agent finds a tree that is not the one that was born.
   for d in specs/done intents docs/postmortems docs/research learnings; do

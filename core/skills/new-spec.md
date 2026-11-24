@@ -25,6 +25,8 @@ If it was not stated, ask for it. Before writing:
   implemented, the terrain it describes may be gone. Git catches a code conflict at merge time and
   nothing catches a stale prior state, so the agent that implements it runs
   `git log <commit>..main --stat` first and sees in seconds whether its terrain moved.
+- `ls capabilities/` of the repo, if the folder exists → which capabilities already have a file, so the spec
+  says what it changes in each one and which ones it adds.
 - If the repo has no `specs/` yet, that repo has not adopted this format. Say so and offer to write
   the first spec anyway, creating the folder.
 
@@ -38,6 +40,12 @@ it is asked.
 When there is no intent with `status: accepted`, this skill offers to write the intent right there, following the
 steps of `new-intent`, asks the person to accept or reject it, and goes on only on acceptance. `verification` and
 `residuals` specs have no intent and do not ask for one.
+
+**Capability changes, for `feature` specs.** When the target repo has a `capabilities/` folder, a `feature` spec carries a
+`## Capability changes` section after its acceptance criteria: what it adds, modifies or removes in each capability. A
+capability with no file yet enters with `ADDED`. The format is in the `capabilities/README.md` of that repo; this skill does
+not repeat it. `verification` and `residuals` specs carry no `## Capability changes` section.
+A repo with no `capabilities/` folder is not asked for it.
 
 **Frontmatter.** A `feature` spec carries three fields; `verification` and `residuals` keep exactly `status` and
 `depends_on`:
